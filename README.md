@@ -62,23 +62,35 @@ Cada capa es **modular e independiente**, lo que permite trabajar en paralelo y 
 ## 📂 Estructura de directorios
 ```bash
 includes/
-├── Command.hpp # Estructura común Command (Parser ↔ Logic)
-├── Server.hpp # Persona 1 (Networking)
-├── Parser.hpp # Persona 2 (Parser)
-├── Client.hpp # Persona 3 (Users)
-├── Channel.hpp # Persona 3 (Channels)
-└── ServerLogic.hpp # Persona 3 (Core logic)
+├── Command.hpp # Estructura común (Parser ↔ Logic)
+│
+├── server/ # Persona 1 - Networking / Core
+│ └── Server.hpp
+│
+├── parser/ # Persona 2 - Parser / Protocolo
+│ └── Parser.hpp
+│
+└── logic/ # Persona 3 - Lógica de aplicación (Ana)
+├── Client.hpp
+├── Channel.hpp
+└── ServerLogic.hpp
 
 src/
-├── Server.cpp
-├── Parser.cpp
+├── server/
+│ └── Server.cpp
+│
+├── parser/
+│ └── Parser.cpp
+│
+└── logic/
 ├── Client.cpp
 ├── Channel.cpp
 └── ServerLogic.cpp
 
-main.cpp # Punto de entrada del servidor
-Makefile # Compilación general
-README.md # Documentación del equipo
+Makefile
+main.cpp
+README.md
+CONTRIBUTING.md
 ```
 
 ---
