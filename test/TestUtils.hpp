@@ -1,5 +1,5 @@
-#ifndef TEST_UTILS_HPP
-#define TEST_UTILS_HPP
+#ifndef TESTUTILS_HPP
+#define TESTUTILS_HPP
 
 #include <iostream>
 #include <string>
