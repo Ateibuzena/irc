@@ -8,7 +8,7 @@ CXXFLAGS    := -Wall -Wextra -Werror -std=c++98 \
                -I../../../includes \
                -I../../../includes/logic
 
-SRC_DIR     := ../../../srcs/logic
+SRC_DIR     := ../../../srcs/logic/client
 OBJ_DIR     := obj
 
 SRC         := $(SRC_DIR)/Client.cpp \
