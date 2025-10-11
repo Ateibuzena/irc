@@ -6,21 +6,27 @@
 
 class Client; // forward declaration
 
-class Channel {
-public:
-    Channel(const std::string &name);
-    ~Channel();
+class Channel
+{
+    private:
 
-    const std::string &getName() const;
-    void addClient(Client *client);
-    void removeClient(Client *client);
-    const std::set<Client *> &getClients() const;
+        std::string                 _name;
+        std::set<Client *>          _clients;
 
-    void broadcast(const std::string &message, int exceptFd = -1);
+    public:
 
-private:
-    std::string _name;
-    std::set<Client *> _clients;
+                                    Channel(const std::string& name);
+                                    
+                                    ~Channel();
+
+        const std::string&          getName() const;
+        const std::set<Client *>&   getClients() const;
+        
+        void                        addClient(Client* client);
+        void                        removeClient(Client* client);
+        void                        broadcast(const std::string& message, int exceptFd = -1);
+
+    
 };
 
 #endif // CHANNEL_HPP

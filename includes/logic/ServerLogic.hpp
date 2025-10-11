@@ -7,29 +7,31 @@
 #include "Channel.hpp"
 #include "../Command.hpp"
 
-class ServerLogic {
-public:
-    ServerLogic();
-    ~ServerLogic();
+class ServerLogic
+{
+    private:
 
-    void executeCommand(const Command &cmd, int clientFd);
+        std::map<int, Client *>             _clients;
+        std::map<std::string, Channel *>    _channels;
 
-    // interfaz para gestionar usuarios
-    void addClient(int fd);
-    void removeClient(int fd);
-    Client *getClient(int fd);
+        // helpers
+        void                                _handleNick(const Command& cmd, Client* client);
+        void                                _handleJoin(const Command& cmd, Client* client);
+        void                                _handlePrivmsg(const Command& cmd, Client* client);
 
-    // interfaz con canales
-    Channel *getOrCreateChannel(const std::string &name);
+    public:
 
-private:
-    std::map<int, Client *> _clients;
-    std::map<std::string, Channel *> _channels;
+                                            ServerLogic();
+                                                
+                                            ~ServerLogic();
 
-    // helpers
-    void _handleNick(const Command &cmd, Client *client);
-    void _handleJoin(const Command &cmd, Client *client);
-    void _handlePrivmsg(const Command &cmd, Client *client);
+        Client*                             getClient(int fd);
+        Channel*                            getOrCreateChannel(const std::string& name);
+
+        void                                executeCommand(const Command& cmd, int clientFd);
+
+        void                                addClient(int fd);
+        void                                removeClient(int fd);
 };
 
 #endif // SERVERLOGIC_HPP

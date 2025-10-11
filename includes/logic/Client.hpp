@@ -1,33 +1,45 @@
 #ifndef CLIENT_HPP
 #define CLIENT_HPP
 
+#include <iostream>
+#include <ostream>
+
 #include <string>
 #include <set>
 
-class Client {
-public:
-    Client(int fd);
-    ~Client();
+#include <algorithm>
 
-    int getFd() const;
-    const std::string &getNickname() const;
-    const std::string &getUsername() const;
-    bool isRegistered() const;
+#include "../../test/TestUtils.hpp"
 
-    void setNickname(const std::string &nick);
-    void setUsername(const std::string &user);
-    void setRegistered(bool state);
+class Client
+{
+    private:
 
-    void joinChannel(const std::string &channelName);
-    void leaveChannel(const std::string &channelName);
-    const std::set<std::string> &getChannels() const;
+        int                         _fd;
+        std::string                 _nickname;
+        std::string                 _username;
+        bool                        _registered;
+        std::set<std::string>       _channels;
 
-private:
-    int _fd;
-    std::string _nickname;
-    std::string _username;
-    bool _registered;
-    std::set<std::string> _channels;
+    public:
+
+                                        Client(int fdValue);
+
+                                        ~Client();
+
+        int                             getFd() const;
+        const std::string&              getNickname() const;
+        const std::string&              getUsername() const;
+        bool                            isRegistered() const;
+        const std::set<std::string>&    getChannels() const;
+
+
+        void                            setNickname(const std::string& nicknameValue);
+        void                            setUsername(const std::string& usernameValue);
+        void                            setRegistered(bool stateValue);
+
+        bool                            joinChannel(const std::string& channelName);
+        bool                            leaveChannel(const std::string& channelName);
 };
 
 #endif // CLIENT_HPP
