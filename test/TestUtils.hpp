@@ -14,6 +14,7 @@
 #define BLUE    "\033[1;34m"
 #define CYAN    "\033[0;36m"
 #define MAGENTA "\033[0;35m"
+#define BOLDWHITE "\033[1;37m"
 
 //
 // 🧱 Funciones auxiliares de formato

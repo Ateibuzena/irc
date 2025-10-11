@@ -12,6 +12,7 @@ SRC_DIR     := ../../../srcs/logic
 OBJ_DIR     := obj
 
 SRC         := $(SRC_DIR)/Client.cpp \
+			   $(SRC_DIR)/ClientUtils.cpp \
                TestClient.cpp
 
 # Quitamos las rutas al crear los objetos, así no mete ../../../ dentro
