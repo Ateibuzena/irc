@@ -87,8 +87,9 @@ int main()
     subsection("📢 Broadcast de mensajes");
 
     general.broadcast("Hello everyone!");
-    if (alice.getReceivedMessages()[0] == "Hello everyone!" &&
-        bob.getReceivedMessages()[0] == "Hello everyone!") {
+    std::string expected = "From [Channel:" + general.getName() + "]: Hello everyone!";
+    if (alice.getReceivedMessages()[0] == expected &&
+        bob.getReceivedMessages()[0] == expected) {
         success("Mensaje recibido correctamente");
     } else {
         error("Mensaje recibido incorrecto");
