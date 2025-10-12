@@ -1,4 +1,5 @@
 #include "logic/Client.hpp"
+#include "logic/Channel.hpp"
 
 /*
 1️⃣ Validaciones básicas
@@ -7,6 +8,7 @@ Verificar que nickname y username cumplan reglas de IRC (longitud, caracteres pe
 
 Comprobar que al cambiar nickname no se repita con otro cliente (esto será más relevante cuando tengas un gestor de clientes).
 
+Si quisiera endurecer la validación, podría requerir longitud mínima >1 o prohibir solo letras. Pero en términos de flujo, 100% correcto.
 */
 
 /*------------------------------CONSTRUCTORS---------------------------*/
@@ -115,45 +117,44 @@ void    Client::setRegistered(bool stateValue)
 
 /*------------------------------METHODS---------------------------*/
 
-ChannelStatus   Client::joinChannel(const std::string& channelName)
+/*✅ Explicación rápida:
+
+- El Client interactúa con el objeto Channel real.
+
+- _channels solo se actualiza si el canal acepta al cliente (JOIN_SUCCESS).
+
+- El canal aplica el límite de clientes y evita duplicados automáticamente.
+
+- Validación de nombre de canal integrada (isValidName).
+*/
+
+ChannelStatus   Client::joinChannel(Channel* channelPtr)
 {
-    std::string cleanName = trim(channelName);
-    
-    if (cleanName.empty())
-    {
-        std::cout << RED << "⚠️  Cannot join empty channel" << RESET << std::endl;
+    if (!channelPtr)
         return (CHANNEL_EMPTY);
-    }
 
-    std::pair<std::set<std::string>::iterator,bool> result = _channels.insert(cleanName);
+    if (!isValidName(channelPtr->getName()))
+        return (CHANNEL_EMPTY); // o NOT_A_VALID_CHANNEL si quieres otro enum
 
-    if (result.second)
-    {
-        std::cout << GREEN << "✅ Joined channel: " << cleanName << RESET << std::endl;
-        return (JOIN_SUCCESS);
-    }
-    else
-    {
-        std::cout << YELLOW << "⚠️  Already in channel: " << cleanName << RESET << std::endl;
-        return (ALREADY_IN_CHANNEL);
-    }
+    ChannelStatus status = channelPtr->addClient(this);
+
+    if (status == JOIN_SUCCESS)
+        _channels.insert(channelPtr->getName());
+
+    return (status);
 }
 
-ChannelStatus   Client::leaveChannel(const std::string& channelName)
+ChannelStatus Client::leaveChannel(Channel* channelPtr)
 {
-    std::string cleanName = trim(channelName);
+    if (!channelPtr)
+        return (NOT_IN_CHANNEL);
 
-    std::set<std::string>::iterator it = _channels.find(cleanName);
+    ChannelStatus status = channelPtr->removeClient(this);
 
-    if (it != _channels.end())
-    {
-        _channels.erase(it);
-        std::cout << GREEN << "✅ Left channel: " << channelName << RESET << std::endl;
-        return (LEAVE_SUCCESS);
-    }
+    if (status == LEAVE_SUCCESS)
+        _channels.erase(channelPtr->getName());
 
-    std::cout << YELLOW << "⚠️  Not in channel: " << channelName << RESET << std::endl;
-    return (NOT_IN_CHANNEL);
+    return (status);
 }
 
 /*💡 Explicación rápida:
@@ -163,6 +164,8 @@ ChannelStatus   Client::leaveChannel(const std::string& channelName)
 - Se imprime con color (opcional, para que siga siendo útil en debug).
 
 - Los métodos ahora reciben remitente o destinatario — aunque sean simples std::string, en el futuro podrían ser punteros a otros objetos Client.
+
+Podrías, si quieres, hacer que los mensajes vacíos no se agreguen al buffer (depende de tu diseño), pero no es un error.
 
 */
 

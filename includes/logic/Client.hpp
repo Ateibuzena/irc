@@ -12,15 +12,9 @@
 
 #include "../../test/TestUtils.hpp"
 
-enum ChannelStatus
-{
-    JOIN_SUCCESS,
-    ALREADY_IN_CHANNEL,
-    CHANNEL_EMPTY,
-    
-    LEAVE_SUCCESS,
-    NOT_IN_CHANNEL
-};
+#include "Command.hpp"
+
+class Channel; // Declaración adelantada
 
 class Client
 {
@@ -55,8 +49,8 @@ class Client
         void                            setUsername(const std::string& usernameValue);
         void                            setRegistered(bool stateValue);
 
-        ChannelStatus                   joinChannel(const std::string& channelName);
-        ChannelStatus                   leaveChannel(const std::string& channelName);
+        ChannelStatus                   joinChannel(Channel* channelPtr);
+        ChannelStatus                   leaveChannel(Channel* channelPtr);
 
         void                            receiveMessage(const std::string& messageValue, const std::string& sender);
         void                            sendMessage(const std::string& messageValue, const std::string& recipient);
