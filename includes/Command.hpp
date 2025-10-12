@@ -4,6 +4,16 @@
 #include <string>
 #include <vector>
 
+// Límite máximo de usuarios por canal
+#define MAX_USERS_PER_CHANNEL 100
+
+// Número máximo total de clientes conectados al servidor
+#define MAX_CLIENTS 500
+
+// Otros límites o parámetros futuros
+#define SERVER_NAME "irc.42malaga.net"
+#define SERVER_VERSION "1.0"
+
 //
 // 🎨 Colores ANSI
 //

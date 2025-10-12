@@ -11,11 +11,16 @@
 - Esto no hace nada de lógica de IRC todavía, solo gestiona la creación y destrucción de objetos del servidor.*/
 
 /*--------------------------------CONSTRUCTORS--------------------------------*/
-ServerLogic::ServerLogic(size_t defaultChannelLimit)
-    : _defaultChannelLimit(defaultChannelLimit)
+
+ServerLogic::ServerLogic(size_t defaultChannelLimitValue)
 {
-    std::cout << GREEN << "🟢 ServerLogic Constructor" << RESET << std::endl;
-    std::cout << BLUE << "Servidor inicializado. Clientes y canales vacíos." << RESET << std::endl;
+    if (defaultChannelLimitValue <= 0 || defaultChannelLimitValue > MAX_USERS_PER_CHANNEL)
+        _defaultChannelLimit = MAX_USERS_PER_CHANNEL;
+    else
+        _defaultChannelLimit = defaultChannelLimitValue;
+
+    std::cout << "✅ ServerLogic initialized with default limit = "
+              << _defaultChannelLimit << std::endl;
 }
 
 /*--------------------------------DESTRUCTORS---------------------------------*/
@@ -33,7 +38,7 @@ ServerLogic::~ServerLogic()
         {
             client->disconnect(); // limpia datos del cliente
             delete (client);        // liberamos memoria
-            std::cout << GREEN << "✅ Cliente con fd " << fd << " eliminado." << RESET << std::endl;
+            std::cout << GREEN << "✅ Client with fd " << fd << " deleted." << RESET << std::endl;
         }
     }
     _clients.clear();
@@ -46,12 +51,12 @@ ServerLogic::~ServerLogic()
         if (channel)
         {
             delete (channel);
-            std::cout << GREEN << "✅ Canal " << it->first << " eliminado." << RESET << std::endl;
+            std::cout << GREEN << "✅ Channel " << it->first << " deleted." << RESET << std::endl;
         }
     }
     _channels.clear();
 
-    std::cout << BLUE << "Servidor destruido correctamente." << RESET << std::endl;
+    std::cout << BLUE << "Server destroyed successfully." << RESET << std::endl;
 }
 
 /*----------------------------------HELPERS-----------------------------------*/
@@ -74,12 +79,12 @@ void    ServerLogic::handleNICK(Client* client, const std::string& nickname)
     if (!client)
         return ;
 
-    std::cout << BLUE << "ℹ️  handleNICK: Cliente fd " << client->getFd() << " cambia nickname a " << nickname << RESET << std::endl;
+    std::cout << BLUE << "ℹ️  handleNICK: Client with fd " << client->getFd() << " changes nickname to " << nickname << RESET << std::endl;
 
     // Comprobamos si ya existe otro cliente con ese nickname
     if (_nicknames.find(nickname) != _nicknames.end())
     {
-        std::cout << YELLOW << "⚠️  Nickname ya en uso: " << nickname << RESET << std::endl;
+        std::cout << YELLOW << "⚠️  Nickname already in use: " << nickname << RESET << std::endl;
         return ;
     }
 
@@ -90,7 +95,7 @@ void    ServerLogic::handleNICK(Client* client, const std::string& nickname)
     client->setNickname(nickname);
     _nicknames[nickname] = client;
 
-    std::cout << GREEN << "✅ Nickname actualizado: " << nickname << RESET << std::endl;
+    std::cout << GREEN << "✅ Nickname updated: " << nickname << RESET << std::endl;
 }
 
 // Establecer username
@@ -99,9 +104,9 @@ void    ServerLogic::handleUSER(Client* client, const std::string& username)
     if (!client)
         return ;
 
-    std::cout << BLUE << "ℹ️  handleUSER: Cliente fd " << client->getFd() << " username: " << username << RESET << std::endl;
+    std::cout << BLUE << "ℹ️  handleUSER: Client with fd " << client->getFd() << " username: " << username << RESET << std::endl;
     client->setUsername(username);
-    std::cout << GREEN << "✅ Username establecido: " << username << RESET << std::endl;
+    std::cout << GREEN << "✅ Username saved: " << username << RESET << std::endl;
 }
 
 // Unirse a un canal (o crearlo si no existe)
@@ -110,9 +115,9 @@ void    ServerLogic::handleJOIN(Client* client, const std::string& channelName)
     if (!client)
         return ;
 
-    std::cout << BLUE << "ℹ️  handleJOIN: Cliente " << client->getNickname() << " se une al canal " << channelName << RESET << std::endl;
+    std::cout << BLUE << "ℹ️  handleJOIN: Client " << client->getNickname() << " joins channel " << channelName << RESET << std::endl;
 
-    Channel* channel = getOrCreateChannel(channelName);
+    Channel* channel = createChannel(channelName);
     ChannelStatus status = client->joinChannel(channel);
 
     switch (status)
@@ -127,7 +132,7 @@ void    ServerLogic::handleJOIN(Client* client, const std::string& channelName)
             std::cout << YELLOW << "⚠️  " << channelName << " está lleno" << RESET << std::endl;
             break ;
         default:
-            std::cout << RED << "❌ Error al unirse al canal " << channelName << RESET << std::endl;
+            std::cout << RED << "❌ Error to join channel " << channelName << RESET << std::endl;
             break ;
     }
 }
@@ -138,12 +143,12 @@ void    ServerLogic::handlePART(Client* client, const std::string& channelName)
     if (!client)
         return ;
 
-    std::cout << BLUE << "ℹ️  handlePART: Cliente " << client->getNickname() << " sale del canal " << channelName << RESET << std::endl;
+    std::cout << BLUE << "ℹ️  handlePART: Client " << client->getNickname() << " leaves channel " << channelName << RESET << std::endl;
 
     std::map<std::string, Channel*>::iterator it = _channels.find(channelName);
     if (it == _channels.end())
     {
-        std::cout << YELLOW << "⚠️  Canal no existe: " << channelName << RESET << std::endl;
+        std::cout << YELLOW << "⚠️  Channel not found: " << channelName << RESET << std::endl;
         return ;
     }
 
@@ -160,7 +165,7 @@ void    ServerLogic::handlePART(Client* client, const std::string& channelName)
             std::cout << YELLOW << "⚠️  " << client->getNickname() << " no estaba en " << channelName << RESET << std::endl;
             break ;
         default:
-            std::cout << RED << "❌ Error al salir del canal " << channelName << RESET << std::endl;
+            std::cout << RED << "❌ Error to leave channel " << channelName << RESET << std::endl;
             break ;
     }
 }
@@ -171,7 +176,7 @@ void    ServerLogic::handlePRIVMSG(Client* client, const std::string& target, co
     if (!client)
         return ;
 
-    std::cout << BLUE << "ℹ️  handlePRIVMSG: Cliente " << client->getNickname() << " -> " << target << ": " << msg << RESET << std::endl;
+    std::cout << BLUE << "ℹ️  handlePRIVMSG: Client " << client->getNickname() << " -> " << target << ": " << msg << RESET << std::endl;
 
     // Primero buscamos si es un canal
    std::map<std::string, Channel*>::iterator chanIt = _channels.find(target);
@@ -179,7 +184,7 @@ void    ServerLogic::handlePRIVMSG(Client* client, const std::string& target, co
     {
         Channel* channel = chanIt->second;
         channel->broadcast(msg, client);
-        std::cout << GREEN << "✅ Mensaje enviado a canal " << target << RESET << std::endl;
+        std::cout << GREEN << "✅ Message sent to channel " << target << RESET << std::endl;
         return ;
     }
 
@@ -189,70 +194,90 @@ void    ServerLogic::handlePRIVMSG(Client* client, const std::string& target, co
     {
         Client* recipient = nickIt->second;
         recipient->receiveMessage(msg, client->getNickname());
-        std::cout << GREEN << "✅ Mensaje privado enviado a " << target << RESET << std::endl;
+        std::cout << GREEN << "✅ Private message sent to " << target << RESET << std::endl;
         return ;
     }
 
 
-    std::cout << YELLOW << "⚠️  Destino no encontrado: " << target << RESET << std::endl;
+    std::cout << YELLOW << "⚠️  Destination not found: " << target << RESET << std::endl;
 }
 
 /*----------------------------------GETTERS------------------------------------*/
 
 // Devuelve el cliente según su fd
-Client* ServerLogic::getClient(int fd)
+Client* ServerLogic::getClient(int fd) const
 {
-    std::map<int, Client*>::iterator it = _clients.find(fd);
+    std::map<int, Client*>::const_iterator it = _clients.find(fd);
     if (it != _clients.end())
     {
-        std::string msg = "📌 getClient: Encontrado cliente fd " + to_string_c98(fd);
+        std::string msg = "📌 getClient: Client found with fd " + to_string_c98(fd);
         std::cout << CYAN << msg << RESET << std::endl;
         return (it->second);
     }
 
-    std::string msg = "⚠️ getClient: Cliente no encontrado fd " + to_string_c98(fd);
+    std::string msg = "⚠️ getClient: Client not found with fd " + to_string_c98(fd);
     std::cout << YELLOW << msg << RESET << std::endl;
     return (NULL);
 }
 
-// Devuelve un canal existente o lo crea si no existe
-Channel*    ServerLogic::getOrCreateChannel(const std::string& name)
+Channel* ServerLogic::getChannel(const std::string& name) const
 {
-    std::map<std::string, Channel*>::iterator it = _channels.find(name);
+    std::map<std::string, Channel*>::const_iterator it = _channels.find(name);
     if (it != _channels.end())
     {
-        std::string msg = "📌 getOrCreateChannel: Canal existente " + name;
+        std::string msg = "📌 getChannel: Channel found " + name;
         std::cout << CYAN << msg << RESET << std::endl;
         return (it->second);
     }
 
-    std::string msg = "🟢 getOrCreateChannel: Creando canal " + name;
+    std::string msg = "⚠️ getChannel: Channel not found " + name;
+    std::cout << YELLOW << msg << RESET << std::endl;
+    return (NULL);
+}
+
+size_t  ServerLogic::getDefaultChannelLimit() const
+{
+    return (_defaultChannelLimit);
+}
+
+/*----------------------------------METHODS------------------------------------*/
+
+// Devuelve un canal existente o lo crea si no existe
+Channel*    ServerLogic::createChannel(const std::string& name)
+{
+    std::map<std::string, Channel*>::const_iterator it = _channels.find(name);
+    if (it != _channels.end())
+    {
+        std::string msg = "📌 createChannel: Channel already exists " + name;
+        std::cout << CYAN << msg << RESET << std::endl;
+        return (it->second);
+    }
+
+    std::string msg = "🟢 createChannel: Creating channel " + name;
     std::cout << BLUE << msg << RESET << std::endl;
 
     Channel* newChannel = new Channel(name, _defaultChannelLimit); // Por defecto límite de clientes
     _channels[name] = newChannel;
 
-    std::string successMsg = "✅ Canal creado: " + name;
+    std::string successMsg = "✅ Channel created: " + name;
     std::cout << GREEN << successMsg << RESET << std::endl;
 
     return (newChannel);
 }
 
-/*----------------------------------METHODS------------------------------------*/
-
 void    ServerLogic::addClient(int fd)
 {
     if (_clients.find(fd) != _clients.end())
     {
-        std::cout << YELLOW << "⚠️ addClient: Cliente con fd " 
-                  << to_string_c98(fd) << " ya existe." << RESET << std::endl;
+        std::cout << YELLOW << "⚠️ addClient: Client with fd " 
+                  << to_string_c98(fd) << " already exists." << RESET << std::endl;
         return ;
     }
 
     Client* newClient = new Client(fd);
     _clients[fd] = newClient;
 
-    std::cout << CYAN << "📌 Cliente agregado con fd " 
+    std::cout << CYAN << "📌 Client added with fd " 
               << to_string_c98(fd) << RESET << std::endl;
 }
 
@@ -261,8 +286,8 @@ void    ServerLogic::removeClient(int fd)
     std::map<int, Client*>::iterator it = _clients.find(fd);
     if (it == _clients.end())
     {
-        std::cout << YELLOW << "⚠️ removeClient: Cliente con fd " 
-                  << to_string_c98(fd) << " no existe." << RESET << std::endl;
+        std::cout << YELLOW << "⚠️ removeClient: Client with fd " 
+                  << to_string_c98(fd) << " not found." << RESET << std::endl;
         return ;
     }
 
@@ -273,7 +298,7 @@ void    ServerLogic::removeClient(int fd)
     std::set<std::string>::iterator chIt;
     for (chIt = channelsCopy.begin(); chIt != channelsCopy.end(); ++chIt)
     {
-        Channel* channel = getOrCreateChannel(*chIt); // siempre devuelve canal existente
+        Channel* channel = getChannel(*chIt); // siempre devuelve canal existente
         channel->removeClient(client);
     }
 
@@ -285,7 +310,7 @@ void    ServerLogic::removeClient(int fd)
     _clients.erase(it);
     delete (client);
 
-    std::cout << CYAN << "📌 Cliente eliminado con fd " 
+    std::cout << CYAN << "📌 Client removed with fd " 
               << to_string_c98(fd) << RESET << std::endl;
 }
 
@@ -295,8 +320,8 @@ void    ServerLogic::executeCommand(const Command& cmd, int clientFd)
     std::map<int, Client*>::iterator it = _clients.find(clientFd);
     if (it == _clients.end())
     {
-        std::cout << YELLOW << "⚠️ executeCommand: Cliente con fd " 
-                  << to_string_c98(clientFd) << " no encontrado." << RESET << std::endl;
+        std::cout << YELLOW << "⚠️ executeCommand: Client with fd " 
+                  << to_string_c98(clientFd) << " not found." << RESET << std::endl;
         return ;
     }
 
@@ -326,7 +351,7 @@ void    ServerLogic::executeCommand(const Command& cmd, int clientFd)
     }
     else
     {
-        std::cout << YELLOW << "⚠️ executeCommand: Comando desconocido o parámetros faltantes: "
+        std::cout << YELLOW << "⚠️ executeCommand: Command not recognized or missing params: "
                   << commandName << RESET << std::endl;
     }
 }

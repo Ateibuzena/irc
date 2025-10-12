@@ -8,23 +8,27 @@ int main()
     {
         subsection("Inicialización del servidor lógico");
         ServerLogic logic(2222222222222222);
-        success("ServerLogic inicializado con límite de 2222222222222222 por canal.");
+        success("ServerLogic inicializado con límite de " + to_string_c98(logic.getDefaultChannelLimit()) + " por canal.");
     }
 
     {
         subsection("Inicialización del servidor lógico");
         ServerLogic logic(-5);
-        success("ServerLogic inicializado con límite de -5 por canal.");
+        success("ServerLogic inicializado con límite de " + to_string_c98(logic.getDefaultChannelLimit()) + " por canal.");
     }
-
     {
         subsection("Inicialización del servidor lógico");
         ServerLogic logic(0);
-        success("ServerLogic inicializado con límite de 0 por canal.");
+        success("ServerLogic inicializado con límite de " + to_string_c98(logic.getDefaultChannelLimit()) + " por canal.");
+    }
+    {
+        subsection("Inicialización del servidor lógico");
+        ServerLogic logic;
+        success("ServerLogic inicializado con límite de " + to_string_c98(logic.getDefaultChannelLimit()) + " por canal.");
     }
     subsection("Inicialización del servidor lógico");
     ServerLogic logic(2); // máximo 2 usuarios por canal
-    success("ServerLogic inicializado con límite de 2 por canal.");
+    success("ServerLogic inicializado con límite de " + to_string_c98(logic.getDefaultChannelLimit()) + " por canal.");
 
     // -------------------------------------------------------------------------
     // 🧱 Simulamos el "network layer": fd asignados a clientes

@@ -28,13 +28,16 @@ class ServerLogic
 
     public:
 
-                                            ServerLogic(size_t defaultChannelLimit = 10);
+                                            ServerLogic(size_t defaultChannelLimitValue = 10);
                                                 
                                             ~ServerLogic();
 
-        Client*                             getClient(int fd);
-        Channel*                            getOrCreateChannel(const std::string& name);
+        Client*                             getClient(int fd) const;
+        Channel*                            getChannel(const std::string& name) const;
+        size_t                              getDefaultChannelLimit() const;
 
+        Channel*                            createChannel(const std::string& name);
+        
         void                                executeCommand(const Command& cmd, int clientFd);
 
         void                                addClient(int fd);
