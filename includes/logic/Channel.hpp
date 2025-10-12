@@ -1,10 +1,11 @@
 #ifndef CHANNEL_HPP
 #define CHANNEL_HPP
 
+#include <iostream>
 #include <string>
 #include <set>
 
-class Client; // forward declaration
+#include "logic/Client.hpp" // necesitamos la definición completa de Client
 
 class Channel
 {
@@ -15,16 +16,16 @@ class Channel
 
     public:
 
-                                    Channel(const std::string& name);
+                                    Channel(const std::string& nameValue);
                                     
                                     ~Channel();
 
         const std::string&          getName() const;
         const std::set<Client *>&   getClients() const;
         
-        void                        addClient(Client* client);
-        void                        removeClient(Client* client);
-        void                        broadcast(const std::string& message, int exceptFd = -1);
+        void                        addClient(Client* clientValue);
+        void                        removeClient(Client* clientValue);
+        void                        broadcast(const std::string& messageValue, int exceptFd = -1);
 
     
 };
