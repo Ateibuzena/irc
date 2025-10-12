@@ -2,26 +2,34 @@
 #define SERVERLOGIC_HPP
 
 #include <map>
+#include <vector>
 #include <string>
+#include <iostream>
+
 #include "Client.hpp"
 #include "Channel.hpp"
 #include "../Command.hpp"
+#include "../../test/TestUtils.hpp"
 
 class ServerLogic
 {
     private:
 
-        std::map<int, Client *>             _clients;
-        std::map<std::string, Channel *>    _channels;
+        std::map<int, Client *>             _clients;    // _fd -> Client
+        std::map<std::string, Client*>      _nicknames;    // _nickname -> Client
+        std::map<std::string, Channel *>    _channels; // _name -> Channel
+        size_t                              _defaultChannelLimit;     // límite personas por defecto para nuevos canales
 
         // helpers
-        void                                _handleNick(const Command& cmd, Client* client);
-        void                                _handleJoin(const Command& cmd, Client* client);
-        void                                _handlePrivmsg(const Command& cmd, Client* client);
+        void                                handleNICK(Client* client, const std::string& nickname);
+        void                                handleUSER(Client* client, const std::string& username);
+        void                                handleJOIN(Client* client, const std::string& channelName);
+        void                                handlePART(Client* client, const std::string& channelName);
+        void                                handlePRIVMSG(Client* client, const std::string& target, const std::string& msg);
 
     public:
 
-                                            ServerLogic();
+                                            ServerLogic(size_t defaultChannelLimit = 10);
                                                 
                                             ~ServerLogic();
 
@@ -38,5 +46,13 @@ class ServerLogic
 
 /*🧠 ServerLogic.hpp
 
-Aquí está el centro de la lógica, donde manejarás los comandos.
-Este fichero conecta todo lo tuyo con el Server y el Command.*/
+- executeCommand(const Command&, int) es el punto central:
+
+- Aquí decides qué helper llamar según cmd.getName().
+
+- _clients y _nicknames te permiten validar duplicados de nicknames y buscar clientes rápido.
+
+- _channels crea o retorna canales existentes (getOrCreateChannel).
+
+- Los helpers (handleNICK, etc.) encapsulan la lógica de cada comando.
+Así no mezclas parsing con la lógica real de IRC.*/
