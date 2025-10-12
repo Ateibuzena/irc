@@ -88,6 +88,7 @@ ChannelStatus Channel::addClient(Client* clientValue)
         return (CHANNEL_FULL);
 
     _clients.insert(clientValue);
+    clientValue->joinChannel(this); // <-- esto mantiene consistencia
     return (JOIN_SUCCESS);
 }
 
@@ -96,21 +97,26 @@ ChannelStatus   Channel::removeClient(Client* clientValue)
     if (!clientValue)
         return (INVALID_CLIENT);
     if (_clients.erase(clientValue) == 0)
+    {
+        //clientValue->leaveChannel(this);
         return (NOT_IN_CHANNEL);
+    }
+    clientValue->leaveChannel(this); // <-- esto mantiene consistencia
     return (LEAVE_SUCCESS);
 }
 
 /*Ahora broadcast siempre excluye a exceptFd solo si se pasa. Podrías tener un booleano includeSender para mayor claridad*/
 
-void    Channel::broadcast(const std::string& messageValue, int exceptFd)
+void Channel::broadcast(const std::string& msg, Client* sender)
 {
-    for (std::set<Client*>::iterator it = _clients.begin(); it != _clients.end(); ++it)
+    // Hacemos una copia para iterar seguro aunque un cliente se elimine
+    std::set<Client*> clientsCopy = _clients;
+
+    for (std::set<Client*>::iterator it = clientsCopy.begin(); it != clientsCopy.end(); ++it)
     {
         Client* client = *it;
-        if (client->getFd() != exceptFd)
-        {
-            client->receiveMessage(messageValue, "Channel:" + _name);
-        }
+        if (!sender || client != sender) // enviamos a todos excepto al sender si se pasa
+            client->receiveMessage(msg, "Channel:" + _name);
     }
 }
 

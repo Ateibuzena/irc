@@ -86,7 +86,7 @@ int main()
     //==============================//
     subsection("📢 Broadcast de mensajes");
 
-    general.broadcast("Hello everyone!");
+    general.broadcast("Hello everyone!", NULL);
     std::string expected = "From [Channel:" + general.getName() + "]: Hello everyone!";
     if (alice.getReceivedMessages()[0] == expected &&
         bob.getReceivedMessages()[0] == expected) {
@@ -103,7 +103,7 @@ int main()
     status = general.removeClient(&alice);
     success("Remove Alice: " + to_string_c98(status));
 
-    general.broadcast("Second broadcast");
+    general.broadcast("Second broadcast", &alice);
     if (bob.getReceivedMessages().size() == 2 && alice.getReceivedMessages().size() == 1)
         success("Broadcast tras eliminar OK (Alice no recibió más)");
     else
@@ -132,7 +132,7 @@ int main()
     subsection("🕳️ Broadcast en canal vacío");
 
     general.removeClient(&bob);
-    general.broadcast("Should reach nobody");
+    general.broadcast("Should reach nobody", &bob);
     success("Broadcast en canal vacío no crasheó");
 
     if (bob.getReceivedMessages().size() == 2)

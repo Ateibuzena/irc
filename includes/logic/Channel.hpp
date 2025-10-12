@@ -33,7 +33,7 @@ class Channel
         
         ChannelStatus               addClient(Client* clientValue);
         ChannelStatus               removeClient(Client* clientValue);
-        void                        broadcast(const std::string& messageValue, int exceptFd = -1);
+        void                        broadcast(const std::string& messageValue, Client* sender = NULL);
 
         bool                        hasClient(Client* client) const;
     
