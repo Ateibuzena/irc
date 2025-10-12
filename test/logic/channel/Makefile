@@ -14,6 +14,7 @@ SRC_DIR_CHANNEL := ../../../srcs/logic/channel
 OBJ_DIR     := obj
 
 SRC         := $(SRC_DIR_CHANNEL)/Channel.cpp \
+				$(SRC_DIR_CHANNEL)/ChannelUtils.cpp \
                $(SRC_DIR_CLIENT)/Client.cpp \
                $(SRC_DIR_CLIENT)/ClientUtils.cpp \
                TestChannel.cpp

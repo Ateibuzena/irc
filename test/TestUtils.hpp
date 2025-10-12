@@ -27,6 +27,14 @@ inline void separator(const std::string& title = "")
     std::cout << BLUE << "══════════════════════════════════════════════════════════════" << RESET << "\n";
 }
 
+// Subsection, para bloques internos dentro de un test
+inline void subsection(const std::string& title)
+{
+    std::cout << "\n──────────────────────────────────────────────────────────────\n";
+    std::cout << "🔹 " << title << std::endl;
+    std::cout << "──────────────────────────────────────────────────────────────\n";
+}
+
 inline void info(const std::string& msg)
 {
     std::cout << CYAN << "ℹ️  " << msg << RESET << std::endl;

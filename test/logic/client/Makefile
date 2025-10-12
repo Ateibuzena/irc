@@ -8,17 +8,17 @@ CXXFLAGS    := -Wall -Wextra -Werror -std=c++98 \
                -I../../../includes \
                -I../../../includes/logic
 
-SRC_DIR     := ../../../srcs/logic/client
+SRC_DIR     := ../../../srcs/logic
 OBJ_DIR     := obj
 
-SRC         := $(SRC_DIR)/Client.cpp \
-			   $(SRC_DIR)/ClientUtils.cpp \
+SRC         := $(SRC_DIR)/client/Client.cpp \
+               $(SRC_DIR)/client/ClientUtils.cpp \
+               $(SRC_DIR)/channel/Channel.cpp \
+               $(SRC_DIR)/channel/ChannelUtils.cpp \
                TestClient.cpp
 
-# Quitamos las rutas al crear los objetos, así no mete ../../../ dentro
 OBJ         := $(addprefix $(OBJ_DIR)/, $(notdir $(SRC:.cpp=.o)))
 
-# Colores
 GREEN       := \033[0;32m
 YELLOW      := \033[1;33m
 RED         := \033[0;31m
@@ -35,13 +35,13 @@ $(NAME): $(OBJ)
 	@$(CXX) $(CXXFLAGS) $(OBJ) -o $(NAME)
 	@echo "$(GREEN)✅ Build complete: $(NAME)$(RESET)"
 
-$(OBJ_DIR)/%.o: $(SRC_DIR)/%.cpp | $(OBJ_DIR)
-	@mkdir -p $(OBJ_DIR)
+# 🔹 Compila cualquier .cpp sin importar subcarpeta
+$(OBJ_DIR)/%.o: $(SRC_DIR)/*/%.cpp | $(OBJ_DIR)
 	@echo "$(YELLOW)Compiling source:$(RESET) $<"
 	@$(CXX) $(CXXFLAGS) -c $< -o $@
 
+# 🔹 Compila el test local
 $(OBJ_DIR)/%.o: %.cpp | $(OBJ_DIR)
-	@mkdir -p $(OBJ_DIR)
 	@echo "$(YELLOW)Compiling test:$(RESET) $<"
 	@$(CXX) $(CXXFLAGS) -c $< -o $@
 
@@ -61,9 +61,5 @@ re: fclean all
 run: all
 	@echo "$(YELLOW)🚀 Running test...$(RESET)"
 	@./$(NAME)
-
-# **************************************************************************** #
-#                                   PHONY                                      #
-# **************************************************************************** #
 
 .PHONY: all clean fclean re run
