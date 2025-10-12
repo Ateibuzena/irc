@@ -9,7 +9,6 @@
 #include "Client.hpp"
 #include "Channel.hpp"
 #include "../Command.hpp"
-#include "../../test/TestUtils.hpp"
 
 class ServerLogic
 {

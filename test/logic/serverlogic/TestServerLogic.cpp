@@ -1,7 +1,6 @@
 // TestServerLogic.cpp
-#include "../../TestUtils.hpp"
 #include "ServerLogic.hpp"
-#include "Command.hpp"
+#include "../../TestUtils.hpp"
 
 // Función auxiliar para crear un comando
 static void sendCommand(ServerLogic &server, int clientFd,

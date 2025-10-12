@@ -4,6 +4,18 @@
 #include <string>
 #include <vector>
 
+//
+// 🎨 Colores ANSI
+//
+#define RESET   "\033[0m"
+#define RED     "\033[0;31m"
+#define GREEN   "\033[0;32m"
+#define YELLOW  "\033[1;33m"
+#define BLUE    "\033[1;34m"
+#define CYAN    "\033[0;36m"
+#define MAGENTA "\033[0;35m"
+#define BOLDWHITE "\033[1;37m"
+
 struct Command
 {
     std::string name;                 // Ej: "NICK", "JOIN", "PRIVMSG"
