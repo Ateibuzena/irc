@@ -20,7 +20,7 @@ class Channel
 
     public:
 
-                                    Channel(const std::string& nameValue, size_t maxClients = 50);
+                                    Channel(const std::string& nameValue, size_t maxClientsValue = 50);
                                     
                                     ~Channel();
 
@@ -28,16 +28,14 @@ class Channel
         const std::set<Client *>&   getClients() const;
 
         std::vector<std::string>    getNicknames() const;
-        
-        ChannelStatus               addClient(Client* clientValue);
-        ChannelStatus               removeClient(Client* clientValue);
+
+        void                        addClient(Client* clientValue);
+        void                        removeClient(Client* clientValue);
         void                        broadcast(const std::string& messageValue, Client* sender = NULL);
 
         bool                        hasClient(Client* client) const;
     
 };
-
-bool                                isValidName(const std::string& name);
 
 #endif // CHANNEL_HPP
 
