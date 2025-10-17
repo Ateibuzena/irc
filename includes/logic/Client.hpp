@@ -43,12 +43,12 @@ class Client
         const std::vector<std::string>& getReceivedMessages() const; // Para testing
 
 
-        void                            setNickname(const std::string& nicknameValue);
+        bool                            setNickname(const std::string& nicknameValue);
         void                            setUsername(const std::string& usernameValue);
         void                            setRegistered(bool stateValue);
 
-        ChannelStatus                   joinChannel(Channel* channelPtr);
-        ChannelStatus                   leaveChannel(Channel* channelPtr);
+        void                            joinChannel(Channel* channelPtr);
+        void                            leaveChannel(Channel* channelPtr);
 
         void                            receiveMessage(const std::string& messageValue, const std::string& sender);
         void                            sendMessage(const std::string& messageValue, const std::string& recipient);
