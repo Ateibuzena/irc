@@ -3,18 +3,18 @@
 
 /*-------------------------------------METHODS------------------------------------*/
 
-void    Channel::addClient(Client* clientValue)
+void    Channel::addClient(Client* client)
 {
-    if (clientValue->getChannels().size() >= MAX_CHANNELS_PER_CLIENT)
+    if (client->getChannels().size() >= MAX_CHANNELS_PER_CLIENT)
         throw (ERR_TOOMANYCHANNELS);
     if (_clients.size() >= _maxClients)
         throw (ERR_CHANNELISFULL);
-    _clients.insert(clientValue);
+    _clients.insert(client);
 }
 
-ChannelStatus   Channel::removeClient(Client* clientValue)
+ChannelStatus   Channel::removeClient(Client* client)
 {
-    if (_clients.erase(clientValue) == 0)
+    if (_clients.erase(client) == 0)
         throw (ERR_NOTONCHANNEL);
 }
 

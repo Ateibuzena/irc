@@ -3,9 +3,9 @@
 
 /*-------------------------------------CONSTRUCTORS------------------------------------*/
 
-Channel::Channel(const std::string& nameValue, size_t maxClientsValue)
-    :   _name(nameValue),
-        _maxClients(maxClientsValue)
+Channel::Channel(const std::string& name, size_t maxClients)
+    :   _name(name),
+        _maxClients(maxClients)
 {
     std::cout << "Channel created: " << _name << " with max clients: " << _maxClients << std::endl;
 }

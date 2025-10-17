@@ -15,7 +15,7 @@ class Channel
 
     public:
 
-                                    Channel(const std::string& nameValue, size_t maxClientsValue = 50);
+                                    Channel(const std::string& name, size_t maxClients = 50);
                                     
                                     ~Channel();
 
@@ -24,9 +24,9 @@ class Channel
 
         std::vector<std::string>    getNicknames() const;
 
-        void                        addClient(Client* clientValue);
-        void                        removeClient(Client* clientValue);
-        void                        broadcast(const std::string& messageValue, Client* sender = NULL);
+        void                        addClient(Client* client);
+        void                        removeClient(Client* client);
+        void                        broadcast(const std::string& message, Client* sender = NULL);
 
         bool                        hasClient(Client* client) const;
     
