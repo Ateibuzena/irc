@@ -2,7 +2,7 @@
 #                                   CONFIG                                     #
 # **************************************************************************** #
 
-NAME        := ./testIRC
+NAME        := ./irc
 CXX         := c++
 CXXFLAGS    := -Wall -Wextra -Werror -std=c++98 \
                -I../../includes \
@@ -16,6 +16,7 @@ SRC         := $(SRC_DIR)/client/Client.cpp \
                $(SRC_DIR)/channel/Channel.cpp \
                $(SRC_DIR)/channel/ChannelUtils.cpp \
                $(SRC_DIR)/server/ServerLogic.cpp \
+			   $(SRC_DIR)/server/Server.cpp \
                main.cpp
 
 OBJ         := $(addprefix $(OBJ_DIR)/, $(notdir $(SRC:.cpp=.o)))
