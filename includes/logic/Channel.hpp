@@ -1,11 +1,6 @@
 #ifndef CHANNEL_HPP
 #define CHANNEL_HPP
 
-#include <iostream>
-#include <string>
-#include <vector>
-#include <set>
-
 #include "Command.hpp"
 
 class Client; // Declaración adelantada

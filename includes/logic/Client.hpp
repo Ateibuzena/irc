@@ -1,15 +1,6 @@
 #ifndef CLIENT_HPP
 #define CLIENT_HPP
 
-#include <iostream>
-#include <ostream>
-
-#include <string>
-#include <set>
-#include <vector>
-
-#include <algorithm>
-
 #include "Command.hpp"
 
 class Channel; // Declaración adelantada
@@ -56,10 +47,6 @@ class Client
         void                            disconnect(); // Limpia canales y marca como no registrado
 
         void                            printInfo() const; // Imprime info del cliente para debugging
-};
-
-std::string                             trim(const std::string& str);
-bool                                    isValidNickname(const std::string& nickname);
-bool                                    isValidUsername(const std::string& username);   
+}; 
 
 #endif // CLIENT_HPP
