@@ -9,9 +9,10 @@ class Channel
 {
     private:
 
-        std::string                 _name;
+        const std::string           _name;
+        std::string                 _topic;
         std::set<Client *>          _clients;
-        size_t                      _maxClients;
+        const size_t                _maxClients;
 
     public:
 
@@ -20,9 +21,11 @@ class Channel
                                     ~Channel();
 
         const std::string&          getName() const;
+        const std::string&          getTopic() const;
+        size_t                      getMaxClients() const;
         const std::set<Client *>&   getClients() const;
 
-        std::vector<std::string>    getNicknames() const;
+        void                        setTopic(const std::string& topic);
 
         void                        addClient(Client* client);
         void                        removeClient(Client* client);

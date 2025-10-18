@@ -5,6 +5,8 @@
 
 Channel::Channel(const std::string& name, size_t maxClients)
     :   _name(name),
+        _topic(""),
+        _clients(),
         _maxClients(maxClients)
 {
     std::cout << "Channel created: " << _name << " with max clients: " << _maxClients << std::endl;
@@ -14,9 +16,8 @@ Channel::Channel(const std::string& name, size_t maxClients)
 
 Channel::~Channel()
 {
-    _name.clear();
+    _topic.clear();
     _clients.clear();
-    _maxClients = 0;
     std::cout << "Channel destroyed: " << _name << std::endl;
 }
 
@@ -32,16 +33,19 @@ const std::set<Client *>& Channel::getClients() const
     return (_clients);
 }
 
-std::vector<std::string> Channel::getNicknames() const
+const std::string& Channel::getTopic() const
 {
-    std::vector<std::string> nicknames;
+    return (_topic);
+}
 
-    std::set<Client*>::iterator it = _clients.begin();
-    while (it != _clients.end())
-    {
-        Client* client = *it;
-        nicknames.push_back(client->getNickname());
-        ++it;
-    }
-    return (nicknames);
+size_t Channel::getMaxClients() const
+{
+    return (_maxClients);
+}
+
+/*-------------------------------------SETTERS------------------------------------*/
+
+void Channel::setTopic(const std::string& topic)
+{
+    _topic = topic;
 }
