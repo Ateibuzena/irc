@@ -12,44 +12,40 @@ class ServerLogic
         std::map<int, Client *>             _clients;
         std::map<std::string, Client*>      _nicknames;
         std::map<std::string, Channel *>    _channels;
+        const std::string                   _serverPassword;
 
-        // helpers
-        //conection messages
-        /*PASS message //obligatorio
-        PING message
-        PONG message
-        QUIT message
-        ERROR message*/ //solo lo envia server cuando hay un fallo grave
-        void                                handleNICK(Client* client, const std::string& nickname);
-        void                                handleUSER(Client* client, const std::string& username);
+        //User Authentication
+        void                                handlePASS(Client* client, const Command& cmd);
+        void                                handleQUIT(Client* client, const Command& cmd);
+
+        //User Registration
+        void                                handleNICK(Client* client, const Command& cmd);
+        void                                handleUSER(Client* client, const Command& cmd);
 
         //Channel Operations
-        void                                handleJOIN(Client* client, const std::string& channelName);
-        void                                handlePART(Client* client, const std::string& channelName);
-        /*TOPIC message
-        NAMES message //obligatorio
-        LIST message
-        INVITE message //obligatorio
-        Invite list
-        KICK message*/ //obligatorio
+        void                                handleJOIN(Client* client, const Command& cmd);
+        void                                handlePART(Client* client, const Command& cmd);
+        void                                handleTOPIC(Client* client, const Command& cmd);
+        void                                handleNAMES(Client* client, const Command& cmd);
+        void                                handleLIST(Client* client); //no necesita cmd
+        void                                handleINVITE(Client* client, const Command& cmd);
+        void                                handleKICK(Client* client, const Command& cmd);
 
-        //Server Queries and Commands
-        /*MOTD message
-        VERSION Message
-        ADMIN message
-        TIME message
-        INFO message
-        MODE message //obligatorio
-        User mode
-        Channel mode*/
+        //Server Queries and Information
+        void                                handleMOTD(Client* client); //no necesita cmd
+        void                                handleVERSION(Client* client); //no necesita cmd
+        void                                handleADMIN(Client* client); //no necesita cmd
+        void                                handleTIME(Client* client); //no necesita cmd
+        void                                handleINFO(Client* client); //no necesita cmd
+        void                                handleMODE(Client* client, const Command& cmd);
 
         //Sending Messages
-        /*NOTICE message*/
-        void                                handlePRIVMSG(Client* client, const std::string& target, const std::string& msg);
+        void                                handleNOTICE(Client* client, const Command& cmd);
+        void                                handlePRIVMSG(Client* client, const Command& cmd);
 
     public:
 
-                                            ServerLogic();
+                                            ServerLogic(const std::string& serverPassword);
                                                 
                                             ~ServerLogic();
 
@@ -58,10 +54,11 @@ class ServerLogic
 
         Channel*                            createChannel(const std::string& name);
         
+        void                                serverAddClient(int fd);
+        void                                serverRemoveClient(int fd);
+
         void                                executeCommand(const Command& cmd, int clientFd);
 
-        void                                addClientServer(int fd);
-        void                                removeClient(int fd);
 };
 
 #endif // SERVERLOGIC_HPP
