@@ -6,6 +6,7 @@ Client::Client(int fd)
     :   _fd(fd),
         _nickname(""),
         _username(""),
+        _password(""),
         _registered(false),
         _channels(),
         _sentMessages(),
