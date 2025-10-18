@@ -3,6 +3,28 @@
 
 /*-------------------------------------METHODS------------------------------------*/
 
+void    Channel::inviteClient(Client* client)
+{
+
+}
+
+bool    Channel::isOperator(Client* client) const
+{
+    if (_operators.find(client) != _operators.end())
+        return (true);
+    return (false);
+}
+
+void    Channel::addOperator(Client* client)
+{
+    _operators.insert(client);
+}
+
+void    Channel::removeOperator(Client* client)
+{
+    _operators.erase(client);
+}
+
 void    Channel::addClient(Client* client)
 {
     if (client->getChannels().size() >= MAX_CHANNELS_PER_CLIENT)

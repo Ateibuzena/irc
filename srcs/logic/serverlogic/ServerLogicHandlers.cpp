@@ -87,7 +87,7 @@ void    ServerLogic::handleJOIN(Client* client, const Command& cmd)
         throw (ERR_NOTREGISTERED);
     try
     {
-        Channel* channel = createChannel(channelName);
+        Channel* channel = createChannel(channelName, client);
         channel->addClient(client);
         client->joinChannel(channel);
     }

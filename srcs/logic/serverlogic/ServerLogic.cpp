@@ -83,7 +83,7 @@ std::string ServerLogic::buildMessage(const std::string& prefix,
 }
 
 // Devuelve un canal existente o lo crea si no existe
-Channel*    ServerLogic::createChannel(const std::string& name)
+Channel*    ServerLogic::createChannel(const std::string& name, Client* creator)
 {
     std::map<std::string, Channel*>::const_iterator it = _channels.find(name);
     if (it != _channels.end())
@@ -94,6 +94,8 @@ Channel*    ServerLogic::createChannel(const std::string& name)
         throw (ERR_UNKNOWN);
 
     _channels[name] = newChannel;
+    
+    newChannel->addOperator(creator); // El creador es operador por defecto
 
     return (newChannel);
 }

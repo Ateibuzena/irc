@@ -50,7 +50,7 @@ class ServerLogic
                                                             const std::string& target,
                                                             const std::string& message) const;
 
-        Channel*                            createChannel(const std::string& name);
+        Channel*                            createChannel(const std::string& name, Client* creator);
         
         void                                serverAddClient(int fd);
         void                                serverRemoveClient(int fd);
