@@ -44,6 +44,11 @@ const   std::string& Client::getUsername() const
     return (_username);
 }
 
+const   std::string& Client::getPassword() const
+{
+    return (_password);
+}
+
 bool    Client::isRegistered() const
 {
     return (_registered);
@@ -76,6 +81,12 @@ void    Client::setUsername(const std::string& username)
 {
     _username = username;
     std::cout << GREEN << "✅ Username set to: " << _username << RESET << std::endl;
+}
+
+void    Client::setPassword(const std::string& password)
+{
+    _password = password;
+    std::cout << GREEN << "✅ Password set." << RESET << std::endl;
 }
 
 void    Client::setRegistered(bool state)
