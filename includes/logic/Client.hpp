@@ -12,7 +12,7 @@ class Client
         int                             _fd;
         std::string                     _nickname;
         std::string                     _username;
-        const std::string               _password;
+        std::string                     _password;
         bool                            _registered;
 
         std::set<std::string>           _channels;
