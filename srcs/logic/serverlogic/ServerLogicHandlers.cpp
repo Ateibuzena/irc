@@ -7,13 +7,15 @@
 
 void    ServerLogic::handlePASS(Client* client, const Command& cmd)
 {
+    const std::string& password = cmd.params[0];
+
     if (client->getRegistered() == true)
         throw (ERR_ALREADYREGISTERED);
 
-    if (cmd.params[0] != SERVER_PASSWORD)
+    if (password != SERVER_PASSWORD)
         throw (ERR_PASSWDMISMATCH);
 
-    client->setPassword(cmd.params[0]);
+    client->setPassword(password);
 }
 
 void    ServerLogic::handleQUIT(Client* client, const Command& cmd)
@@ -38,11 +40,12 @@ void    ServerLogic::handleQUIT(Client* client, const Command& cmd)
     delete (client);
 }
 
-
 /*User Registration*/
 
-void    ServerLogic::handleNICK(Client* client, const std::string& nickname)
+void    ServerLogic::handleNICK(Client* client, const Command& cmd)
 {
+    std::string nickname = cmd.params[0];
+
     // Comprobamos si ya existe otro cliente con ese nickname
     if (_nicknames.find(nickname) != _nicknames.end())
         throw (ERR_NICKNAMEINUSE);
@@ -63,8 +66,10 @@ void    ServerLogic::handleNICK(Client* client, const std::string& nickname)
     _nicknames[nickname] = client;
 }
 
-void    ServerLogic::handleUSER(Client* client, const std::string& username)
+void    ServerLogic::handleUSER(Client* client, const Command& cmd)
 {
+    std::string username = cmd.params[0];
+
     client->setUsername(username);
     if (!client->getNickname().empty()
         && (_serverPassword.empty() || client->getPassword() == _serverPassword))
@@ -74,8 +79,10 @@ void    ServerLogic::handleUSER(Client* client, const std::string& username)
 /*Channel Operations*/
 
 // Unirse a un canal (o crearlo si no existe)
-void    ServerLogic::handleJOIN(Client* client, const std::string& channelName)
+void    ServerLogic::handleJOIN(Client* client, const Command& cmd)
 {
+    const std::string& channelName = cmd.params[0];
+
     if (client->getRegistered() == false)
         throw (ERR_NOTREGISTERED);
     try
@@ -93,6 +100,8 @@ void    ServerLogic::handleJOIN(Client* client, const std::string& channelName)
 // Salir de un canal
 void    ServerLogic::handlePART(Client* client, const Command& cmd)
 {
+    const std::string& channelName = cmd.params[0];
+    
     if (client->getRegistered() == false)
         throw (ERR_NOTREGISTERED);
 
@@ -166,14 +175,14 @@ void    ServerLogic::handleINFO(Client* client)
 
 }
 
-void    ServerLogic::handleMODE(Client* client, const std::string& target, const std::string& modeChanges)
+void    ServerLogic::handleMODE(Client* client, const Command& cmd)
 {
 
 }
 
-
 /*Sending Messages*/
-void    ServerLogic::handleNOTICE(Client* client, const std::string& target, const std::string& message)
+
+void    ServerLogic::handleNOTICE(Client* client, const Command& cmd)
 {
 
 }
