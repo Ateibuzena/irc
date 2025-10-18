@@ -14,15 +14,14 @@
 // Límite máximo de usuarios por canal
 #define MAX_USERS_PER_CHANNEL 100
 
-// Número máximo total de clientes conectados al servidor
+// Límite máximo total de clientes conectados al servidor
 #define MAX_CLIENTS 500
 
-// Numero máximo de canales por cliente
+// Límite máximo de canales por cliente
 #define MAX_CHANNELS_PER_CLIENT 100
 
-// Otros límites o parámetros futuros
-#define SERVER_NAME "irc.42malaga.net"
-#define SERVER_VERSION "1.0"
+// Límite máximo de caracteres en un mensaje IRC (RFC 2812)
+#define MAX_MESSAGE_LENGTH 512
 
 //
 // 🎨 Colores ANSI
