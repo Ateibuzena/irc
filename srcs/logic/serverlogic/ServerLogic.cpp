@@ -64,6 +64,24 @@ Channel* ServerLogic::getChannel(const std::string& name) const
 
 /*----------------------------------METHODS------------------------------------*/
 
+std::string ServerLogic::buildMessage(const std::string& prefix,
+                                      const std::string& command,
+                                      const std::string& target,
+                                      const std::string& message) const
+{
+    std::string fullMsg = ":" + prefix + " " + command + " " + target + " :" + message + "\r\n";
+
+    if (fullMsg.size() > MAX_MESSAGE_LENGTH)
+    {
+        // Reservamos espacio para CRLF y los demás campos
+        size_t maxLen = MAX_MESSAGE_LENGTH - (prefix.size() + command.size() + target.size() + 4);
+        std::string truncated = message.substr(0, maxLen);
+        fullMsg = ":" + prefix + " " + command + " " + target + " :" + truncated + "\r\n";
+    }
+
+    return (fullMsg);
+}
+
 // Devuelve un canal existente o lo crea si no existe
 Channel*    ServerLogic::createChannel(const std::string& name)
 {

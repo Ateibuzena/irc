@@ -44,7 +44,7 @@ void    ServerLogic::handleQUIT(Client* client, const Command& cmd)
 
 void    ServerLogic::handleNICK(Client* client, const Command& cmd)
 {
-    std::string nickname = cmd.params[0];
+    const std::string nickname = cmd.params[0];
 
     // Comprobamos si ya existe otro cliente con ese nickname
     if (_nicknames.find(nickname) != _nicknames.end())
@@ -68,7 +68,7 @@ void    ServerLogic::handleNICK(Client* client, const Command& cmd)
 
 void    ServerLogic::handleUSER(Client* client, const Command& cmd)
 {
-    std::string username = cmd.params[0];
+    const std::string username = cmd.params[0];
 
     client->setUsername(username);
     if (!client->getNickname().empty()
@@ -83,7 +83,7 @@ void    ServerLogic::handleJOIN(Client* client, const Command& cmd)
 {
     const std::string& channelName = cmd.params[0];
 
-    if (client->getRegistered() == false)
+    if (!client->getRegistered())
         throw (ERR_NOTREGISTERED);
     try
     {
@@ -101,8 +101,8 @@ void    ServerLogic::handleJOIN(Client* client, const Command& cmd)
 void    ServerLogic::handlePART(Client* client, const Command& cmd)
 {
     const std::string& channelName = cmd.params[0];
-    
-    if (client->getRegistered() == false)
+
+    if (!client->getRegistered())
         throw (ERR_NOTREGISTERED);
 
     // Primero buscamos el canal
@@ -123,23 +123,33 @@ void    ServerLogic::handlePART(Client* client, const Command& cmd)
     }
 }
 
-void    ServerLogic::handleTOPIC(Client* client, const std::string& channelName, const std::string& topic)
+void    ServerLogic::handleTOPIC(Client* client, const Command& cmd)
 {
+    const std::string& channelName = cmd.params[0];
+    const std::string topic = cmd.params[1]
 
+    if (!client->getRegistered())
+        throw (ERR_NOTREGISTERED);
+    
+    // Primero buscamos el canal
+    std::map<std::string, Channel*>::iterator it = _channels.find(channelName);
+    if (it == _channels.end())
+        throw (ERR_NOSUCHCHANNEL);
+
+    Channel* channel = it->second;
+
+    // Si el cliente no es miembro del canal, lanzamos un error
+    if (!channel->hasClient(client))
+        throw (ERR_NOTONCHANNEL);
+
+    // Si hay un nuevo tema, lo actualizamos
+    channel->setTopic(topic);
 }
 
-void    ServerLogic::handleNAMES(Client* client, const std::string& channelName)
+void    ServerLogic::handleINVITE(Client* client, const Command& cmd)
 {
-
-}
-
-void    ServerLogic::handleLIST(Client* client)
-{
-
-}
-
-void    ServerLogic::handleINVITE(Client* client, const std::string& channelName, const std::string& nickname)
-{
+    const std::string& channelName = cmd.params[0];
+    const std::string& nickname = cmd.params[1];
 
 }
 
@@ -150,30 +160,6 @@ void    ServerLogic::handleKICK(Client* client, const std::string& channelName, 
 
 
 /*Server Queries and Information*/
-void    ServerLogic::handleMOTD(Client* client)
-{
-
-}
-
-void    ServerLogic::handleVERSION(Client* client)
-{
-
-}
-
-void    ServerLogic::handleADMIN(Client* client)
-{
-
-}
-
-void    ServerLogic::handleTIME(Client* client)
-{
-
-}
-
-void    ServerLogic::handleINFO(Client* client)
-{
-
-}
 
 void    ServerLogic::handleMODE(Client* client, const Command& cmd)
 {
@@ -184,30 +170,59 @@ void    ServerLogic::handleMODE(Client* client, const Command& cmd)
 
 void    ServerLogic::handleNOTICE(Client* client, const Command& cmd)
 {
+    const std::string& target = cmd.params[0];  
+    const std::string& msg = cmd.params[1];
 
-}
+    std::string fullMsg = buildMessage(client->getNickname(), "PRIVMSG", target, msg);
 
-// Enviar mensaje privado o a canal
-void    ServerLogic::handlePRIVMSG(Client* client, const std::string& target, const std::string& msg)
-{
     if (client->getRegistered() == false)
         throw (ERR_NOTREGISTERED);
 
-    // Primero buscamos si es un canal
+    // Buscamos si es un canal
     std::map<std::string, Channel*>::iterator chanIt = _channels.find(target);
     if (chanIt != _channels.end())
     {
         Channel* channel = chanIt->second;
-        channel->broadcast(msg, client);
+        channel->broadcast(fullMsg, client);
         return ;
     }
 
-    // Luego buscamos si es un cliente por nickname
+    // Buscamos si es un cliente por nickname
     std::map<std::string, Client*>::iterator nickIt = _nicknames.find(target);
     if (nickIt != _nicknames.end())
     {
         Client* recipient = nickIt->second;
-        recipient->receiveMessage(msg, client->getNickname());
+        recipient->receiveMessage(fullMsg, client->getNickname());
+        return ;
+    }
+}
+
+// Enviar mensaje privado o a canal
+void    ServerLogic::handlePRIVMSG(Client* client, const Command& cmd)
+{
+    const std::string& target = cmd.params[0];  
+    const std::string& msg = cmd.params[1];
+
+    std::string fullMsg = buildMessage(client->getNickname(), "PRIVMSG", target, msg);
+
+    if (client->getRegistered() == false)
+        throw (ERR_NOTREGISTERED);
+
+    // Buscamos si es un canal
+    std::map<std::string, Channel*>::iterator chanIt = _channels.find(target);
+    if (chanIt != _channels.end())
+    {
+        Channel* channel = chanIt->second;
+        channel->broadcast(fullMsg, client);
+        return ;
+    }
+
+    // Buscamos si es un cliente por nickname
+    std::map<std::string, Client*>::iterator nickIt = _nicknames.find(target);
+    if (nickIt != _nicknames.end())
+    {
+        Client* recipient = nickIt->second;
+        recipient->receiveMessage(fullMsg, client->getNickname());
         return ;
     }
     throw (ERR_CANNOTSENDTOCHAN);
