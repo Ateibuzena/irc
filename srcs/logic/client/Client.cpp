@@ -21,6 +21,7 @@ Client::~Client()
 {
     _nickname.clear();
     _username.clear();
+    _password.clear();
     _registered = false;
     _channels.clear();
     _sentMessages.clear();

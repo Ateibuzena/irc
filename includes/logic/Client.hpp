@@ -9,7 +9,7 @@ class Client
 {
     private:
 
-        int                             _fd;
+        const int                       _fd;
         std::string                     _nickname;
         std::string                     _username;
         std::string                     _password;

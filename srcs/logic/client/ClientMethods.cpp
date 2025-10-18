@@ -15,20 +15,16 @@ void    Client::leaveChannel(Channel* channel)
 
 void    Client::sendMessage(const std::string& message, const std::string& recipient)
 {
-    std::string formattedMessage = "To [" + recipient + "]: " + message;
+    _sentMessages.push_back(message);
 
-    _sentMessages.push_back(formattedMessage);
-
-    std::cout << GREEN << "📤 Sending message " << RESET << formattedMessage << std::endl;
+    std::cout << GREEN << "📤 Sending message " << RESET << message << std::endl;
 }
 
 void    Client::receiveMessage(const std::string& message, const std::string& sender)
 {
-    std::string formattedMessage = "From [" + sender + "]: " + message;
-    
-    _receivedMessages.push_back(formattedMessage);
-    
-   std::cout << CYAN << "📥 Received message " << RESET << formattedMessage << std::endl;
+    _receivedMessages.push_back(message);
+
+   std::cout << CYAN << "📥 Received message " << RESET << message << std::endl;
 }
 
 void    Client::printInfo() const
