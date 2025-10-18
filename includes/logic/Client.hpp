@@ -20,7 +20,7 @@ class Client
 
     public:
 
-                                        Client(int fdValue);
+                                        Client(int fd);
 
                                         ~Client();
 
@@ -34,15 +34,15 @@ class Client
         const std::vector<std::string>& getReceivedMessages() const; // Para testing
 
 
-        bool                            setNickname(const std::string& nicknameValue);
-        void                            setUsername(const std::string& usernameValue);
-        void                            setRegistered(bool stateValue);
+        bool                            setNickname(const std::string& nickname);
+        void                            setUsername(const std::string& username);
+        void                            setRegistered(bool state);
 
-        void                            joinChannel(Channel* channelPtr);
-        void                            leaveChannel(Channel* channelPtr);
+        void                            joinChannel(Channel* channel);
+        void                            leaveChannel(Channel* channel);
 
-        void                            receiveMessage(const std::string& messageValue, const std::string& sender);
-        void                            sendMessage(const std::string& messageValue, const std::string& recipient);
+        void                            receiveMessage(const std::string& message, const std::string& sender);
+        void                            sendMessage(const std::string& message, const std::string& recipient);
 
         void                            disconnect(); // Limpia canales y marca como no registrado
 

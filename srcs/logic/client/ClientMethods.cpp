@@ -3,28 +3,28 @@
 
 /*------------------------------METHODS---------------------------*/
 
-void    Client::joinChannel(Channel* channelPtr)
+void    Client::joinChannel(Channel* channel)
 {
-    _channels.insert(channelPtr->getName());
+    _channels.insert(channel->getName());
 }
 
-void    Client::leaveChannel(Channel* channelPtr)
+void    Client::leaveChannel(Channel* channel)
 {
-    _channels.erase(channelPtr->getName());
+    _channels.erase(channel->getName());
 }
 
-void    Client::sendMessage(const std::string& messageValue, const std::string& recipient)
+void    Client::sendMessage(const std::string& message, const std::string& recipient)
 {
-    std::string formattedMessage = "To [" + recipient + "]: " + messageValue;
+    std::string formattedMessage = "To [" + recipient + "]: " + message;
 
     _sentMessages.push_back(formattedMessage);
 
     std::cout << GREEN << "📤 Sending message " << RESET << formattedMessage << std::endl;
 }
 
-void    Client::receiveMessage(const std::string& messageValue, const std::string& sender)
+void    Client::receiveMessage(const std::string& message, const std::string& sender)
 {
-    std::string formattedMessage = "From [" + sender + "]: " + messageValue;
+    std::string formattedMessage = "From [" + sender + "]: " + message;
     
     _receivedMessages.push_back(formattedMessage);
     

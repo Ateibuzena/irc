@@ -2,8 +2,8 @@
 #include "logic/Channel.hpp"
 
 /*------------------------------CONSTRUCTORS---------------------------*/
-Client::Client(int fdValue)
-    :   _fd(fdValue),
+Client::Client(int fd)
+    :   _fd(fd),
         _nickname(""),
         _username(""),
         _registered(false),
@@ -66,21 +66,21 @@ const   std::vector<std::string>& Client::getReceivedMessages() const // Para te
 
 /*------------------------------SETTERS---------------------------*/
 
-void    Client::setNickname(const std::string& nicknameValue)
+void    Client::setNickname(const std::string& nickname)
 {
-    _nickname = nicknameValue;
+    _nickname = nickname;
     std::cout << GREEN << "✅ Nickname set to: " << _nickname << RESET << std::endl;
 }
 
-void    Client::setUsername(const std::string& usernameValue)
+void    Client::setUsername(const std::string& username)
 {
-    _username = usernameValue;
+    _username = username;
     std::cout << GREEN << "✅ Username set to: " << _username << RESET << std::endl;
 }
 
-void    Client::setRegistered(bool stateValue)
+void    Client::setRegistered(bool state)
 {
-    _registered = stateValue;
+    _registered = state;
     std::cout << CYAN << "📜 Registered status: "
               << (_registered ? "true" : "false")
               << RESET << std::endl;
