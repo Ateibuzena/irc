@@ -35,18 +35,19 @@ class Channel
 
                                     // Gestión de invitados
         void                        inviteClient(Client* client);
+        bool                        isInvited(Client* client) const;
 
                                     // Gestión de operadores
-        bool                        isOperator(Client* client) const;
         void                        addOperator(Client* client);
         void                        removeOperator(Client* client);
+        bool                        isOperator(Client* client) const;
 
         void                        addClient(Client* client);
         void                        removeClient(Client* client);
+        bool                        hasClient(Client* client) const;
 
         void                        broadcast(const std::string& message, Client* sender = NULL);
 
-        bool                        hasClient(Client* client) const;
     
 };
 

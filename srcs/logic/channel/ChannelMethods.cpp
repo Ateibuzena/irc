@@ -5,12 +5,12 @@
 
 void    Channel::inviteClient(Client* client)
 {
-
+    _invitedClients.insert(client);
 }
 
-bool    Channel::isOperator(Client* client) const
+bool    Channel::isInvited(Client* client) const
 {
-    if (_operators.find(client) != _operators.end())
+    if (_invited.find(client) != _invited.end())
         return (true);
     return (false);
 }
@@ -23,6 +23,13 @@ void    Channel::addOperator(Client* client)
 void    Channel::removeOperator(Client* client)
 {
     _operators.erase(client);
+}
+
+bool    Channel::isOperator(Client* client) const
+{
+    if (_operators.find(client) != _operators.end())
+        return (true);
+    return (false);
 }
 
 void    Channel::addClient(Client* client)
@@ -40,6 +47,11 @@ ChannelStatus   Channel::removeClient(Client* client)
         throw (ERR_NOTONCHANNEL);
 }
 
+bool    Channel::hasClient(Client* client) const
+{
+    return (_clients.find(client) != _clients.end());
+}
+
 void    Channel::broadcast(const std::string& message, Client* sender)
 {
     // Hacemos una copia para iterar seguro aunque un cliente se elimine
@@ -53,9 +65,4 @@ void    Channel::broadcast(const std::string& message, Client* sender)
             client->receiveMessage(message, _name);
         ++it;
     }
-}
-
-bool    Channel::hasClient(Client* client) const
-{
-    return (_clients.find(client) != _clients.end());
 }
