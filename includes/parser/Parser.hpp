@@ -12,9 +12,6 @@ public:
     ~Parser();
 
     Command parse(const std::string &rawMessage);
-
-    // más adelante se conecta a la lógica:
-    void dispatch(const Command &cmd, int clientFd);
 };
 
 #endif // PARSER_HPP
