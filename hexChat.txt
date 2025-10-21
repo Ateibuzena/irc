@@ -1,0 +1,57 @@
+💬 2️⃣ HexChat (cliente IRC gráfico real)
+
+🔗 Sitio oficial: https://hexchat.github.io/
+
+HexChat es un cliente IRC multiplataforma (Linux, Windows, macOS) — es básicamente “lo que usan los usuarios” para conectarse a un servidor IRC.
+
+🧩 Cómo usarlo para probar tu servidor
+
+Descárgalo e instálalo.
+
+Al abrir, te pedirá un Network (puedes llamarlo “Local Test”).
+
+Pulsa Add → selecciona esa red → Edit...
+
+En la ventana de configuración:
+
+Servers: escribe
+
+localhost/6667
+
+
+Nick name: lo que quieras.
+
+Desactiva SSL si está activado.
+
+Guarda y conecta (botón Connect).
+
+🎯 Si tu servidor está corriendo (./irc_server), verás en consola:
+
+[+] Client connected fd=5
+
+
+Y en HexChat aparecerá una ventana IRC normal, lista para chatear.
+
+💡 Tu servidor responderá con echo: o PONG según lo que escribas, como configuraste en tu DummyHandler.
+
+🧠 4️⃣ Tip de debug visual
+
+Si usas HexChat, puedes abrir varias instancias y simular varios usuarios conectados a tu servidor local.
+Verás en la terminal del servidor cómo se aceptan varios fd nuevos.
+
+Y si quieres inspeccionar la conexión TCP en tiempo real:
+
+ss -tna | grep 6667
+
+
+
+🧰 3️⃣ Alternativas similares
+
+Si no te gusta HexChat, hay otras opciones también muy útiles:
+
+Cliente	Tipo	Comentario
+WeeChat	Terminal	Muy potente, 100% IRC puro
+irssi	Terminal	Minimalista, clásico
+mIRC	GUI (Windows)	Popular en Windows, interfaz antigua
+KiwiIRC	Web	Se puede usar en navegador, ideal para test remoto
+AdiIRC	GUI (Windows)	Muy liviano y moderno
