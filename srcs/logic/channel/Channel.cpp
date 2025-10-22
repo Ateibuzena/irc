@@ -78,6 +78,22 @@ const std::set<Client *>& Channel::getInvited() const
     return (_invited);
 }
 
+const std::string Channel::getModes() const
+{
+    std::string modes = "+";
+    if (_isInviteOnly)
+        modes += "i";
+    if (_isTopicProtected)
+        modes += "t";
+    if (!_password.empty())
+        modes += "k";
+    if (!_operators.empty())
+        modes += "o";
+    if (_maxClients != 0 && _maxClients != 50)
+        modes += "l"; // 50 es tu valor por defecto
+    return (modes);
+}
+
 /*-------------------------------------SETTERS------------------------------------*/
 
 void Channel::setTopic(const std::string& topic)

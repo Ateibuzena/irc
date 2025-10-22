@@ -257,7 +257,7 @@ void    ServerLogic::handleMODE(Client* client, const Command& cmd)
                         channel->setPassword(cmd.params[index++]);
                     }
                     else
-                        channel->removePassword("");
+                        channel->setPassword("");
                     break;
                 case 'o': // Añadir o quitar operador
                     if (index >= cmd.params.size())
@@ -287,7 +287,7 @@ void    ServerLogic::handleMODE(Client* client, const Command& cmd)
                         channel->setMaxClients(limit);
                     }
                     else
-                        channel->setMaxClients(50); // Valor por defecto
+                        channel->setMaxClients(channel->getMaxClients()); // Valor por defecto?
                     break;
                 default:
                     throw (ERR_UMODEUNKNOWNFLAG);

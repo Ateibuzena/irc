@@ -40,6 +40,8 @@ class Channel
         const std::set<Client *>&   getOperators() const;
         const std::set<Client *>&   getInvited() const;
 
+        const std::string           getModes() const;
+
                                     // Setters
         void                        setTopic(const std::string& topic);
         void                        setInviteOnly(bool inviteOnly);
