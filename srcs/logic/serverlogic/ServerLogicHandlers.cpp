@@ -432,8 +432,8 @@ void    ServerLogic::handleTOPIC(Client* client, const Command& cmd)
         return ;
     }
 
-    // Si client quiere cambiar el tema, debe ser operador
-    if (!channel->isOperator(client))
+    // Si client quiere cambiar el tema, debe ser operador y el canal debe permitirlo
+    if (channel->isTopicProtected() && !channel->isOperator(client))
         throw (ERR_CHANOPRIVSNEEDED);
 
     // Construimos el topic completo concatenando todos los parámetros a partir del 1
