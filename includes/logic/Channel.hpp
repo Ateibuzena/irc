@@ -12,10 +12,14 @@ class Channel
         const std::string           _name;
         std::string                 _topic;
         std::set<Client *>          _clients;
+        
+        bool                        _isInviteOnly;
+        bool                        _isTopicProtected;
+        std::string                 _password;
+        size_t                      _maxClients;
+
         std::set<Client *>          _operators;
         std::set<Client *>          _invited;
-        const size_t                _maxClients;
-        bool                        _isInviteOnly;
 
     public:
 
@@ -26,15 +30,22 @@ class Channel
                                     // Getters
         const std::string&          getName() const;
         const std::string&          getTopic() const;
-        size_t                      getMaxClients() const;
         const std::set<Client *>&   getClients() const;
+
+        bool                        isInviteOnly() const;
+        bool                        isTopicProtected() const;
+        const std::string&          getPassword() const;
+        size_t                      getMaxClients() const;
+
         const std::set<Client *>&   getOperators() const;
         const std::set<Client *>&   getInvited() const;
-        bool                        isInviteOnly() const;
 
                                     // Setters
         void                        setTopic(const std::string& topic);
         void                        setInviteOnly(bool inviteOnly);
+        void                        setTopicProtected(bool topicProtected);
+        void                        setPassword(const std::string& password);
+        void                        setMaxClients(size_t maxClients);
 
                                     // Gestión de invitados
         void                        inviteClient(Client* client);

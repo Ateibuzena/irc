@@ -7,10 +7,12 @@ Channel::Channel(const std::string& name, size_t maxClients)
     :   _name(name),
         _topic(""),
         _clients(),
-        _operators(),
-        _invited(),
+        _isInviteOnly(false),
+        _isTopicProtected(false),
+        _password(""),
         _maxClients(maxClients),
-        _isInviteOnly(false)
+        _operators(),
+        _invited()
 {
     std::cout << "Channel created: " << _name << " with max clients: " << _maxClients << std::endl;
 }
@@ -21,9 +23,11 @@ Channel::~Channel()
 {
     _topic.clear();
     _clients.clear();
+    _isInviteOnly = false;
+    _isTopicProtected = false;
+    _password.clear();
     _operators.clear();
     _invited.clear();
-    _isInviteOnly = false;
     std::cout << "Channel destroyed: " << _name << std::endl;
 }
 
@@ -44,6 +48,26 @@ const std::set<Client *>& Channel::getClients() const
     return (_clients);
 }
 
+bool Channel::isInviteOnly() const
+{
+    return (_isInviteOnly);
+}
+
+bool Channel::isTopicProtected() const
+{
+    return (_isTopicProtected);
+}
+
+const std::string& Channel::getPassword() const
+{
+    return (_password);
+}
+
+size_t Channel::getMaxClients() const
+{
+    return (_maxClients);
+}
+
 const std::set<Client *>& Channel::getOperators() const
 {
     return (_operators);
@@ -52,16 +76,6 @@ const std::set<Client *>& Channel::getOperators() const
 const std::set<Client *>& Channel::getInvited() const
 {
     return (_invited);
-}
-
-bool Channel::isInviteOnly() const
-{
-    return (_isInviteOnly);
-}
-
-size_t Channel::getMaxClients() const
-{
-    return (_maxClients);
 }
 
 /*-------------------------------------SETTERS------------------------------------*/
@@ -74,4 +88,21 @@ void Channel::setTopic(const std::string& topic)
 void Channel::setInviteOnly(bool inviteOnly)
 {
     _isInviteOnly = inviteOnly;
+}
+
+void Channel::setTopicProtected(bool topicProtected)
+{
+    _isTopicProtected = topicProtected;
+}
+
+void Channel::setPassword(const std::string& password)
+{
+    _password = password;
+}
+
+void Channel::setMaxClients(size_t maxClients)
+{
+    // No permitir reducir el tamaño máximo por debajo del número actual de clientes
+    if (maxClients >= _clients.size())
+        _maxClients = maxClients;
 }
