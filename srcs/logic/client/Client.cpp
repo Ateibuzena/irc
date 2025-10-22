@@ -56,7 +56,7 @@ bool    Client::isRegistered() const
     return (_registered);
 }
 
-const   std::set<Channel*>& Client::getChannels() const
+const std::set<std::string>&    Client::getChannels() const
 {
     return (_channels);
 }
