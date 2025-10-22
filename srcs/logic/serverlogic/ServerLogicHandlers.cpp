@@ -76,25 +76,99 @@ void    ServerLogic::handleQUIT(Client* client, const Command& cmd)
 
 void    ServerLogic::handleJOIN(Client* client, const Command& cmd)
 {
-    const std::string& channelName = cmd.params[0];
-
-    /*if (channel->isInviteOnly() && !channel->isInvited(client) && !channel->isOperator(client))
-        throw (ERR_INVITEONLYCHAN);*/
     if (!client->isRegistered())
         throw (ERR_NOTREGISTERED);
-    try
+
+    // El primer parámetro contiene la lista de canales separados por ','
+    std::string channelsParam = cmd.params[0];
+    std::vector<std::string> channelNames;
+    std::string temp;
+    size_t i = 0;
+
+    while (i < channelsParam.size())
     {
-        Channel* channel = createChannel(channelName, client);
-
-        if (channel->getClients().size() >= channel->getMaxClients())
-            throw (ERR_CHANNELISFULL);
-
-        channel->addClient(client);
-        client->joinChannel(channel);
+        if (channelsParam[i] == ',')
+        {
+            if (!temp.empty())
+                channelNames.push_back(temp);
+            temp.clear();
+        }
+        else
+            temp += channelsParam[i];
+        i++;
     }
-    catch (int  error)
+    if (!temp.empty())
+        channelNames.push_back(temp);
+    
+    // El segundo parámetro (opcional) contiene las claves para los canales
+    std::vector<std::string> keys;
+    if (cmd.params.size() > 1)
     {
-        throw (error);
+        std::string keysParam = cmd.params[1];
+        temp.clear();
+        i = 0;
+        while (i < keysParam.size())
+        {
+            if (keysParam[i] == ',')
+            {
+                if (!temp.empty())
+                    keys.push_back(temp);
+                temp.clear();
+            }
+            else
+                temp += keysParam[i];
+            i++;
+        }
+        if (!temp.empty())
+            keys.push_back(temp);
+    }
+    // Asociamos cada canal con su clave (si existe)
+    i = 0;
+    while (i < channelNames.size())
+    {
+        const std::string& channelName = channelNames[i];
+        std::string key;
+        if (i < keys.size())
+            key = keys[i];
+        else
+            key = "";
+        try
+        {
+            Channel* channel = createChannel(channelName, client);
+
+            if (!channel->getPassword().empty()) // Canal ya existente con clave
+            {
+                if (key.empty() || channel->getPassword() != key)
+                    throw (ERR_BADCHANNELKEY);
+            }
+            else if (channel->getClients().empty()) // Canal nuevo
+            {
+                channel->addOperator(client);
+                // Si se proporciona una clave, la establecemos
+                if (!key.empty())
+                    channel->setPassword(key);
+            }
+
+            // Comprobar si el canal es invite-only
+            if (channel->isInviteOnly() && !channel->isOperator(client))
+                    throw (ERR_CHANOPRIVSNEEDED);
+
+            // Si el canal está lleno, lanzamos error
+            if (channel->getClients().size() >= channel->getMaxClients())
+                throw (ERR_CHANNELISFULL);
+
+            channel->addClient(client);
+            client->joinChannel(channel);
+
+            // Construimos el mensaje de JOIN para enviar a todos
+            std::string msg = buildMessage(client->getNickname(), "JOIN", channel->getName(), "");
+            channel->broadcast(msg, client);
+        }
+        catch (int  error)
+        {
+            throw (error);
+        }
+        i++;
     }
 }
 
@@ -199,6 +273,7 @@ void    ServerLogic::handleKICK(Client* client, const Command& cmd)
     }
 }
 
+// Manejar el comando MODE (ver o cambiar modos de canal)
 void    ServerLogic::handleMODE(Client* client, const Command& cmd)
 {
     if (!client->isRegistered())
@@ -344,7 +419,7 @@ void    ServerLogic::handleUSER(Client* client, const Command& cmd)
         client->setRegistered(true);
 }
 
-// Salir de un canal
+// Manejar el comando PART (salir de canal)
 void    ServerLogic::handlePART(Client* client, const Command& cmd)
 {
     if (!client->isRegistered())
@@ -352,11 +427,11 @@ void    ServerLogic::handlePART(Client* client, const Command& cmd)
 
     // Si el último parámetro empieza por ':', es mensaje
     std::vector<std::string> channels = cmd.params;
-    std::string partMessage;
+    std::string msg;
 
     if (!channels.empty() && channels.back()[0] == ':')
     {
-        partMessage = channels.back().substr(1);
+        msg = channels.back().substr(1);
         channels.pop_back();
     }
 
@@ -374,7 +449,7 @@ void    ServerLogic::handlePART(Client* client, const Command& cmd)
         Channel* channel = it->second;
 
         // Construimos el mensaje de PART para enviar a todos
-        std::string fullMsg = buildMessage(client->getNickname(), "PART", channelName, partMessage);
+        std::string fullMsg = buildMessage(client->getNickname(), "PART", channelName, msg);
 
         // Broadcast antes de eliminar al cliente
         channel->broadcast(fullMsg, client);
