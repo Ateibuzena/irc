@@ -10,7 +10,8 @@ void    Client::joinChannel(Channel* channel)
 
 void    Client::leaveChannel(Channel* channel)
 {
-    _channels.erase(channel->getName());
+    if (_channels.erase(channel->getName()) == 0)
+        throw (ERR_NOTONCHANNEL);
 }
 
 void    Client::sendMessage(const std::string& message)

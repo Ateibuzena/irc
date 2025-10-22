@@ -56,9 +56,16 @@ void    ServerLogic::handleQUIT(Client* client, const Command& cmd)
         std::map<std::string, Channel*>::iterator chanIt = _channels.find(*it);
         if (chanIt != _channels.end())
         {
-            Channel* channel = chanIt->second;
-            channel->broadcast(fullMsg, client);
-            channel->removeClient(client);
+            try
+            {
+                Channel* channel = chanIt->second;
+                channel->broadcast(fullMsg, client);
+                channel->removeClient(client);
+            }
+            catch(int error)
+            {
+                throw (error);
+            }
         }
         ++it;
     }
@@ -132,11 +139,71 @@ void    ServerLogic::handleINVITE(Client* client, const Command& cmd)
     channel->broadcast(inviteMsg, client);
 }
 
-void    ServerLogic::handleKICK(Client* client, const std::string& channelName, const std::string& nickname, const std::string& reason)
+// Manejar el comando KICK (expulsar usuario de canal)
+void    ServerLogic::handleKICK(Client* client, const Command& cmd)
 {
+    if (!client->isRegistered())
+        throw (ERR_NOTREGISTERED);
+    
+    const std::string& channelName = cmd.params[0];
+    const std::string& targetNickname = cmd.params[1];
 
+    // Primero buscamos el canal
+    std::map<std::string, Channel*>::iterator chanIt = _channels.find(channelName);
+    if (chanIt == _channels.end())
+        throw (ERR_NOSUCHCHANNEL);
+
+    Channel* channel = chanIt->second;
+
+    // Comprobamos que el ejecutor esté en el canal
+    if (!channel->hasClient(client))
+        throw (ERR_NOTONCHANNEL);
+
+    // Si el cliente no es operador, lanzamos error
+    if (!channel->isOperator(client))
+        throw (ERR_CHANOPRIVSNEEDED);
+
+    // Luego buscamos el cliente a expulsar
+    std::map<std::string, Client*>::iterator nickIt = _nicknames.find(targetNickname);
+    if (nickIt == _nicknames.end())
+        throw (ERR_NOSUCHNICK);
+
+    Client* targetClient = nickIt->second;
+
+    // Construimos el mensaje de KICK para enviar a todos
+    std::string msg = "Kicked";
+    if (cmd.params.size() > 2)
+    {
+        // Construimos el mensaje completo concatenando todos los parámetros a partir del 2
+        msg.clear();
+        size_t i = 2;
+        while (i < cmd.params.size())
+        {
+            if (i > 2)
+                msg += " ";
+            msg += cmd.params[i];
+            i++;
+        }
+        if (!msg.empty() && msg[0] == ':')
+            msg = msg.substr(1);
+    }
+
+    std::string fullMsg = buildMessage(client->getNickname(), "KICK", channelName + " " + targetNickname, msg);
+    
+    // Notificamos a todos los miembros del canal
+    channel->broadcast(fullMsg, NULL);
+
+    // Quitamos al cliente del canal y viceversa
+    try
+    {
+        channel->removeClient(targetClient);
+        targetClient->leaveChannel(channel);
+    }
+    catch(int error)
+    {
+        throw (error);
+    }
 }
-
 
 /*Server Queries and Information*/
 
