@@ -2,10 +2,11 @@
 
 /*--------------------------------CONSTRUCTORS--------------------------------*/
 
-ServerLogic::ServerLogic(const std::string& serverPassword)
-    :   _clients(),
-        _nicknames(),
-        _channels(),
+ServerLogic::ServerLogic(const std::string& serverName, const std::string& serverPassword)
+    :   _clients(NULL),
+        _nicknames(NULL),
+        _channels(NULL),
+        _serverName(serverName),
         _serverPassword(serverPassword)
 {
     std::cout << "✅ ServerLogic initialized." << std::endl;
@@ -89,7 +90,7 @@ Channel*    ServerLogic::createChannel(const std::string& name, Client* creator)
     if (it != _channels.end())
         return (it->second);
 
-    Channel* newChannel = new Channel(name, _defaultChannelLimit); // Por defecto límite de clientes
+    Channel* newChannel = new Channel(name); // Por defecto límite de clientes
     if (!newChannel)
         throw (ERR_UNKNOWN);
 
@@ -115,6 +116,11 @@ void    ServerLogic::serverAddClient(int fd)
 
 void    ServerLogic::serverRemoveClient(int fd)
 {
+    // Cerrar socket si es válido
+    if (fd >= 0)
+        close(fd);
+
+    // Buscar cliente
     std::map<int, Client*>::iterator it = _clients.find(fd);
     if (it == _clients.end())
         return ;
@@ -138,6 +144,7 @@ void    ServerLogic::serverRemoveClient(int fd)
     _clients.erase(it);
     delete (client);
 
+    /*también enviar un mensaje tipo PART a los demás clientes si quieres avisar que se fue.*/
     std::cout << CYAN << "📌 Client removed with fd " 
               << to_string_c98(fd) << RESET << std::endl;
 }

@@ -3,7 +3,7 @@
 
 #include "Client.hpp"
 #include "Channel.hpp"
-#include "parser/Parser.hpp"
+#include "../utils/Command.hpp"
 
 class ServerLogic
 {
@@ -12,6 +12,7 @@ class ServerLogic
         std::map<int, Client *>             _clients;
         std::map<std::string, Client*>      _nicknames;
         std::map<std::string, Channel *>    _channels;
+        const std::string                   _serverName;
         const std::string                   _serverPassword;
 
         //User Authentication
@@ -38,7 +39,7 @@ class ServerLogic
 
     public:
 
-                                            ServerLogic(const std::string& serverPassword);
+                                            ServerLogic(const std::string& serverName, const std::string& serverPassword);
                                                 
                                             ~ServerLogic();
 
@@ -56,7 +57,6 @@ class ServerLogic
         void                                serverRemoveClient(int fd);
 
         void                                executeCommand(const Command& cmd, int clientFd);
-
 };
 
 #endif // SERVERLOGIC_HPP
