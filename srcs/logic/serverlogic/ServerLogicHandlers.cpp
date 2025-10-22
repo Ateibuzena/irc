@@ -74,6 +74,7 @@ void    ServerLogic::handleQUIT(Client* client, const Command& cmd)
     delete (client);
 }
 
+// Manejar el comando JOIN (unirse a canal)
 void    ServerLogic::handleJOIN(Client* client, const Command& cmd)
 {
     if (!client->isRegistered())
