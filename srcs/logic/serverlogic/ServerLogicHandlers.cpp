@@ -2,8 +2,6 @@
 
 /*----------------------------------HELPERS-----------------------------------*/
 
-/*User Authentication*/
-
 // Manejar el comando PASS (establecer contraseña)
 void    ServerLogic::handlePASS(Client* client, const Command& cmd)
 {
@@ -73,12 +71,8 @@ void    ServerLogic::handleQUIT(Client* client, const Command& cmd)
     // Eliminar cliente del servidor
     serverRemoveClient(client->getFd());
 
-    std::cout << RED << "❌ Client quit: " << client->getNickname() << RESET << std::endl;
-
     delete (client);
 }
-
-/*Channel Operations*/
 
 void    ServerLogic::handleJOIN(Client* client, const Command& cmd)
 {
@@ -205,14 +199,107 @@ void    ServerLogic::handleKICK(Client* client, const Command& cmd)
     }
 }
 
-/*Server Queries and Information*/
-
 void    ServerLogic::handleMODE(Client* client, const Command& cmd)
 {
+    if (!client->isRegistered())
+        throw (ERR_NOTREGISTERED);
 
+    const std::string& target = cmd.params[0];
+
+    // Buscamos si es un canal
+    std::map<std::string, Channel*>::iterator chanIt = _channels.find(target);
+    if (chanIt == _channels.end())
+        throw (ERR_NOSUCHCHANNEL);
+    
+    Channel* channel = chanIt->second;
+
+    // Si solo hay un parámetro, mostramos el modo actual
+    if (cmd.params.size() == 1)
+    {
+        std::string modes = channel->getModes();
+        std::string msg = buildMessage(_serverName, to_string_c98(RPL_CHANNELMODEIS), channel->getName(), modes);
+        client->sendMessage(msg);
+        return ;
+    }
+
+    // Si el cliente no es operador, lanzamos error
+    if (!channel->isOperator(client))
+        throw (ERR_CHANOPRIVSNEEDED);
+
+    // Modificar modos del canal
+    std::string modeChanges = cmd.params[1];
+    bool adding = true;
+    size_t index = 2;
+    size_t i = 0;
+
+    while (i < modeChanges.size())
+    {
+        char modeChar = modeChanges[i];
+        if (modeChar == '+')
+            adding = true;
+        else if (modeChar == '-')
+            adding = false;
+        else
+        {
+            switch (modeChar)
+            {
+                case 'i': // Modo invite-only
+                    channel->setInviteOnly(adding);
+                    break;
+                case 't': // Modo topic-operator-only
+                    channel->setTopicProtected(adding);
+                    break;
+                case 'k': // Modo key (contraseña)
+                    if (adding)
+                    {
+                        if (index >= cmd.params.size())
+                            throw (ERR_NEEDMOREPARAMS);
+                        channel->setPassword(cmd.params[index++]);
+                    }
+                    else
+                        channel->removePassword("");
+                    break;
+                case 'o': // Añadir o quitar operador
+                    if (index >= cmd.params.size())
+                        throw (ERR_NEEDMOREPARAMS);
+                    
+                    const std::string& operatorName = cmd.params[index++];
+
+                    // Buscamos el cliente por nickname
+                    std::map<std::string, Client*>::iterator nickIt = _nicknames.find(operatorName);
+                    if (nickIt == _nicknames.end())
+                        throw (ERR_NOSUCHNICK);
+
+                    Client* operatorClient = nickIt->second;
+
+                    if (adding)
+                        channel->addOperator(operatorClient);
+                    else
+                        channel->removeOperator(operatorClient);
+                    break;
+                case 'l': // Modo limit (límite de usuarios)
+                    if (adding)
+                    {
+                        if (index >= cmd.params.size())
+                            throw (ERR_NEEDMOREPARAMS);
+                        size_t limit = static_cast<size_t>(std::atoi(cmd.params[index++].c_str()));
+
+                        channel->setMaxClients(limit);
+                    }
+                    else
+                        channel->setMaxClients(50); // Valor por defecto
+                    break;
+                default:
+                    throw (ERR_UMODEUNKNOWNFLAG);
+            }
+        }
+        i++;
+    }
+
+    // Notificamos a todos los miembros del canal sobre el cambio de modos
+    std::string fullMsg = buildMessage(client->getNickname(), "MODE", channel->getName(), modeChanges);
+    channel->broadcast(fullMsg, client);
 }
-
-/*User Registration*/
 
 // Manejar el comando NICK (establecer nickname)
 void    ServerLogic::handleNICK(Client* client, const Command& cmd)
@@ -370,8 +457,7 @@ void    ServerLogic::handleTOPIC(Client* client, const Command& cmd)
     channel->broadcast(msg, NULL);
 }
 
-/*Sending Messages*/
-
+// Manejar el comando NOTICE (enviar mensaje de aviso)
 void    ServerLogic::handleNOTICE(Client* client, const Command& cmd)
 {
     if (!client->isRegistered())
