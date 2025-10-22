@@ -12,9 +12,9 @@ SRC_DIR     := ../../../srcs/logic
 OBJ_DIR     := obj
 
 SRC         := $(SRC_DIR)/client/Client.cpp \
-               $(SRC_DIR)/client/ClientUtils.cpp \
+               $(SRC_DIR)/client/ClientMethods.cpp \
                $(SRC_DIR)/channel/Channel.cpp \
-               $(SRC_DIR)/channel/ChannelUtils.cpp \
+               $(SRC_DIR)/channel/ChannelMethods.cpp \
                $(SRC_DIR)/server/ServerLogic.cpp \
                TestServerLogic.cpp
 
