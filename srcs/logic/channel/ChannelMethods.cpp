@@ -1,11 +1,11 @@
-#include "logic/Channel.hpp"
-#include "logic/Client.hpp"
+#include "../../../includes/logic/Channel.hpp"
+#include "../../../includes/logic/Client.hpp"
 
 /*-------------------------------------METHODS------------------------------------*/
 
 void    Channel::inviteClient(Client* client)
 {
-    _invitedClients.insert(client);
+    _invited.insert(client);
 }
 
 bool    Channel::isInvited(Client* client) const
@@ -41,7 +41,7 @@ void    Channel::addClient(Client* client)
     _clients.insert(client);
 }
 
-ChannelStatus   Channel::removeClient(Client* client)
+void   Channel::removeClient(Client* client)
 {
     if (_clients.erase(client) == 0)
         throw (ERR_NOTONCHANNEL);

@@ -1,5 +1,5 @@
-#include "logic/Channel.hpp"
-#include "logic/Client.hpp"
+#include "../../../includes/logic/Channel.hpp"
+#include "../../../includes/logic/Client.hpp"
 
 /*-------------------------------------CONSTRUCTORS------------------------------------*/
 
@@ -9,7 +9,8 @@ Channel::Channel(const std::string& name, size_t maxClients)
         _clients(),
         _operators(),
         _invited(),
-        _maxClients(maxClients)
+        _maxClients(maxClients),
+        _isInviteOnly(false)
 {
     std::cout << "Channel created: " << _name << " with max clients: " << _maxClients << std::endl;
 }
@@ -22,6 +23,7 @@ Channel::~Channel()
     _clients.clear();
     _operators.clear();
     _invited.clear();
+    _isInviteOnly = false;
     std::cout << "Channel destroyed: " << _name << std::endl;
 }
 
@@ -52,6 +54,11 @@ const std::set<Client *>& Channel::getInvited() const
     return (_invited);
 }
 
+bool Channel::isInviteOnly() const
+{
+    return (_isInviteOnly);
+}
+
 size_t Channel::getMaxClients() const
 {
     return (_maxClients);
@@ -62,4 +69,9 @@ size_t Channel::getMaxClients() const
 void Channel::setTopic(const std::string& topic)
 {
     _topic = topic;
+}
+
+void Channel::setInviteOnly(bool inviteOnly)
+{
+    _isInviteOnly = inviteOnly;
 }

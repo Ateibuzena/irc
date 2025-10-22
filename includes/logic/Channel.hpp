@@ -1,7 +1,7 @@
 #ifndef CHANNEL_HPP
 #define CHANNEL_HPP
 
-#include "Command.hpp"
+#include "../utils/Command.hpp"
 
 class Client; // Declaración adelantada
 
@@ -15,6 +15,7 @@ class Channel
         std::set<Client *>          _operators;
         std::set<Client *>          _invited;
         const size_t                _maxClients;
+        bool                        _isInviteOnly;
 
     public:
 
@@ -29,9 +30,11 @@ class Channel
         const std::set<Client *>&   getClients() const;
         const std::set<Client *>&   getOperators() const;
         const std::set<Client *>&   getInvited() const;
+        bool                        isInviteOnly() const;
 
                                     // Setters
         void                        setTopic(const std::string& topic);
+        void                        setInviteOnly(bool inviteOnly);
 
                                     // Gestión de invitados
         void                        inviteClient(Client* client);
