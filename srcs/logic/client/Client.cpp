@@ -56,7 +56,7 @@ bool    Client::isRegistered() const
     return (_registered);
 }
 
-const   std::set<std::string>& Client::getChannels() const
+const   std::set<Channel*>& Client::getChannels() const
 {
     return (_channels);
 }
@@ -72,6 +72,12 @@ const   std::vector<std::string>& Client::getReceivedMessages() const // Para te
 }
 
 /*------------------------------SETTERS---------------------------*/
+
+void    Client::setFd(int fd)
+{
+    _fd = fd;
+    std::cout << GREEN << "✅ FD set to: " << _fd << RESET << std::endl;
+}
 
 void    Client::setNickname(const std::string& nickname)
 {

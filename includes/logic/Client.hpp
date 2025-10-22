@@ -1,7 +1,7 @@
 #ifndef CLIENT_HPP
 #define CLIENT_HPP
 
-#include "Command.hpp"
+#include "../utils/Command.hpp"
 
 class Channel; // Declaración adelantada
 
@@ -9,7 +9,7 @@ class Client
 {
     private:
 
-        const int                       _fd;
+        int                             _fd;
         std::string                     _nickname;
         std::string                     _username;
         std::string                     _password;
@@ -37,7 +37,8 @@ class Client
         const std::vector<std::string>& getReceivedMessages() const; // Para testing
 
 
-        bool                            setNickname(const std::string& nickname);
+        void                            setFd(int fd);
+        void                            setNickname(const std::string& nickname);
         void                            setUsername(const std::string& username);
         void                            setPassword(const std::string& password);
         void                            setRegistered(bool state);
@@ -46,9 +47,7 @@ class Client
         void                            leaveChannel(Channel* channel);
 
         void                            receiveMessage(const std::string& message, const std::string& sender);
-        void                            sendMessage(const std::string& message, const std::string& recipient);
-
-        void                            disconnect(); // Limpia canales y marca como no registrado
+        void                            sendMessage(const std::string& message);
 
         void                            printInfo() const; // Imprime info del cliente para debugging
 }; 
