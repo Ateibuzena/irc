@@ -12,7 +12,8 @@ Channel::Channel(const std::string& name, size_t maxClients)
         _password(""),
         _maxClients(maxClients),
         _operators(),
-        _invited()
+        _invited(),
+        _deleteMe(false)
 {
     std::cout << "Channel created: " << _name << " with max clients: " << _maxClients << std::endl;
 }
@@ -78,6 +79,11 @@ const std::set<Client *>& Channel::getInvited() const
     return (_invited);
 }
 
+bool Channel::getDeleteMe() const
+{
+    return (_deleteMe);
+}
+
 const std::string Channel::getModes() const
 {
     std::string modes = "+";
@@ -121,4 +127,9 @@ void Channel::setMaxClients(size_t maxClients)
     // No permitir reducir el tamaño máximo por debajo del número actual de clientes
     if (maxClients >= _clients.size())
         _maxClients = maxClients;
+}
+
+void Channel::setDeleteMe(bool deleteMe)
+{
+    _deleteMe = deleteMe;
 }

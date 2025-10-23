@@ -21,6 +21,8 @@ class Channel
         std::set<Client *>          _operators;
         std::set<Client *>          _invited;
 
+        bool                        _deleteMe;
+
     public:
 
                                     Channel(const std::string& name, size_t maxClients = 50);
@@ -40,6 +42,8 @@ class Channel
         const std::set<Client *>&   getOperators() const;
         const std::set<Client *>&   getInvited() const;
 
+        bool                        getDeleteMe() const;
+
         const std::string           getModes() const;
 
                                     // Setters
@@ -48,6 +52,7 @@ class Channel
         void                        setTopicProtected(bool topicProtected);
         void                        setPassword(const std::string& password);
         void                        setMaxClients(size_t maxClients);
+        void                        setDeleteMe(bool deleteMe);
 
                                     // Gestión de invitados
         void                        inviteClient(Client* client);
