@@ -3,9 +3,9 @@
 /*--------------------------------CONSTRUCTORS--------------------------------*/
 
 ServerLogic::ServerLogic(const std::string& serverName, const std::string& serverPassword)
-    :   _clients(NULL),
-        _nicknames(NULL),
-        _channels(NULL),
+    :   _serverClients(NULL),
+        _serverNicknames(NULL),
+        _serverChannels(NULL),
         _serverName(serverName),
         _serverPassword(serverPassword)
 {
@@ -17,8 +17,8 @@ ServerLogic::ServerLogic(const std::string& serverName, const std::string& serve
 ServerLogic::~ServerLogic()
 {
     // Limpiamos todos los clientes
-    std::map<int, Client*>::iterator it = _clients.begin();
-    while (it != _clients.end())
+    std::map<int, Client*>::iterator it = _serverClients.begin();
+    while (it != _serverClients.end())
     {
         int fd = it->first;
 
@@ -27,21 +27,21 @@ ServerLogic::~ServerLogic()
             delete (client);
         ++it;
     }
-    _clients.clear();
+    _serverClients.clear();
 
     // Limpiamos nicknames
-    _nicknames.clear();
+    _serverNicknames.clear();
 
     // Limpiamos todos los canales
-    std::map<std::string, Channel*>::iterator it = _channels.begin();
-    while (it != _channels.end())
+    std::map<std::string, Channel*>::iterator it = _serverChannels.begin();
+    while (it != _serverChannels.end())
     {
         Channel* channel = it->second;
         if (channel)
             delete (channel);
         ++it;
     }
-    _channels.clear();
+    _serverChannels.clear();
 }
 
 /*----------------------------------GETTERS------------------------------------*/
@@ -49,16 +49,16 @@ ServerLogic::~ServerLogic()
 // Devuelve el cliente según su fd
 Client* ServerLogic::getClient(int fd) const
 {
-    std::map<int, Client*>::const_iterator it = _clients.find(fd);
-    if (it != _clients.end())
+    std::map<int, Client*>::const_iterator it = _serverClients.find(fd);
+    if (it != _serverClients.end())
         return (it->second);
     return (NULL);
 }
 
 Channel* ServerLogic::getChannel(const std::string& name) const
 {
-    std::map<std::string, Channel*>::const_iterator it = _channels.find(name);
-    if (it != _channels.end())
+    std::map<std::string, Channel*>::const_iterator it = _serverChannels.find(name);
+    if (it != _serverChannels.end())
         return (it->second);
     return (NULL);
 }
@@ -86,15 +86,15 @@ std::string ServerLogic::buildMessage(const std::string& prefix,
 // Devuelve un canal existente o lo crea si no existe
 Channel*    ServerLogic::createChannel(const std::string& name, Client* creator)
 {
-    std::map<std::string, Channel*>::const_iterator it = _channels.find(name);
-    if (it != _channels.end())
+    std::map<std::string, Channel*>::const_iterator it = _serverChannels.find(name);
+    if (it != _serverChannels.end())
         return (it->second);
 
     Channel* newChannel = new Channel(name); // Por defecto límite de clientes
     if (!newChannel)
         throw (ERR_UNKNOWN);
 
-    _channels[name] = newChannel;
+    _serverChannels[name] = newChannel;
     
     newChannel->addOperator(creator); // El creador es operador por defecto
 
@@ -104,44 +104,49 @@ Channel*    ServerLogic::createChannel(const std::string& name, Client* creator)
 void    ServerLogic::serverAddClient(int fd)
 {
     // Si ya existe, no hacemos nada
-    if (_clients.find(fd) != _clients.end())
+    if (_serverClients.find(fd) != _serverClients.end())
         return ;
 
     Client* newClient = new Client(fd);
     if (!newClient)
         throw (ERR_UNKNOWN);
 
-    _clients[fd] = newClient;
+    _serverClients[fd] = newClient;
 }
 
 void    ServerLogic::serverRemoveClient(int fd)
 {
-    // Cerrar socket si es válido
-    if (fd >= 0)
-        close(fd);
-
     // Buscar cliente
-    std::map<int, Client*>::iterator it = _clients.find(fd);
-    if (it == _clients.end())
+    std::map<int, Client*>::iterator it = _serverClients.find(fd);
+    if (it == _serverClients.end())
         return ;
 
     Client* client = it->second;
 
-    // Limpiar canales a los que pertenece
+    // Cerrar socket si es válido
+    if (fd >= 0)
+        close(fd);
+
+    /*// Limpiar canales a los que pertenece
     std::set<std::string> channelsCopy = client->getChannels();
     std::set<std::string>::iterator chIt;
     for (chIt = channelsCopy.begin(); chIt != channelsCopy.end(); ++chIt)
     {
         Channel* channel = getChannel(*chIt); // siempre devuelve canal existente
         channel->removeClient(client);
-    }
+        if (channel->getDeleteMe())
+        {
+            delete (channel);
+            _serverChannels.erase(chIt);
+        }
+    }*/
 
     // Limpiar nicknames
     if (!client->getNickname().empty())
-        _nicknames.erase(client->getNickname());
+        _serverNicknames.erase(client->getNickname());
 
     // Borrar de mapa y liberar memoria
-    _clients.erase(it);
+    _serverClients.erase(it);
     delete (client);
 
     /*también enviar un mensaje tipo PART a los demás clientes si quieres avisar que se fue.*/
@@ -152,8 +157,8 @@ void    ServerLogic::serverRemoveClient(int fd)
 void    ServerLogic::executeCommand(const Command& cmd, int clientFd)
 {
     // Primero, buscamos el cliente
-    std::map<int, Client*>::iterator it = _clients.find(clientFd);
-    if (it == _clients.end())
+    std::map<int, Client*>::iterator it = _serverClients.find(clientFd);
+    if (it == _serverClients.end())
         throw (ERR_UNKNOWN);
 
     Client* client = it->second;

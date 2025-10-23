@@ -9,9 +9,10 @@ class ServerLogic
 {
     private:
 
-        std::map<int, Client *>             _clients;
-        std::map<std::string, Client*>      _nicknames;
-        std::map<std::string, Channel *>    _channels;
+        std::map<int, Client *>             _serverClients;
+        std::map<std::string, Client*>      _serverNicknames;
+        std::map<std::string, Channel *>    _serverChannels;
+        
         const std::string                   _serverName;
         const std::string                   _serverPassword;
 
