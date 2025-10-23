@@ -3,18 +3,29 @@
 // Manejar el comando NOTICE (enviar mensaje de aviso)
 void    ServerLogic::handleNOTICE(Client* client, const Command& cmd)
 {
+    // Verificamos que el cliente esté registrado
     if (!client->isRegistered())
         throw (ERR_NOTREGISTERED);
 
     std::vector<std::string> receivers = str_to_vector(cmd.params[0], ',');
+
+    // Verificamos si hay mensaje
     std::string msg = cmd.params[1];
+    if (msg.empty())
+        throw (ERR_NOTEXTTOSEND);
+
     size_t i = 0;
     while (i < receivers.size())
     {
+        // Obtenemos el destinatario actual
         const std::string& target = receivers[i];
+        if (target.empty())
+            throw (ERR_NORECIPIENT);
+
+        // Construimos el mensaje completo
         std::string fullMsg = buildMessage(client->getNickname(), "NOTICE", target, msg);
 
-        // Buscamos si es un cliente por nickname
+        // Buscamos si es un cliente
         std::map<std::string, Client*>::iterator nickIt = _serverNicknames.find(target);
         if (nickIt != _serverNicknames.end())
         {
@@ -66,7 +77,7 @@ void    ServerLogic::handlePRIVMSG(Client* client, const Command& cmd)
         {
             Client* recipient = nickIt->second;
             recipient->receiveMessage(fullMsg, client->getNickname());
-            return ;
+            continue ;
         }
 
         // Buscamos si es un canal
@@ -75,7 +86,7 @@ void    ServerLogic::handlePRIVMSG(Client* client, const Command& cmd)
         {
             Channel* channel = chanIt->second;
             channel->broadcast(fullMsg, client);
-            return ;
+            continue ;
         }
 
         // Si no es ni cliente ni canal, lanzamos error
