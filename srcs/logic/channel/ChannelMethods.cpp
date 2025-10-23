@@ -56,27 +56,22 @@ void   Channel::removeClient(Client* client)
     if (_clients.erase(client) == 0)
         throw (ERR_NOTONCHANNEL);
 
-    // Eliminar de operadores
+    // Eliminar al cliente de operadores
     _operators.erase(client);
 
-    // Si ya no quedan operadores pero hay clientes, asignar uno nuevo
+    // Asignar nuevo operador si es necesario
     if (_operators.empty() && !_clients.empty())
     {
         Client* newOp = *(_clients.begin());
         _operators.insert(newOp);
     }
 
-    // Eliminar de invitados
+    // Eliminar al cliente de invitados
     _invited.erase(client);
 
-    // Si el canal queda vacío, limpiar estados
+    // Si el canal queda vacío, limpiar
     if (_clients.empty())
-    {
-        _topic.clear();
-        _isInviteOnly = false;
-        _isTopicProtected = false;
-        _password.clear();
-    }
+        _deleteMe = true;
 }
 
 bool    Channel::hasClient(Client* client) const
