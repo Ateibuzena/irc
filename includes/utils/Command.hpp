@@ -192,12 +192,9 @@ extern std::string MenssagesError[];
 #include <sstream> // Para convertir int a string en C++98
 
 // Función auxiliar para C++98
-inline std::string to_string_c98(int value)
-{
-    std::ostringstream oss;
-    oss << value;
-    return (oss.str());
-}
+std::string to_string_c98(int value);
+
+std::vector<std::string> str_to_vector(const std::string& str, char delimiter);
 
 #endif // COMMAND_HPP
 
