@@ -24,6 +24,7 @@ class Parser {
         bool ft_checkskey(std::string str);
         bool ft_checknumber(std::string str);
         bool ft_checksinglechannel(std::string str);
+        bool ft_checkflags(Command tocheck);
 };
 
 #endif
