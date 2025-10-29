@@ -1,49 +1,59 @@
 #include "../../includes/parser/Parser.hpp"
 
-std::map<std::string, int> Parser::commands = {
-    std::make_pair("PASS", 0),
-    std::make_pair("NICK", 1),
-    std::make_pair("USER", 2),
-    std::make_pair("JOIN", 3),
-    std::make_pair("PART", 4),
-    std::make_pair("PRIVMSG", 5),
-    std::make_pair("NOTICE", 6),
-    std::make_pair("QUIT", 7),
-    std::make_pair("PING", 8),
-    std::make_pair("PONG", 9),
-    std::make_pair("MODE", 10),
-    std::make_pair("TOPIC", 11),
-    std::make_pair("INVITE", 12),
-    std::make_pair("KICK", 13),
-};
+std::map<std::string, int> Parser::commands;
 
+void Parser::initCommands()
+{
+    commands.insert(std::make_pair("PASS", 0));
+    commands.insert(std::make_pair("NICK", 1));
+    commands.insert(std::make_pair("USER", 2));
+    commands.insert(std::make_pair("JOIN", 3));
+    commands.insert(std::make_pair("PART", 4));
+    commands.insert(std::make_pair("PRIVMSG", 5));
+    commands.insert(std::make_pair("NOTICE", 6));
+    commands.insert(std::make_pair("QUIT", 7));
+    commands.insert(std::make_pair("PING", 8));
+    commands.insert(std::make_pair("PONG", 9));
+    commands.insert(std::make_pair("MODE", 10));
+    commands.insert(std::make_pair("TOPIC", 11));
+    commands.insert(std::make_pair("INVITE", 12));
+    commands.insert(std::make_pair("KICK", 13));
+}
 
 Command Parser::parse(const std::string &rawMessage)
 {
+    initCommands();
+
+    std::cout << "[*] Parsing raw message: " << rawMessage << "\n";
     if (rawMessage.size() < 2)
-        throw std::exception();
+        throw ERR_UNKNOWN;
 
+    std::cout << "[*] Raw message size is sufficient: " << rawMessage.size() << "\n";
     if (rawMessage[rawMessage.size() - 1] != '\n' || rawMessage[rawMessage.size() - 2] != '\r')
-        throw std::exception();
+        throw ERR_UNKNOWN;
 
-    unsigned long i = 0;
+    unsigned long   i = 0;
+    Command         toret;
+    
     unsigned long size = rawMessage.size() - 2;
-    Command toret;
-
+    std::cout << "[*] Stripping CRLF from raw message. New size: " << size << "\n";
     while (i < size && rawMessage[i] != ' ')
-        i ++;
+        i++;
     if (i == 0)
-        throw std::exception();
+        throw ERR_UNKNOWN;
+
+    std::cout << "[*] Extracted command name from raw message.\n";
     toret.name = rawMessage.substr(0, i);
-
     while (i < size && rawMessage[i] == ' ')
-        i ++;
+        i++;
 
+    std::cout << "[*] Extracted command parameters from raw message.\n";
     if (i < size)
         this->ft_params(rawMessage, toret, i, size);
 
     toret.raw = rawMessage;
 
+    std::cout << "[*] Validating parsed command: " << toret.name << "\n";
     ft_parsecommand(toret);
 
     return (toret);
@@ -94,125 +104,125 @@ void Parser::ft_parsecommand(Command tocheck)
     {
         case 0:
             if (tocheck.params.size() < 1)
-                throw std::exception(); //ERR_NEEDMOREPARAMS
+                throw ERR_NEEDMOREPARAMS;
             break;
         case 1:
             if (tocheck.params.size() < 1)
-                throw std::exception(); //ERR_NONICKNAMEGIVEN
+                throw ERR_NONICKNAMEGIVEN;
             if (this->ft_isvalidusername(tocheck.params[0]) != true)
-                throw std::exception(); //ERR_ERRONEUSNICKNAME
+                throw ERR_ERRONEUSNICKNAME;
             break;
         case 2:
             if (tocheck.params.size() < 4)
-                throw std::exception(); //ERR_NEEDMOREPARAMS
+                throw ERR_NEEDMOREPARAMS;
             if (this->ft_isvalidusername(tocheck.params[0]) != true)
-                throw std::exception(); //ERR_ERRONEUSNICKNAME
+                throw ERR_ERRONEUSNICKNAME;
             if (tocheck.params[1].size() != 1)
-                throw std::exception(); //ERR_UMODEUNKNOWNFLAG
+                throw ERR_UMODEUNKNOWNFLAG;
             if (tocheck.params[1][0] != '0')
-                throw std::exception(); //ERR_UMODEUNKNOWNFLAG
+                throw ERR_UMODEUNKNOWNFLAG;
             break;
         case 3:
             if (tocheck.params.size() < 1)
-                throw std::exception(); //ERR_NEEDMOREPARAMS
+                throw ERR_NEEDMOREPARAMS;
             if (tocheck.params.size() > 1)
                 if (ft_checkkeys(tocheck.params[1]) == false)
-                    throw std::exception(); //ERR_BADCHANNELKEY
+                    throw ERR_BADCHANNELKEY;
             if (ft_checkchannel(tocheck.params[0]) == false)
-                throw std::exception(); //ERR_NOSUCHCHANNEL
+                throw ERR_NOSUCHCHANNEL;
             tocheck.params[0] += ',';
             if (tocheck.params.size() > 1)
                 tocheck.params[1] += ',';
             break;
         case 4:
             if (tocheck.params.size() < 1)
-                throw std::exception(); //ERR_NEEDMOREPARAMS
+                throw ERR_NEEDMOREPARAMS;
             if (ft_checkchannel(tocheck.params[0]) == false)
-                throw std::exception(); //ERR_NOSUCHCHANNEL
+                throw ERR_NOSUCHCHANNEL;
             break;
         case 5: 
             if (tocheck.params.size() < 2)
-                throw std::exception(); //ERR_NEEDMOREPARAMS
+                throw ERR_NEEDMOREPARAMS;
             if (ft_checkchanneluser(tocheck.params[0]) == false)
-                throw std::exception(); //ERR_NORECIPIENT
+                throw ERR_NORECIPIENT;
             tocheck.params[0] += ',';
             break;
         case 6:
             if (tocheck.params.size() < 2)
-                throw std::exception(); //ERR_NEEDMOREPARAMS
+                throw ERR_NEEDMOREPARAMS;
             if (ft_checkchanneluser(tocheck.params[0]) == false)
-                throw std::exception(); //ERR_NORECIPIENT
+                throw ERR_NORECIPIENT;
             if (tocheck.params[1].size() < 1)
-                throw std::exception(); //ERR_NOTEXTTOSEND
+                throw ERR_NOTEXTTOSEND;
             break;
         case 7:
             if (tocheck.params.size() > 0)
                 if (tocheck.params[0].size() < 1)
-                 throw std::exception(); //ERR_NOTEXTTOSEND
+                 throw ERR_NOTEXTTOSEND;
             break;
         case 8:
             if (tocheck.params.size() < 1)
-                throw std::exception(); //ERR_NOORIGIN
+                throw ERR_NOORIGIN;
             break;
         case 9: 
             if (tocheck.params.size() < 1)
-                throw std::exception(); //ERR_NOORIGIN
+                throw ERR_NOORIGIN;
             break;
         case 10:
             if (tocheck.params.size() < 2)
-                throw std::exception(); //ERR_NEEDMOREPARAMS
+                throw ERR_NEEDMOREPARAMS;
             if (tocheck.params[1].size() != 2)
-                throw std::exception(); //ERR_UMODEUNKNOWNFLAG
+                throw ERR_UMODEUNKNOWNFLAG;
             if (tocheck.params.size() > 2)
             {
                 if ((tocheck.params[1][0] != '-' && tocheck.params[1][0] != '+') || (tocheck.params[1][1] != 'k' && tocheck.params[1][1] != 'o' && tocheck.params[1][1] != 'l'))
-                    throw std::exception(); //ERR_UMODEUNKNOWNFLAG
+                    throw ERR_UMODEUNKNOWNFLAG;
                 if (tocheck.params[1][1] == 'k')
                 {
                     if (!ft_checkskey(tocheck.params[2]))
-                        throw std::exception(); //ERR_BADCHANNELKEY
+                        throw ERR_BADCHANNELKEY;
                 }
                 else if (tocheck.params[1][1] == 'o')
                 {
                     if (!ft_isvalidusername(tocheck.params[2]))
-                        throw std::exception(); //ERR_ERRONEUSNICKNAME
+                        throw ERR_ERRONEUSNICKNAME;
                 }
                 else if (tocheck.params[1][1] == 'l')
                 {
                     if (!ft_checknumber(tocheck.params[2]))
-                        throw std::exception(); //ERR_UNKNOWN
+                        throw ERR_UNKNOWN;
                 }
             }
             else
                 if ((tocheck.params[1][0] != '-' && tocheck.params[1][0] != '+') || (tocheck.params[1][1] != 'i' && tocheck.params[1][1] != 't'))
-                    throw std::exception(); //ERR_UMODEUNKNOWNFLAG
+                    throw ERR_UMODEUNKNOWNFLAG;
             if (ft_checksinglechannel(tocheck.params[0]) == false)
-                throw std::exception(); //ERR_NOSUCHCHANNEL
+                throw ERR_NOSUCHCHANNEL;
             break;
         case 11:
             if (tocheck.params.size() < 1)
-                throw std::exception(); //ERR_NEEDMOREPARAMS
+                throw ERR_NEEDMOREPARAMS;
             if (ft_checksinglechannel(tocheck.params[0]) == false)
-                throw std::exception(); //ERR_NOSUCHCHANNEL
+                throw ERR_NOSUCHCHANNEL;
             break;
         case 12:
             if (tocheck.params.size() < 2)
-                throw std::exception(); //ERR_NEEDMOREPARAMS
+                throw ERR_NEEDMOREPARAMS;
             if (!ft_checksinglechannel(tocheck.params[1]))
-                throw std::exception(); //ERR_NOSUCHCHANNEL
+                throw ERR_NOSUCHCHANNEL;
             if (!ft_isvalidusername(tocheck.params[0]))
-                throw std::exception(); //ERR_ERRONEUSNICKNAME
+                throw ERR_ERRONEUSNICKNAME;
             break;
         case 13:
             if (tocheck.params.size() < 2)
-                throw std::exception(); //ERR_NEEDMOREPARAMS
+                throw ERR_NEEDMOREPARAMS;
             if (!ft_checksinglechannel(tocheck.params[1]))
-                throw std::exception(); //ERR_NOSUCHCHANNEL
+                throw ERR_NOSUCHCHANNEL;
             if (!ft_isvalidusername(tocheck.params[0]))
-                throw std::exception(); //ERR_ERRONEUSNICKNAME
+                throw ERR_ERRONEUSNICKNAME;
             break;
         default:
-            throw std::exception();
+            throw ERR_UNKNOWN;
     }
 }
 
