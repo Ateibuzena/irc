@@ -12,48 +12,40 @@ void Parser::initCommands()
     commands.insert(std::make_pair("PRIVMSG", 5));
     commands.insert(std::make_pair("NOTICE", 6));
     commands.insert(std::make_pair("QUIT", 7));
-    commands.insert(std::make_pair("PING", 8));
-    commands.insert(std::make_pair("PONG", 9));
-    commands.insert(std::make_pair("MODE", 10));
-    commands.insert(std::make_pair("TOPIC", 11));
-    commands.insert(std::make_pair("INVITE", 12));
-    commands.insert(std::make_pair("KICK", 13));
+    commands.insert(std::make_pair("MODE", 8));
+    commands.insert(std::make_pair("TOPIC", 9));
+    commands.insert(std::make_pair("INVITE", 10));
+    commands.insert(std::make_pair("KICK", 11));
 }
 
 Command Parser::parse(const std::string &rawMessage)
 {
     initCommands();
 
-    std::cout << "[*] Parsing raw message: " << rawMessage << "\n";
     if (rawMessage.size() < 2)
         throw ERR_UNKNOWN;
 
-    std::cout << "[*] Raw message size is sufficient: " << rawMessage.size() << "\n";
     if (rawMessage[rawMessage.size() - 1] != '\n' || rawMessage[rawMessage.size() - 2] != '\r')
         throw ERR_UNKNOWN;
 
-    unsigned long   i = 0;
-    Command         toret;
-    
+    unsigned long i = 0;
     unsigned long size = rawMessage.size() - 2;
-    std::cout << "[*] Stripping CRLF from raw message. New size: " << size << "\n";
+    Command toret;
+
     while (i < size && rawMessage[i] != ' ')
-        i++;
+        i ++;
     if (i == 0)
         throw ERR_UNKNOWN;
-
-    std::cout << "[*] Extracted command name from raw message.\n";
     toret.name = rawMessage.substr(0, i);
-    while (i < size && rawMessage[i] == ' ')
-        i++;
 
-    std::cout << "[*] Extracted command parameters from raw message.\n";
+    while (i < size && rawMessage[i] == ' ')
+        i ++;
+
     if (i < size)
         this->ft_params(rawMessage, toret, i, size);
 
     toret.raw = rawMessage;
 
-    std::cout << "[*] Validating parsed command: " << toret.name << "\n";
     ft_parsecommand(toret);
 
     return (toret);
@@ -122,36 +114,25 @@ void Parser::ft_parsecommand(Command tocheck)
             if (tocheck.params[1][0] != '0')
                 throw ERR_UMODEUNKNOWNFLAG;
             break;
-        case 3:
+        case 3: // quitar
             if (tocheck.params.size() < 1)
                 throw ERR_NEEDMOREPARAMS;
-            if (tocheck.params.size() > 1)
-                if (ft_checkkeys(tocheck.params[1]) == false)
-                    throw ERR_BADCHANNELKEY;
-            if (ft_checkchannel(tocheck.params[0]) == false)
-                throw ERR_NOSUCHCHANNEL;
-            tocheck.params[0] += ',';
-            if (tocheck.params.size() > 1)
-                tocheck.params[1] += ',';
             break;
-        case 4:
+        case 4: //quitar
             if (tocheck.params.size() < 1)
                 throw ERR_NEEDMOREPARAMS;
-            if (ft_checkchannel(tocheck.params[0]) == false)
-                throw ERR_NOSUCHCHANNEL;
             break;
-        case 5: 
-            if (tocheck.params.size() < 2)
+        case 5:  //quitar
+            if (tocheck.params.size() < 1)
                 throw ERR_NEEDMOREPARAMS;
-            if (ft_checkchanneluser(tocheck.params[0]) == false)
-                throw ERR_NORECIPIENT;
-            tocheck.params[0] += ',';
+            if (tocheck.params.size() == 1)
+                throw ERR_NOTEXTTOSEND;
             break;
-        case 6:
-            if (tocheck.params.size() < 2)
+        case 6: //quitar
+            if (tocheck.params.size() < 1)
                 throw ERR_NEEDMOREPARAMS;
-            if (ft_checkchanneluser(tocheck.params[0]) == false)
-                throw ERR_NORECIPIENT;
+            if (tocheck.params.size() == 1)
+                throw ERR_NOTEXTTOSEND;
             if (tocheck.params[1].size() < 1)
                 throw ERR_NOTEXTTOSEND;
             break;
@@ -160,41 +141,11 @@ void Parser::ft_parsecommand(Command tocheck)
                 if (tocheck.params[0].size() < 1)
                  throw ERR_NOTEXTTOSEND;
             break;
-        case 8:
-            if (tocheck.params.size() < 1)
-                throw ERR_NOORIGIN;
-            break;
-        case 9: 
-            if (tocheck.params.size() < 1)
-                throw ERR_NOORIGIN;
-            break;
         case 10:
-            if (tocheck.params.size() < 2)
+            if (tocheck.params.size() < 1)
                 throw ERR_NEEDMOREPARAMS;
-            if (tocheck.params[1].size() != 2)
-                throw ERR_UMODEUNKNOWNFLAG;
-            if (tocheck.params.size() > 2)
-            {
-                if ((tocheck.params[1][0] != '-' && tocheck.params[1][0] != '+') || (tocheck.params[1][1] != 'k' && tocheck.params[1][1] != 'o' && tocheck.params[1][1] != 'l'))
-                    throw ERR_UMODEUNKNOWNFLAG;
-                if (tocheck.params[1][1] == 'k')
-                {
-                    if (!ft_checkskey(tocheck.params[2]))
-                        throw ERR_BADCHANNELKEY;
-                }
-                else if (tocheck.params[1][1] == 'o')
-                {
-                    if (!ft_isvalidusername(tocheck.params[2]))
-                        throw ERR_ERRONEUSNICKNAME;
-                }
-                else if (tocheck.params[1][1] == 'l')
-                {
-                    if (!ft_checknumber(tocheck.params[2]))
-                        throw ERR_UNKNOWN;
-                }
-            }
-            else
-                if ((tocheck.params[1][0] != '-' && tocheck.params[1][0] != '+') || (tocheck.params[1][1] != 'i' && tocheck.params[1][1] != 't'))
+            if (tocheck.params.size() > 1)
+                if (!ft_checkflags(tocheck))
                     throw ERR_UMODEUNKNOWNFLAG;
             if (ft_checksinglechannel(tocheck.params[0]) == false)
                 throw ERR_NOSUCHCHANNEL;
@@ -222,7 +173,7 @@ void Parser::ft_parsecommand(Command tocheck)
                 throw ERR_ERRONEUSNICKNAME;
             break;
         default:
-            throw ERR_UNKNOWN;
+            break;
     }
 }
 
@@ -361,7 +312,7 @@ bool Parser::ft_checkchanneluser(std::string str)
             if (i >= len)
                 return (true);
             if (str[i] != ',')
-                throw std::exception(); //ERR_NOSUCHCHANNEL
+                throw ERR_NOSUCHCHANNEL;
             n = i + 1;
         }
         else
@@ -376,7 +327,7 @@ bool Parser::ft_checkchanneluser(std::string str)
             if (i >= len)
                 return (true);
             if (str[i] != ',')
-                throw std::exception(); //ERR_NOSUCHNICK
+                throw ERR_NOSUCHNICK;
             n = i + 1;
         }
     }
@@ -394,5 +345,26 @@ bool Parser::ft_checknumber(std::string str)
     long double n = std::strtod(str.c_str(), NULL);
     if (n > 1000 || n < 1)
         return (false);
+    return (true);
+}
+
+bool Parser::ft_checkflags(Command tocheck)
+{
+    unsigned long size = tocheck.params.size();
+
+    if (tocheck.params[1][0] != '+' && tocheck.params[1][0] != '-')
+        return (false);
+
+    while (2 < tocheck.params.size())
+    {
+        if (tocheck.params[2][0] == '-' || tocheck.params[2][0] == '+')
+        {
+            tocheck.params[1] += tocheck.params[2];
+            tocheck.params.erase(tocheck.params.begin() + 2);
+        }
+        else
+            break;
+    }
+    
     return (true);
 }
