@@ -9,8 +9,6 @@ std::map<std::string, int> Parser::commands = {
     std::make_pair("PRIVMSG", 5),
     std::make_pair("NOTICE", 6), // no obligatorio
     std::make_pair("QUIT", 7),
-    std::make_pair("PING", 8), //quitar
-    std::make_pair("PONG", 9), //quitar
     std::make_pair("MODE", 10),
     std::make_pair("TOPIC", 11),
     std::make_pair("INVITE", 12),
@@ -115,18 +113,10 @@ void Parser::ft_parsecommand(Command tocheck)
         case 3: // quitar
             if (tocheck.params.size() < 1)
                 throw ERR_NEEDMOREPARAMS;
-            if (tocheck.params.size() > 1)
-                if (ft_checkkeys(tocheck.params[1]) == false)
-                    throw ERR_BADCHANNELKEY;
-            if (ft_checkchannel(tocheck.params[0]) == false)
-                throw ERR_NOSUCHCHANNEL;
-            if (tocheck.params.size() > 1)
             break;
         case 4: //quitar
             if (tocheck.params.size() < 1)
                 throw ERR_NEEDMOREPARAMS;
-            if (ft_checkchannel(tocheck.params[0]) == false)
-                throw ERR_NOSUCHCHANNEL;
             break;
         case 5:  //quitar
             if (tocheck.params.size() < 1)
@@ -139,8 +129,6 @@ void Parser::ft_parsecommand(Command tocheck)
                 throw ERR_NEEDMOREPARAMS;
             if (tocheck.params.size() == 1)
                 throw ERR_NOTEXTTOSEND;
-            if (ft_checkchanneluser(tocheck.params[0]) == false)
-                throw ERR_NORECIPIENT;
             if (tocheck.params[1].size() < 1)
                 throw ERR_NOTEXTTOSEND;
             break;
@@ -148,14 +136,6 @@ void Parser::ft_parsecommand(Command tocheck)
             if (tocheck.params.size() > 0)
                 if (tocheck.params[0].size() < 1)
                  throw ERR_NOTEXTTOSEND;
-            break;
-        case 8:
-            if (tocheck.params.size() < 1)
-                throw ERR_NOORIGIN;
-            break;
-        case 9: 
-            if (tocheck.params.size() < 1)
-                throw ERR_NOORIGIN;
             break;
         case 10:
             if (tocheck.params.size() < 1)
