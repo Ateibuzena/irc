@@ -3,10 +3,12 @@
 
 #include <string>
 #include <map>
+#include <set>
 #include <vector>
 #include <string>
 #include <iostream>
 #include <algorithm>
+#include <unistd.h>
 
 
 
@@ -43,133 +45,59 @@ struct Command
 
 enum ErrorCodes
 {
-    /*SUCCESS*/
     ERR_SUCCESS,
-
-    /*PASS*/
     ERR_NEEDMOREPARAMS,
     ERR_ALREADYREGISTERED,
     ERR_PASSWDMISMATCH,
-
-    /*NICK*/
     ERR_NONICKNAMEGIVEN,
     ERR_ERRONEUSNICKNAME,
-    ERR_NICKNAMEINUSE, //1
-
-    /*USER*/
-    /*ERR_NEEDMOREPARAMS,*/
-    /*ERR_ALREADYREGISTERED,*/
-
-    /*PING*/
+    ERR_NICKNAMEINUSE,
     ERR_NOORIGIN,
-
-    /*PONG*/
     ERR_NOOPERHOST,
     RPL_YOUREOPER,
-
-    /*QUIT*/
     QUIT,
-
-    /*JOIN*/
-    /*ERR_NEEDMOREPARAMS,*/
     ERR_NOSUCHCHANNEL,
-    ERR_TOOMANYCHANNELS, //1
+    ERR_TOOMANYCHANNELS,
     ERR_BADCHANNELKEY,
     ERR_BANNEDFROMCHAN,
-    ERR_CHANNELISFULL, //1
+    ERR_CHANNELISFULL,
     ERR_INVITEONLYCHAN,
     ERR_BADCHANMASK,
     RPL_TOPIC,
     RPL_TOPICWHOTIME,
     RPL_NAMREPLY,
     RPL_ENDOFNAMES,
-
-    /*PART*/
-    /*ERR_NEEDMOREPARAMS,*/
-    /*ERR_NOSUCHCHANNEL,*/
     ERR_NOTONCHANNEL,
-
-    /*TOPIC*/
-    /*ERR_NEEDMOREPARAMS,*/
-    /*ERR_NOSUCHCHANNEL,*/
-    /*ERR_NOTONCHANNEL,*/
     ERR_CHANOPRIVSNEEDED,
     RPL_NOTOPIC,
-    /*RPL_TOPIC,*//*PING*/
-    /*RPL_TOPICWHOTIME,*/
-
-    /*NAMES*/
-    /*RPL_NAMREPLY,*/
-    /*RPL_ENDOFNAMES,*/
-
-    /*LIST*/
     RPL_LISTSTART,
     RPL_LIST,
     RPL_LISTEND,
-
-    /*INVITE*/
     RPL_INVITING,
-    /*ERR_NEEDMOREPARAMS,*/
-    /*ERR_NOSUCHCHANNEL,*/
-    /*ERR_NOTONCHANNEL,*/
-    /*ERR_CHANOPRIVSNEEDED,*/
     ERR_USERONCHANNEL,
-
-    /*KICK*/
-    /*ERR_NEEDMOREPARAMS,*/
-    /*ERR_NOSUCHCHANNEL,*/
-    /*ERR_CHANOPRIVSNEEDED,*/
     ERR_USERNOTINCHANNEL,
-    /*ERR_NOTONCHANNEL,*/
-
-    /*MOTD*/
     ERR_NOSUCHSERVER,
     ERR_NOMOTD,
     RPL_MOTDSTART,
     RPL_MOTD,
     RPL_ENDOFMOTD,
-
-    /*VERSION*/
-    /*ERR_NOSUCHSERVER,*/
     RPL_ISUPPORT,
     RPL_VERSION,
-
-    /*ADMIN*/
-    /*ERR_NOSUCHSERVER,*/
     RPL_ADMINME,
     RPL_ADMINLOC1,
     RPL_ADMINLOC2,
     RPL_ADMINEMAIL,
-
-    /*CONNECT*/
-    /*ERR_NOSUCHSERVER,*/
-    /*ERR_NEEDMOREPARAMS,*/
     ERR_NOPRIVILEGES,
     ERR_NOPRIVS,
-
-    /*TIME*/
-    /*ERR_NOSUCHSERVER,*/
     RPL_TIME,
-
-    /*INFO*/
     RPL_INFO,
     RPL_ENDOFINFO,
-
-    /*MODE*/
     ERR_NOSUCHNICK,
     ERR_USERSDONTMATCH,
     RPL_UMODEIS,
     ERR_UMODEUNKNOWNFLAG,
-    /*ERR_NOSUCHCHANNEL,*/
     RPL_CHANNELMODEIS,
     RPL_CREATIONTIME,
-    /*ERR_CHANOPRIVSNEEDED,*/
-
-    /*NOTICE*/
-
-    /*PRIVMSG*/
-    /*ERR_NOSUCHNICK,*/
-    /*ERR_NOSUCHSERVER,*/
     ERR_CANNOTSENDTOCHAN,
     ERR_TOOMANYTARGETS,
     ERR_NORECIPIENT,
@@ -177,13 +105,9 @@ enum ErrorCodes
     ERR_NOTOPLEVEL,
     ERR_WILDTOPLEVEL,
     RPL_AWAY,
-
-    /*UNKNOWN ERROR*/
     ERR_UNKNOWN,
-
-    ERR_NOTREGISTERED, //1
-
-
+    ERR_NOTREGISTERED,
+    ERR_PASSWDAUTHORIZED
 };
 
 extern std::string MenssagesError[];
@@ -191,12 +115,9 @@ extern std::string MenssagesError[];
 #include <sstream> // Para convertir int a string en C++98
 
 // Función auxiliar para C++98
-inline std::string to_string_c98(int value)
-{
-    std::ostringstream oss;
-    oss << value;
-    return (oss.str());
-}
+std::string to_string_c98(int value);
+
+std::vector<std::string> str_to_vector(const std::string& str, char delimiter);
 
 #endif // COMMAND_HPP
 
