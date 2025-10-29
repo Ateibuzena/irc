@@ -56,9 +56,9 @@ void    ServerLogic::handlePRIVMSG(Client* client, const Command& cmd)
     std::vector<std::string> receivers = str_to_vector(cmd.params[0], ',');
 
     // Verificamos si hay mensaje
-    std::string msg = cmd.params[1];
-    if (msg.empty())
+    if (cmd.params.size() < 2)
         throw (ERR_NOTEXTTOSEND);
+    std::string msg = cmd.params[1];
 
     size_t i = 0;
     while (i < receivers.size())
