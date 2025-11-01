@@ -11,8 +11,8 @@ void    ServerLogic::handleNOTICE(Client* client, const Command& cmd)
 
     // Verificamos si hay mensaje
     std::string msg = cmd.params[1];
-    if (msg.empty())
-        throw (ERR_NOTEXTTOSEND);
+    /*if (msg.empty())
+        throw (ERR_NOTEXTTOSEND);*/ // puede ser vacío
 
     size_t i = 0;
     while (i < receivers.size())
@@ -22,16 +22,16 @@ void    ServerLogic::handleNOTICE(Client* client, const Command& cmd)
         if (target.empty())
             throw (ERR_NORECIPIENT);
 
-        // Construimos el mensaje completo
-        std::string fullMsg = buildMessage(client->getNickname(), "NOTICE", target, msg);
-
         // Buscamos si es un cliente
         std::map<std::string, Client*>::iterator nickIt = _serverNicknames.find(target);
         if (nickIt != _serverNicknames.end())
         {
             Client* recipient = nickIt->second;
-            //recipient->receiveMessage(fullMsg, client->getNickname());
-            sendMessageToClient(recipient, fullMsg);
+
+            // Construimos el mensaje completo
+            std::string noticeMsg = buildMessage(client, NULL, "NOTICE", recipient->getNickname() + " :" + msg);
+
+            sendMessageToClient(recipient, noticeMsg);
             continue ;
         }
         
@@ -40,8 +40,11 @@ void    ServerLogic::handleNOTICE(Client* client, const Command& cmd)
         if (chanIt != _serverChannels.end())
         {
             Channel* channel = chanIt->second;
-            //channel->broadcast(fullMsg, client);
-            sendMessageToChannel(channel, fullMsg, client);
+            
+            // Construimos el mensaje completo
+            std::string noticeMsg = buildMessage(client, NULL, "NOTICE", channel->getName() + " :" + msg);
+
+            sendMessageToChannel(channel, noticeMsg, client);
             continue ;
         }
         i++;
@@ -60,6 +63,7 @@ void    ServerLogic::handlePRIVMSG(Client* client, const Command& cmd)
     // Verificamos si hay mensaje
     if (cmd.params.size() < 2)
         throw (ERR_NOTEXTTOSEND);
+
     std::string msg = cmd.params[1];
 
     size_t i = 0;
@@ -70,16 +74,18 @@ void    ServerLogic::handlePRIVMSG(Client* client, const Command& cmd)
         if (target.empty())
             throw (ERR_NORECIPIENT);
 
-        // Construimos el mensaje completo
-        std::string fullMsg = buildMessage(client->getNickname(), "PRIVMSG", target, msg);
-
         // Buscamos si es un cliente
         std::map<std::string, Client*>::iterator nickIt = _serverNicknames.find(target);
         if (nickIt != _serverNicknames.end())
         {
             Client* recipient = nickIt->second;
-            //recipient->receiveMessage(fullMsg, client->getNickname());
-            sendMessageToClient(recipient, fullMsg);
+
+            // Construimos el mensaje completo
+            std::string privMsg = buildMessage(client, NULL, "NOTICE", recipient->getNickname() + " :" + msg);
+
+            sendMessageToClient(recipient, privMsg);
+            
+            i++;
             continue ;
         }
 
@@ -88,8 +94,12 @@ void    ServerLogic::handlePRIVMSG(Client* client, const Command& cmd)
         if (chanIt != _serverChannels.end())
         {
             Channel* channel = chanIt->second;
-            //channel->broadcast(fullMsg, client);
-            sendMessageToChannel(channel, fullMsg, client);
+            
+            // Construimos el mensaje completo
+            std::string privMsg = buildMessage(client, NULL, "NOTICE", channel->getName() + " :" + msg);
+
+            sendMessageToChannel(channel, privMsg, client);
+            i++;
             continue ;
         }
 
@@ -98,6 +108,5 @@ void    ServerLogic::handlePRIVMSG(Client* client, const Command& cmd)
             throw (ERR_CANNOTSENDTOCHAN);
         else
             throw (ERR_NOSUCHNICK);
-        i++;
     }
 }
