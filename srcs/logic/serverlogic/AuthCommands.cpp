@@ -8,17 +8,10 @@ void    ServerLogic::handlePASS(Client* client, const Command& cmd)
     if (client->isRegistered())
         throw (ERR_ALREADYREGISTERED);
 
-    /*if (client->getUsername().empty() || client->getNickname().empty())
-        throw (ERR_PASSWDAUTHORIZED);*/
-
     if (password != _serverPassword)
         throw (ERR_PASSWDMISMATCH);
 
     client->setPassword(password);
-
-    //std::string passMsg = buildMessage(NULL, NULL, "PASS", "");
-    
-    //sendMessageToClient(client, passMsg);
 
     // Si ya tenía username, nickname y la contraseña coincide o no había, lo marcamos como registrado
     if (!client->getUsername().empty()
@@ -85,10 +78,6 @@ void    ServerLogic::handleUSER(Client* client, const Command& cmd)
 
     client->setUsername(username);
 
-    /*std::string userMsg = buildMessage(NULL, NULL, "USER", "");
-    
-    sendMessageToClient(client, userMsg);*/
-
     // Si ya tenía username, nickname y la contraseña coincide o no había, lo marcamos como registrado
     if (!client->getUsername().empty()
         && (_serverPassword.empty() || client->getPassword() == _serverPassword)
@@ -121,7 +110,6 @@ void    ServerLogic::handleQUIT(Client* client, const Command& cmd)
                 Channel* channel = chanIt->second;
 
                 // Enviar mensaje de QUIT a los demás clientes del canal
-                //channel->broadcast(fullMsg, client);
                 sendMessageToChannel(channel, quitMsg, client);
 
                 // Eliminar cliente del canal
