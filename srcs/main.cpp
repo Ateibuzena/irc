@@ -7,7 +7,10 @@ int main(int argc, char* argv[])
         std::cerr << "Usage: " << argv[0] << " <port> <password>" << std::endl;
         return (1);
     }
-    
+
+    initErrorMessages();
+    initReplayMessages();
+
     Server srv(atoi(argv[1]), argv[2]);
 
     int status = srv.run();
