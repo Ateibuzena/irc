@@ -9,6 +9,7 @@
 #include <iostream>
 #include <algorithm>
 #include <unistd.h>
+#include <ctime>
 
 
 
@@ -46,17 +47,18 @@ struct Command
 // ---------------- STRUCT ----------------
 struct MessageInfo
 {
-    int         code;
+    //int         code;
+    std::string code;
     std::string message;
 
     MessageInfo()
-        :   code(0),
+        :   code(""),
             message("")
     {
 
     }
 
-    MessageInfo(int c, const std::string& msg)
+    MessageInfo(std::string c, const std::string& msg)
         :   code(c),
             message(msg)
     {
