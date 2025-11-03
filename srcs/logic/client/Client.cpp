@@ -94,7 +94,7 @@ void    Client::setUsername(const std::string& username)
 void    Client::setPassword(const std::string& password)
 {
     _password = password;
-    std::cout << GREEN << "✅ Password set." << RESET << std::endl;
+    //std::cout << GREEN << "✅ Password set." << RESET << std::endl;
 }
 
 void    Client::setRegistered(bool state)
