@@ -42,8 +42,7 @@ struct Command
     std::vector<std::string> params;  // Ej: {"#42Malaga", "hola mundo"}
     std::string raw;                  // Mensaje original (por debug)
 };
-
-enum ErrorCodes
+enum errorCodes
 {
     ERR_SUCCESS,
     ERR_NEEDMOREPARAMS,
@@ -54,8 +53,6 @@ enum ErrorCodes
     ERR_NICKNAMEINUSE,
     ERR_NOORIGIN,
     ERR_NOOPERHOST,
-    RPL_YOUREOPER,
-    QUIT,
     ERR_NOSUCHCHANNEL,
     ERR_TOOMANYCHANNELS,
     ERR_BADCHANNELKEY,
@@ -63,21 +60,41 @@ enum ErrorCodes
     ERR_CHANNELISFULL,
     ERR_INVITEONLYCHAN,
     ERR_BADCHANMASK,
+    ERR_NOTONCHANNEL,
+    ERR_CHANOPRIVSNEEDED,
+    ERR_USERONCHANNEL,
+    ERR_USERNOTINCHANNEL,
+    ERR_NOSUCHSERVER,
+    ERR_NOMOTD,
+    ERR_NOPRIVILEGES,
+    ERR_NOPRIVS,
+    ERR_NOSUCHNICK,
+    ERR_USERSDONTMATCH,
+    ERR_UMODEUNKNOWNFLAG,
+    ERR_CANNOTSENDTOCHAN,
+    ERR_TOOMANYTARGETS,
+    ERR_NORECIPIENT,
+    ERR_NOTEXTTOSEND,
+    ERR_NOTOPLEVEL,
+    ERR_WILDTOPLEVEL,
+    ERR_UNKNOWN,
+    ERR_NOTREGISTERED,
+    ERR_PASSWDAUTHORIZED,
+    QUIT // mensaje especial
+};
+
+enum replayCodes
+{
+    RPL_YOUREOPER,
     RPL_TOPIC,
     RPL_TOPICWHOTIME,
     RPL_NAMREPLY,
     RPL_ENDOFNAMES,
-    ERR_NOTONCHANNEL,
-    ERR_CHANOPRIVSNEEDED,
     RPL_NOTOPIC,
     RPL_LISTSTART,
     RPL_LIST,
     RPL_LISTEND,
     RPL_INVITING,
-    ERR_USERONCHANNEL,
-    ERR_USERNOTINCHANNEL,
-    ERR_NOSUCHSERVER,
-    ERR_NOMOTD,
     RPL_MOTDSTART,
     RPL_MOTD,
     RPL_ENDOFMOTD,
@@ -86,31 +103,19 @@ enum ErrorCodes
     RPL_ADMINME,
     RPL_ADMINLOC1,
     RPL_ADMINLOC2,
+    RPL_ADMINLOC3,
     RPL_ADMINEMAIL,
-    ERR_NOPRIVILEGES,
-    ERR_NOPRIVS,
     RPL_TIME,
     RPL_INFO,
     RPL_ENDOFINFO,
-    ERR_NOSUCHNICK,
-    ERR_USERSDONTMATCH,
     RPL_UMODEIS,
-    ERR_UMODEUNKNOWNFLAG,
     RPL_CHANNELMODEIS,
     RPL_CREATIONTIME,
-    ERR_CANNOTSENDTOCHAN,
-    ERR_TOOMANYTARGETS,
-    ERR_NORECIPIENT,
-    ERR_NOTEXTTOSEND,
-    ERR_NOTOPLEVEL,
-    ERR_WILDTOPLEVEL,
-    RPL_AWAY,
-    ERR_UNKNOWN,
-    ERR_NOTREGISTERED,
-    ERR_PASSWDAUTHORIZED
+    RPL_AWAY
 };
 
-extern std::string MenssagesError[];
+extern std::map<int, std::string> messagesError;
+extern std::map<int, std::string> messagesReplay;
 
 #include <sstream> // Para convertir int a string en C++98
 
