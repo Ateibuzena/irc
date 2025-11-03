@@ -4,11 +4,14 @@
 
 ServerLogic::ServerLogic(Server* server, const std::string& serverName, const std::string& serverPassword)
     :   _server(server),
+        _serverName(serverName),
+        _serverPassword(serverPassword),
+        _serverHost("localhost"),
+        _serverVersion("1.0"),
+        _serverStartTime(std::time(NULL)),
         _serverClients(),
         _serverNicknames(),
-        _serverChannels(),
-        _serverName(serverName),
-        _serverPassword(serverPassword)
+        _serverChannels()
 {
     std::cout << "✅ ServerLogic initialized." << std::endl;
 }
@@ -68,24 +71,114 @@ Channel* ServerLogic::getChannel(const std::string& name) const
     return (NULL);
 }
 
+const std::string& ServerLogic::getServerName() const
+{
+    return (_serverName);
+}
+
+const std::string& ServerLogic::getServerHost() const
+{
+    return (_serverHost);
+}
+
+const std::string& ServerLogic::getServerVersion() const
+{
+    return (_serverVersion);
+}
+
+/*----------------------------------SETTERS------------------------------------*/
+
+void    ServerLogic::setHostname(const std::string& hostname)
+{
+    _serverHost = hostname;
+}
+
+void    ServerLogic::setClientRegistered(Client* client)
+{
+    client->setRegistered(true);
+
+    std::string replayMsg;
+
+    replayMsg = buildReplyMessage(messagesReplay[RPL_WELCOME].code, client, NULL, NULL, messagesReplay[RPL_WELCOME].message + client->getNickname() + "!" + client->getUsername() + "@" + _serverHost);
+    replayMsg += buildReplyMessage(messagesReplay[RPL_YOURHOST].code, client, NULL, NULL, messagesReplay[RPL_YOURHOST].message + _serverName + ", version " + _serverVersion);
+    replayMsg += buildReplyMessage(messagesReplay[RPL_CREATED].code, client, NULL, NULL, messagesReplay[RPL_CREATED].message + time_to_string(_serverStartTime));
+    replayMsg += buildReplyMessage(messagesReplay[RPL_MYINFO].code, client, NULL, NULL, messagesReplay[RPL_MYINFO].message + _serverName + " " + _serverVersion + " o O"); //preguntar "ao mtov"??
+
+    sendMessageToClient(client, replayMsg);
+}
+
 /*----------------------------------METHODS------------------------------------*/
 
-std::string ServerLogic::buildMessage(const std::string& prefix,
+std::string ServerLogic::buildMessage(const Client* client,
+                                      const Channel* channel,
                                       const std::string& command,
-                                      const std::string& target,
-                                      const std::string& message) const
+                                      const std::string& aux) const
 {
-    std::string fullMsg = ":" + prefix + " " + command + " " + target + " :" + message + "\r\n";
+    std::string fullMsg;
+
+    //no pass porque no se envía mensaje de confirmación
+    //no user porque no se envía mensaje de confirmación
+    if (command == "NICK")
+    {
+        fullMsg = ":" + aux + "!" + client->getUsername() + "@" + _serverHost + " NICK :" + client->getNickname() + "\r\n";
+        return (fullMsg);
+    }
+    else if (command == "QUIT")
+    {
+        fullMsg = ":" + client->getNickname() + "!" + client->getUsername() + "@" + _serverHost + " QUIT :" + aux + "\r\n";
+        return (fullMsg);
+    }
+    else if (command == "NOTICE")
+    {
+        fullMsg = ":" + client->getNickname() + "!" + client->getUsername() + "@" + _serverHost + " NOTICE " + aux + "\r\n";
+        return (fullMsg);
+    }
+    else if (command == "PRIVMSG")
+    {
+        fullMsg = ":" + client->getNickname() + "!" + client->getUsername() + "@" + _serverHost + " PRIVMSG " + aux + "\r\n";
+        return (fullMsg);
+    }
+    else if (command == "INVITE")
+    {
+        fullMsg = ":" + client->getNickname() + "!" + client->getUsername() + "@" + _serverHost + " INVITE " + aux + "\r\n";
+        return (fullMsg);
+    }
+    else if (command == "KICK")
+    {
+        fullMsg = ":" + client->getNickname() + "!" + client->getUsername() + "@" + _serverHost + " KICK " + aux + "\r\n";
+        return (fullMsg);
+    }
+    else if (command == "TOPIC")
+    {
+        fullMsg = ":" + client->getNickname() + "!" + client->getUsername() + "@" + _serverHost + " TOPIC " + channel->getName() + " :" + aux + "\r\n";
+        return (fullMsg);
+    }
+
+    std::string fullMsg = ":" + prefix + " " + command + " " + target + " :" + aux + "\r\n";
 
     if (fullMsg.size() > MAX_MESSAGE_LENGTH)
     {
         // Reservamos espacio para CRLF y los demás campos
         size_t maxLen = MAX_MESSAGE_LENGTH - (prefix.size() + command.size() + target.size() + 4);
-        std::string truncated = message.substr(0, maxLen);
+        std::string truncated = aux.substr(0, maxLen);
         fullMsg = ":" + prefix + " " + command + " " + target + " :" + truncated + "\r\n";
     }
 
     return (fullMsg);
+}
+
+std::string ServerLogic::buildReplyMessage(std::string code, const Client* client, const std::string& target, const std::string& aux = "", const std::string& msg = "") const
+{
+    std::string fullMsg;
+
+    if (!target.empty() && !aux.empty() && msg.empty())
+        fullMsg = ":" + _serverName + " " + to_string_c98(code) + " " + client->getNickname() + " " + target + " " + aux + "\r\n";
+    else if (!target.empty() && aux.empty() && !msg.empty())
+        fullMsg = ":" + _serverName + " " + to_string_c98(code) + " " + client->getNickname() + " " + target + " :" + msg + "\r\n";
+    else if (target.empty() && aux.empty() && !msg.empty())
+        fullMsg = ":" + _serverName + " " + to_string_c98(code) + " " + client->getNickname() + " :" + msg + "\r\n";
+    else
+        fullMsg = "You're not supposed to go in here\r\n"; // POR AHORA MAMAHUEVA
 }
 
 // Devuelve un canal existente o lo crea si no existe
@@ -207,13 +300,13 @@ void    ServerLogic::executeCommand(const Command& cmd, int clientFd)
     }
 }
 
-void    ServerLogic::sendMessageToClient(Client* client, const std::string& message)
+void    ServerLogic::sendMessageToClient(Client* client, const std::string& aux)
 {
     if (client)
-        _server->queueMessage(client->getFd(), message);
+        _server->queueMessage(client->getFd(), aux);
 }
 
-void    ServerLogic::sendMessageToChannel(Channel* channel, const std::string& message, Client* sender)
+void    ServerLogic::sendMessageToChannel(Channel* channel, const std::string& aux, Client* sender)
 {
     if (!channel)
         return ;
@@ -225,7 +318,7 @@ void    ServerLogic::sendMessageToChannel(Channel* channel, const std::string& m
     {
         Client* client = *it;
         if (client != sender)
-            sendMessageToClient(client, message);
+            sendMessageToClient(client, aux);
         ++it;
     }
 }

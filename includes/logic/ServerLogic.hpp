@@ -13,13 +13,15 @@ class ServerLogic
     private:
 
         Server*                             _server;
+        const std::string                   _serverName;
+        const std::string                   _serverPassword;
+        std::string                         _serverHost;
+        const std::string                   _serverVersion;
+        const std::time_t                   _serverStartTime;
 
         std::map<int, Client *>             _serverClients;
         std::map<std::string, Client*>      _serverNicknames;
         std::map<std::string, Channel *>    _serverChannels;
-        
-        const std::string                   _serverName;
-        const std::string                   _serverPassword;
 
         //User Authentication
         void                                handlePASS(Client* client, const Command& cmd);
@@ -45,17 +47,34 @@ class ServerLogic
 
     public:
 
-                                            ServerLogic(Server* server, const std::string& serverName, const std::string& serverPassword);
-                                                
+                                            ServerLogic(Server* server,
+                                                            const std::string& serverName,
+                                                            const std::string& serverPassword);
+
                                             ~ServerLogic();
 
         Client*                             getClient(int fd) const;
         Channel*                            getChannel(const std::string& name) const;
+        const std::string&                  getServerName() const;
+        const std::string&                  getServerHost() const;
+        const std::string&                  getServerVersion() const;
+        const std::time_t                   getServerStartTime() const;
 
-        std::string                         buildMessage(const std::string& prefix,
-                                                            const std::string& command,
-                                                            const std::string& target,
-                                                            const std::string& message) const;
+        void                                setHostname(const std::string& hostname);
+        void                                setClientRegistered(Client* client);
+
+        std::string                         buildMessage(const Client* client = NULL,
+                                                        const Channel* channel = NULL,
+                                                        const std::string& command = "",
+                                                        const std::string& aux = "") const;
+
+        std::string                         buildErrorMessage(const Client* client, errorCodes code) const;
+
+        std::string                         buildReplyMessage(std::string code,
+                                                            const Client* client,
+                                                            const std::string& target = "",
+                                                            const std::string& aux = "",
+                                                            const std::string& msg = "") const;
 
         Channel*                            createChannel(const std::string& name, Client* creator);
         

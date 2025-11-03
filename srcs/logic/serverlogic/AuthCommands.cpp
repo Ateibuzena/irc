@@ -17,7 +17,7 @@ void    ServerLogic::handlePASS(Client* client, const Command& cmd)
     if (!client->getUsername().empty()
         && (_serverPassword.empty() || client->getPassword() == _serverPassword)
         && !client->getNickname().empty())
-        client->setRegistered(true);
+        setClientRegistered(client);
 }
 
 // Manejar el comando NICK (establecer nickname)
@@ -42,7 +42,7 @@ void    ServerLogic::handleNICK(Client* client, const Command& cmd)
     if (!client->getUsername().empty()
         && (_serverPassword.empty() || client->getPassword() == _serverPassword)
         && !client->getNickname().empty())
-        client->setRegistered(true);
+        setClientRegistered(client);
 
     // Enviar mensaje de cambio de nickname
     if (client->isRegistered())
@@ -82,7 +82,8 @@ void    ServerLogic::handleUSER(Client* client, const Command& cmd)
     if (!client->getUsername().empty()
         && (_serverPassword.empty() || client->getPassword() == _serverPassword)
         && !client->getNickname().empty())
-        client->setRegistered(true);
+        setClientRegistered(client);
+
 }
 
 // Manejar el comando QUIT (desconectar cliente)

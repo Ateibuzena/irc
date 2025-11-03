@@ -1,5 +1,6 @@
 #include "../../../includes/logic/ServerLogic.hpp"
 
+// revisar si se puede invitar a alguien a varios canales a la vez
 void    ServerLogic::handleINVITE(Client* client, const Command& cmd)
 {
     const std::string& channelName = cmd.params[0];
@@ -30,10 +31,13 @@ void    ServerLogic::handleINVITE(Client* client, const Command& cmd)
     // Invitamos al cliente al canal
     channel->inviteClient(invitedClient);
 
-    // Enviamos el mensaje de invitación
-    std::string inviteMsg = buildMessage(client->getNickname(), "INVITE", invitedClient->getNickname(), channelName);
-    //channel->broadcast(inviteMsg, client);
+    // Enviamos el mensaje de invitación al invitado
+    std::string inviteMsg = buildMessage(client, channel, "INVITE", invitedClient->getNickname() + " :" + channel->getName());
     sendMessageToChannel(channel, inviteMsg, client);
+
+    // Enviamos mensaje de confirmación al invitador CAMBIAR POR ESTRUCTURA RPL
+    std::string replayMsg = buildReplyMessage(messagesReplay[RPL_INVITING].code, client, invitedClient->getNickname(), channel->getName(), NULL);
+    sendMessageToClient(client, replayMsg);
 }
 
 // Manejar el comando KICK (expulsar usuario de canal)
@@ -60,12 +64,16 @@ void    ServerLogic::handleKICK(Client* client, const Command& cmd)
     if (!channel->isOperator(client))
         throw (ERR_CHANOPRIVSNEEDED);
 
-    // Luego buscamos el cliente a expulsar
+    // Buscamos el cliente a expulsar
     std::map<std::string, Client*>::iterator nickIt = _serverNicknames.find(targetNickname);
     if (nickIt == _serverNicknames.end())
         throw (ERR_NOSUCHNICK);
 
     Client* targetClient = nickIt->second;
+
+    // Comprobamos si el cliente a expulsar está en el canal
+    if (!channel->hasClient(targetClient))
+        throw (ERR_NOTONCHANNEL);
 
     // Construimos el mensaje de KICK para enviar a todos
     std::string msg = "Kicked";
@@ -75,15 +83,14 @@ void    ServerLogic::handleKICK(Client* client, const Command& cmd)
         msg = cmd.params[2];
     }
 
-    std::string fullMsg = buildMessage(client->getNickname(), "KICK", channelName + " " + targetNickname, msg);
-    
-    // Notificamos a todos los miembros del canal
-    //channel->broadcast(fullMsg, NULL);
-    sendMessageToChannel(channel, fullMsg, NULL);
-
     // Quitamos al cliente del canal y viceversa
     try
     {
+        std::string kickMsg = buildMessage(client, channel, "KICK", targetClient->getNickname() + " :" + msg);
+    
+        // Notificamos a todos los miembros del canal
+        sendMessageToChannel(channel, kickMsg, NULL);
+        
         channel->removeClient(targetClient);
         targetClient->leaveChannel(channel);
     }
@@ -112,7 +119,7 @@ void    ServerLogic::handleTOPIC(Client* client, const Command& cmd)
     if (!channel->hasClient(client))
         throw (ERR_NOTONCHANNEL);
 
-    std::string msg;
+    std::string replayMsg;
     
     // Si solo hay un parámetro, mostramos el tema actual
     if (cmd.params.size() == 1)
@@ -120,15 +127,22 @@ void    ServerLogic::handleTOPIC(Client* client, const Command& cmd)
         // Solo queremos ver el tema actual
         std::string topic = channel->getTopic();
         if (topic.empty())
-            msg = buildMessage(_serverName, to_string_c98(RPL_NOTOPIC), channelName, "No topic is set for this channel.");
+            replayMsg = buildReplyMessage(messagesReplay[RPL_NOTOPIC].code, client, channelName, NULL, messagesReplay[RPL_NOTOPIC].message);
         else
-            msg = buildMessage(_serverName, to_string_c98(RPL_TOPIC), channelName, topic);
-        //client->sendMessage(msg);
-        sendMessageToClient(client, msg);
+        {
+            std::string setter = channel->getSetter();
+            std::string timeSet = channel->getTimeSet();
 
+            replayMsg = buildReplyMessage(messagesReplay[RPL_TOPIC].code, client, channelName, NULL, topic);
+            replayMsg += buildReplyMessage(messagesReplay[RPL_TOPICWHOTIME].code, client, channelName, setter + " " + timeSet, NULL);
+        }
+
+        sendMessageToClient(client, replayMsg);
+
+        //¿esto es necesario en todos los comandos? ¿cuando?
         // Si hubo error al enviar el mensaje porque el cliente se desconectó, eliminamos el cliente
-        if (client->getFd() < 0)
-            serverRemoveClient(client->getFd());
+        /*if (client->getFd() < 0)
+            serverRemoveClient(client->getFd());*/
 
         return ;
     }
@@ -141,10 +155,18 @@ void    ServerLogic::handleTOPIC(Client* client, const Command& cmd)
     std::string newTopic = cmd.params[1];
     channel->setTopic(newTopic);
 
+    // Actualizamos setter
+    channel->setSetter(client->getNickname());
+
+    // Actualizamos timeSet
+    std::time_t now = std::time(NULL);
+    channel->setTimeSet(time_to_string(now));
+
     // Notificamos a todos los miembros del canal
-    msg = buildMessage(client->getNickname(), "TOPIC", channelName, newTopic);
-    //channel->broadcast(msg, NULL);
-    sendMessageToChannel(channel, msg, NULL);
+    std::string topicMsg = buildMessage(client, channel, "TOPIC", newTopic);
+
+    sendMessageToChannel(channel, topicMsg, NULL);
+    sendMessageToClient(client, topicMsg);
 }
 
 // Manejar el comando JOIN (unirse a canal)
@@ -208,6 +230,11 @@ void    ServerLogic::handleJOIN(Client* client, const Command& cmd)
             key = "";
         try
         {
+            Parser parser;
+            
+            if (!parser.ft_checkchannel(channelName))
+                throw (ERR_NOSUCHCHANNEL);
+
             Channel* channel = createChannel(channelName, client);
 
             if (!channel->getPassword().empty()) // Canal ya existente con clave
@@ -235,9 +262,11 @@ void    ServerLogic::handleJOIN(Client* client, const Command& cmd)
             client->joinChannel(channel);
 
             // Construimos el mensaje de JOIN para enviar a todos
-            std::string msg = buildMessage(client->getNickname(), "JOIN", channel->getName(), "");
-            //channel->broadcast(msg, client);
+            std::string msg = ":" + client->getNickname() + " JOIN " + channel->getName() + "\r\n";
+          
             sendMessageToChannel(channel, msg, client);
+            sendMessageToClient(client, msg);
+            
         }
         catch (int  error)
         {
