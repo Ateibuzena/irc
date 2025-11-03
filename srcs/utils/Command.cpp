@@ -71,6 +71,10 @@ void    initReplayMessages(void)
     messagesReplay[RPL_CHANNELMODEIS]       = MessageInfo("324", "Channel mode is");
     messagesReplay[RPL_CREATIONTIME]        = MessageInfo("329", "Creation time");
     messagesReplay[RPL_AWAY]                = MessageInfo("301", "Away");
+    messagesReplay[RPL_WELCOME]             = MessageInfo("001", "Welcome to the IRC Network ");
+    messagesReplay[RPL_YOURHOST]           = MessageInfo("002", "Your host is ");
+    messagesReplay[RPL_CREATED]             = MessageInfo("003", "This server was created ");
+    messagesReplay[RPL_MYINFO]              = MessageInfo("004", "Server info: ");
 }
 
 std::string to_string_c98(int value)
@@ -99,4 +103,14 @@ std::vector<std::string> str_to_vector(const std::string& str, char delimiter)
     result.push_back(str.substr(start));
     
     return (result);
+}
+
+std::string time_to_string(std::time_t t)
+{
+    std::tm*    timeinfo = std::localtime(&t);
+    char        buffer[80];
+
+    std::strftime(buffer, 80, "%Y-%m-%d %H:%M:%S", timeinfo);
+
+    return (std::string(buffer));
 }

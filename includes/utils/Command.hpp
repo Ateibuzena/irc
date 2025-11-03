@@ -136,7 +136,11 @@ enum replayCodes
     RPL_UMODEIS,
     RPL_CHANNELMODEIS,
     RPL_CREATIONTIME,
-    RPL_AWAY
+    RPL_AWAY,
+    RPL_WELCOME,
+    RPL_YOURHOST,
+    RPL_CREATED,
+    RPL_MYINFO
 };
 
 extern std::map<int, MessageInfo> messagesError;
@@ -151,6 +155,8 @@ void    initReplayMessages(void);
 std::string to_string_c98(int value);
 
 std::vector<std::string> str_to_vector(const std::string& str, char delimiter);
+
+std::string time_to_string(std::time_t t);
 
 #endif // COMMAND_HPP
 
