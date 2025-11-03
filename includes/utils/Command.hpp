@@ -140,6 +140,9 @@ enum replayCodes
 extern std::map<errorCodes, MessageInfo> messagesError;
 extern std::map<replayCodes, MessageInfo> messagesReplay;
 
+void    initErrorMessages(void);
+void    initReplayMessages(void);
+
 #include <sstream> // Para convertir int a string en C++98
 
 // Función auxiliar para C++98
