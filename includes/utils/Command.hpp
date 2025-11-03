@@ -137,8 +137,8 @@ enum replayCodes
     RPL_AWAY
 };
 
-extern std::map<errorCodes, MessageInfo> messagesError;
-extern std::map<replayCodes, MessageInfo> messagesReplay;
+extern std::map<int, MessageInfo> messagesError;
+extern std::map<int, MessageInfo> messagesReplay;
 
 void    initErrorMessages(void);
 void    initReplayMessages(void);
