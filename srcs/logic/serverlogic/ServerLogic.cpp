@@ -150,6 +150,22 @@ std::string ServerLogic::buildMessage(const std::string& prefix,
     return (fullMsg);
 }
 
+std::string ServerLogic::buildErrorMessage(const std::string& prefix,
+                                        const std::string& aux,
+                                        const std::string& msg) const
+{
+    std::string fullMsg = prefix + " ";
+
+    if (!aux.empty())
+    {
+        fullMsg += aux + " ";
+    }
+
+    fullMsg += ":" + msg + "\r\n";
+
+    return (fullMsg);
+}
+
 std::string ServerLogic::buildReplyMessage(std::string code,
                                         const Client* client,
                                         const std::string& target,

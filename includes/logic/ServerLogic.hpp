@@ -68,7 +68,9 @@ class ServerLogic
                                                         const std::string& target,
                                                         const std::string& aux) const;
 
-        std::string                         buildErrorMessage(const Client* client, errorCodes code) const;
+        std::string                         buildErrorMessage(const std::string& prefix,
+                                                            const std::string& aux,
+                                                            const std::string& msg) const;
 
         std::string                         buildReplyMessage(std::string code,
                                                             const Client* client,

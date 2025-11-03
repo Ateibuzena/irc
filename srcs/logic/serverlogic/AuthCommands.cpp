@@ -1,15 +1,32 @@
 #include "../../../includes/logic/ServerLogic.hpp"
 
-// Manejar el comando PASS (establecer contraseña) (Replay listo, Msg listo, NULL)
+// Manejar el comando PASS (establecer contraseña) (Replay listo, Msg listo, Error listo)
 void    ServerLogic::handlePASS(Client* client, const Command& cmd)
 {
+    //Juan :irc.server.com 461 <nick> PASS :Not enough parameters
+
     const std::string& password = cmd.params[0];
 
+    std::string prefix = ":" + _serverHost + " ";
+    std::string errorMsg; 
+
     if (client->isRegistered())
-        throw (ERR_ALREADYREGISTERED);
+    {
+        prefix += messagesError[ERR_NOTREGISTERED].code + " " + client->getNickname();
+        errorMsg = buildErrorMessage(prefix,
+                                    NULL,
+                                    messagesError[ERR_ALREADYREGISTERED].message);
+        return (sendMessageToClient(client, errorMsg));
+    }
 
     if (password != _serverPassword)
-        throw (ERR_PASSWDMISMATCH);
+    {
+        prefix += messagesError[ERR_PASSWDMISMATCH].code + " " + client->getNickname();
+        errorMsg = buildErrorMessage(prefix,
+                                    NULL,
+                                    messagesError[ERR_PASSWDMISMATCH].message);
+        return (sendMessageToClient(client, errorMsg));
+    }
 
     client->setPassword(password);
 
@@ -20,14 +37,31 @@ void    ServerLogic::handlePASS(Client* client, const Command& cmd)
         setClientRegistered(client);
 }
 
-// Manejar el comando NICK (establecer nickname) (Replay listo, Msg listo, NULL)
+// Manejar el comando NICK (establecer nickname) (Replay listo, Msg listo, Error listo)
 void    ServerLogic::handleNICK(Client* client, const Command& cmd)
 {
+    //Juan:
+    //:irc.server.com 431 * :No nickname given
+    //:irc.server.com 432 * <nick> :Erroneous nickname
+
+    //??
+    //:irc.server.com 436 * <nick> :Nickname collision KILL
+    //:irc.server.com 484 <nick> :Restricted
+
     const std::string nickname = cmd.params[0];
+
+    std::string prefix = ":" + _serverHost + " ";
+    std::string errorMsg;
 
     // Comprobamos si ya existe otro cliente con ese nickname
     if (_serverNicknames.find(nickname) != _serverNicknames.end())
-        throw (ERR_NICKNAMEINUSE);
+    {
+        prefix += messagesError[ERR_NICKNAMEINUSE].code + " * " + client->getNickname();
+        errorMsg = buildErrorMessage(prefix,
+                                    NULL,
+                                    messagesError[ERR_NICKNAMEINUSE].message);
+        return (sendMessageToClient(client, errorMsg));
+    }
 
     client->setOldNickname(client->getNickname());
 
@@ -76,10 +110,21 @@ void    ServerLogic::handleNICK(Client* client, const Command& cmd)
 // Manejar el comando USER (establecer username) (Replay listo, Msg listo, NULL)
 void    ServerLogic::handleUSER(Client* client, const Command& cmd)
 {
+    //Juan :irc.server.com 461 <nick> USER :Not enough parameters
+
     const std::string username = cmd.params[0];
 
+    std::string prefix = ":" + _serverHost + " ";
+    std::string errorMsg;
+
     if (client->isRegistered())
-        throw (ERR_ALREADYREGISTERED);
+    {
+        prefix += messagesError[ERR_ALREADYREGISTERED].code + " " + client->getNickname();
+        errorMsg = buildErrorMessage(prefix,
+                                    NULL,
+                                    messagesError[ERR_ALREADYREGISTERED].message);
+        return (sendMessageToClient(client, errorMsg));
+    }
 
     client->setUsername(username);
 
@@ -112,26 +157,19 @@ void    ServerLogic::handleQUIT(Client* client, const Command& cmd)
         std::map<std::string, Channel*>::iterator chanIt = _serverChannels.find(*it);
         if (chanIt != _serverChannels.end())
         {
-            try
+            Channel* channel = chanIt->second;
+
+            // Enviar mensaje de QUIT a los demás clientes del canal
+            sendMessageToChannel(channel, quitMsg, client);
+
+            // Eliminar cliente del canal
+            channel->removeClient(client);
+
+            // Si el canal queda vacío, eliminarlo del servidor
+            if (channel->getDeleteMe())
             {
-                Channel* channel = chanIt->second;
-
-                // Enviar mensaje de QUIT a los demás clientes del canal
-                sendMessageToChannel(channel, quitMsg, client);
-
-                // Eliminar cliente del canal
-                channel->removeClient(client);
-
-                // Si el canal queda vacío, eliminarlo del servidor
-                if (channel->getDeleteMe())
-                {
-                    delete (channel);
-                    _serverChannels.erase(chanIt);
-                }
-            }
-            catch(int error)
-            {
-                throw (error);
+                delete (channel);
+                _serverChannels.erase(chanIt);
             }
         }
         ++it;

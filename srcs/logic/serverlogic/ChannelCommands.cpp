@@ -3,29 +3,75 @@
 // revisar si se puede invitar a alguien a varios canales a la vez (Replay listo, Msg listo, NULL)
 void    ServerLogic::handleINVITE(Client* client, const Command& cmd)
 {
+    //Juan :irc.server.com 461 <nick> INVITE :Not enough parameters
+
     const std::string& channelName = cmd.params[0];
     const std::string& nickname = cmd.params[1];
 
+    std::string prefix = ":" + _serverHost + " ";
+    std::string errorMsg;
+
     if (!client->isRegistered())
-        throw (ERR_NOTREGISTERED);
+    {
+        prefix += messagesError[ERR_NOTREGISTERED].code + " " + client->getNickname() + " ";
+        errorMsg = buildErrorMessage(prefix,
+                                    NULL,
+                                    messagesError[ERR_NOTREGISTERED].message);
+        return (sendMessageToClient(client, errorMsg));
+    }
 
     // Primero buscamos el canal
     std::map<std::string, Channel*>::iterator chanIt = _serverChannels.find(channelName);
     if (chanIt == _serverChannels.end())
-        throw (ERR_NOSUCHCHANNEL);
+    {
+        prefix += messagesError[ERR_NOSUCHCHANNEL].code + " " + client->getNickname() + " ";
+        errorMsg = buildErrorMessage(prefix,
+                                    channelName,
+                                    messagesError[ERR_NOSUCHCHANNEL].message);
+        return (sendMessageToClient(client, errorMsg));
+    }
     Channel* channel = chanIt->second;
+
+    // Comprobamos que el ejecutor esté en el canal
+    if (!channel->hasClient(client))
+    {
+        prefix += messagesError[ERR_NOTONCHANNEL].code + " " + client->getNickname() + " ";
+        errorMsg = buildErrorMessage(prefix,
+                                    channel->getName(),
+                                    messagesError[ERR_NOTONCHANNEL].message);
+        return (sendMessageToClient(client, errorMsg));
+    }
 
     // Si el canal es invite-only, solo los operadores pueden invitar
     if (channel->isInviteOnly() && !channel->isOperator(client))
-        throw (ERR_CHANOPRIVSNEEDED);
+    {
+        prefix += messagesError[ERR_CHANOPRIVSNEEDED].code + " " + client->getNickname() + " ";
+        errorMsg = buildErrorMessage(prefix,
+                                    channel->getName(),
+                                    messagesError[ERR_CHANOPRIVSNEEDED].message);
+        return (sendMessageToClient(client, errorMsg));
+    }
 
+    // Si el canal está lleno, lanzamos error
     if (channel->getClients().size() >= channel->getMaxClients())
-        throw (ERR_CHANNELISFULL);
+    {
+        prefix += messagesError[ERR_CHANNELISFULL].code + " " + client->getNickname() + " ";
+        errorMsg = buildErrorMessage(prefix,
+                                    channel->getName(),
+                                    messagesError[ERR_CHANNELISFULL].message);
+        return (sendMessageToClient(client, errorMsg));
+    }
 
     // Luego buscamos el cliente a invitar
     std::map<std::string, Client*>::iterator nickIt = _serverNicknames.find(nickname);
     if (nickIt == _serverNicknames.end())
-        throw (ERR_NOSUCHNICK);
+    {
+        prefix += messagesError[ERR_NOSUCHNICK].code + " " + client->getNickname() + " ";
+        errorMsg = buildErrorMessage(prefix,
+                                    nickname,
+                                    messagesError[ERR_NOSUCHNICK].message);
+        return (sendMessageToClient(client, errorMsg));
+    }
     Client* invitedClient = nickIt->second;
 
     // Invitamos al cliente al canal
@@ -55,8 +101,19 @@ void    ServerLogic::handleINVITE(Client* client, const Command& cmd)
 // Manejar el comando KICK (expulsar usuario de canal)
 void    ServerLogic::handleKICK(Client* client, const Command& cmd)
 {
+    //Juan :irc.server.com 461 <nick> KICK :Not enough parameters
+
+    std::string prefix = ":" + _serverHost + " ";
+    std::string errorMsg;
+
     if (!client->isRegistered())
-        throw (ERR_NOTREGISTERED);
+    {
+        prefix += messagesError[ERR_NOTREGISTERED].code + " " + client->getNickname() + " ";
+        errorMsg = buildErrorMessage(prefix,
+                                    NULL,
+                                    messagesError[ERR_NOTREGISTERED].message);
+        return (sendMessageToClient(client, errorMsg));
+    }
     
     const std::string& channelName = cmd.params[0];
     const std::string& targetNickname = cmd.params[1];
@@ -64,28 +121,46 @@ void    ServerLogic::handleKICK(Client* client, const Command& cmd)
     // Primero buscamos el canal
     std::map<std::string, Channel*>::iterator chanIt = _serverChannels.find(channelName);
     if (chanIt == _serverChannels.end())
-        throw (ERR_NOSUCHCHANNEL);
-
+    {
+        prefix += messagesError[ERR_NOSUCHCHANNEL].code + " " + client->getNickname() + " ";
+        errorMsg = buildErrorMessage(prefix,
+                                    channelName,
+                                    messagesError[ERR_NOSUCHCHANNEL].message);
+        return (sendMessageToClient(client, errorMsg));
+    }
     Channel* channel = chanIt->second;
 
     // Comprobamos que el ejecutor esté en el canal
     if (!channel->hasClient(client))
-        throw (ERR_NOTONCHANNEL);
+    {
+        prefix += messagesError[ERR_NOTONCHANNEL].code + " " + client->getNickname() + " ";
+        errorMsg = buildErrorMessage(prefix,
+                                    channel->getName(),
+                                    messagesError[ERR_NOTONCHANNEL].message);
+        return (sendMessageToClient(client, errorMsg));
+    }
 
     // Si el cliente no es operador, lanzamos error
     if (!channel->isOperator(client))
-        throw (ERR_CHANOPRIVSNEEDED);
+    {
+        prefix += messagesError[ERR_CHANOPRIVSNEEDED].code + " " + client->getNickname() + " ";
+        errorMsg = buildErrorMessage(prefix,
+                                    channel->getName(),
+                                    messagesError[ERR_CHANOPRIVSNEEDED].message);
+        return (sendMessageToClient(client, errorMsg));
+    }
 
     // Buscamos el cliente a expulsar
     std::map<std::string, Client*>::iterator nickIt = _serverNicknames.find(targetNickname);
     if (nickIt == _serverNicknames.end())
-        throw (ERR_NOSUCHNICK);
-
+    {
+        prefix += messagesError[ERR_NOSUCHNICK].code + " " + client->getNickname() + " ";
+        errorMsg = buildErrorMessage(prefix,
+                                    targetNickname,
+                                    messagesError[ERR_NOSUCHNICK].message);
+        return (sendMessageToClient(client, errorMsg));
+    }
     Client* targetClient = nickIt->second;
-
-    // Comprobamos si el cliente a expulsar está en el canal
-    if (!channel->hasClient(targetClient))
-        throw (ERR_NOTONCHANNEL);
 
     // Construimos el mensaje de KICK para enviar a todos
     std::string msg = "Kicked";
@@ -95,46 +170,61 @@ void    ServerLogic::handleKICK(Client* client, const Command& cmd)
         msg = cmd.params[2];
     }
 
-    // Quitamos al cliente del canal y viceversa
-    try
-    {
-        // Construir mensaje de KICK para enviar a todos
-        std::string prefix = client->getNickname() + "!" + client->getUsername() + "@" + _serverHost;
+    // Construir mensaje de KICK para enviar a todos
+    std::string prefix = client->getNickname() + "!" + client->getUsername() + "@" + _serverHost;
 
-        std::string kickMsg = buildMessage(prefix, "KICK", NULL, NULL);
-        kickMsg += " " + channel->getName() + " " + targetClient->getNickname() + " :" + msg + "\r\n";
+    std::string kickMsg = buildMessage(prefix, "KICK", NULL, NULL);
+    kickMsg += " " + channel->getName() + " " + targetClient->getNickname() + " :" + msg + "\r\n";
 
-        // Quitamos al cliente del canal
-        channel->removeClient(targetClient);
-        targetClient->leaveChannel(channel);
-        
-        // Notificamos a todos los miembros del canal
-        sendMessageToChannel(channel, kickMsg, NULL);
-    }
-    catch(int error)
-    {
-        throw (error);
-    }
+    // Quitamos al cliente del canal
+    channel->removeClient(targetClient);
+    targetClient->leaveChannel(channel);
+    
+    // Notificamos a todos los miembros del canal
+    sendMessageToChannel(channel, kickMsg, NULL);
 }
 
 // Manejar el comando TOPIC (ver o establecer tema del canal)
 void    ServerLogic::handleTOPIC(Client* client, const Command& cmd)
 {
+    // Juan :irc.server.com 461 <nick> TOPIC :Not enough parameters
+
     const std::string& channelName = cmd.params[0];
 
+    std::string prefix = ":" + _serverHost + " ";
+    std::string errorMsg;
+
+    // Comprobar si el cliente está registrado
     if (!client->isRegistered())
-        throw (ERR_NOTREGISTERED);
+    {
+        prefix += messagesError[ERR_NOTREGISTERED].code + " " + client->getNickname() + " ";
+        errorMsg = buildErrorMessage(prefix,
+                                    NULL,
+                                    messagesError[ERR_NOTREGISTERED].message);
+        return (sendMessageToClient(client, errorMsg));
+    }
     
     // Primero buscamos el canal
     std::map<std::string, Channel*>::iterator it = _serverChannels.find(channelName);
     if (it == _serverChannels.end())
-        throw (ERR_NOSUCHCHANNEL);
-
+    {
+        prefix += messagesError[ERR_NOSUCHCHANNEL].code + " " + client->getNickname() + " ";
+        errorMsg = buildErrorMessage(prefix,
+                                    channelName,
+                                    messagesError[ERR_NOSUCHCHANNEL].message);
+        return (sendMessageToClient(client, errorMsg));
+    }
     Channel* channel = it->second;
 
     // Si el cliente no es miembro del canal, lanzamos un error
     if (!channel->hasClient(client))
-        throw (ERR_NOTONCHANNEL);
+    {
+        prefix += messagesError[ERR_NOTONCHANNEL].code + " " + client->getNickname() + " ";
+        errorMsg = buildErrorMessage(prefix,
+                                    channel->getName(),
+                                    messagesError[ERR_NOTONCHANNEL].message);
+        return (sendMessageToClient(client, errorMsg));
+    }
 
     std::string replayMsg;
     
@@ -175,7 +265,12 @@ void    ServerLogic::handleTOPIC(Client* client, const Command& cmd)
 
     // Si client quiere cambiar el tema, debe ser operador y el canal debe permitirlo
     if (channel->isTopicProtected() && !channel->isOperator(client))
-        throw (ERR_CHANOPRIVSNEEDED);
+    {
+        prefix += messagesError[ERR_CHANOPRIVSNEEDED].code + " " + client->getNickname() + " ";
+        errorMsg = buildErrorMessage(prefix,
+                                    channel->getName(),
+                                    messagesError[ERR_CHANOPRIVSNEEDED].message);
+    }
 
     // Establecemos el nuevo tema
     std::string newTopic = cmd.params[1];
@@ -203,7 +298,12 @@ void    ServerLogic::handleTOPIC(Client* client, const Command& cmd)
 void    ServerLogic::handleJOIN(Client* client, const Command& cmd)
 {
     if (!client->isRegistered())
-        throw (ERR_NOTREGISTERED);
+    {
+        prefix += messagesError[ERR_NOTREGISTERED].code + " " + client->getNickname() + " ";
+        errorMsg = buildErrorMessage(prefix,
+                                    NULL,
+                                    messagesError[ERR_NOTREGISTERED].message);
+    }
 
     // El primer parámetro contiene la lista de canales separados por ','
     std::string channelsParam = cmd.params[0];
@@ -306,12 +406,16 @@ void    ServerLogic::handleJOIN(Client* client, const Command& cmd)
     }
 }
 
-
 // Manejar el comando MODE (ver o cambiar modos de canal)
 void    ServerLogic::handleMODE(Client* client, const Command& cmd)
 {
     if (!client->isRegistered())
-        throw (ERR_NOTREGISTERED);
+    {
+        prefix += messagesError[ERR_NOTREGISTERED].code + " " + client->getNickname() + " ";
+        errorMsg = buildErrorMessage(prefix,
+                                    NULL,
+                                    messagesError[ERR_NOTREGISTERED].message);
+    }
 
     const std::string& target = cmd.params[0];
 
@@ -429,8 +533,20 @@ void    ServerLogic::handleMODE(Client* client, const Command& cmd)
 // Manejar el comando PART (salir de canal) (Replay listo, Msg listo, NULL)
 void    ServerLogic::handlePART(Client* client, const Command& cmd)
 {
+    // Juan :irc.server.com 461 <nick> PART :Not enough parameters
+
+    std::string prefix = ":" + _serverHost + " ";
+    std::string errorMsg;
+
+    // Comprobar si el cliente está registrado
     if (!client->isRegistered())
-        throw (ERR_NOTREGISTERED);
+    {
+        prefix += messagesError[ERR_NOTREGISTERED].code + " " + client->getNickname() + " ";
+        errorMsg = buildErrorMessage(prefix,
+                                    NULL,
+                                    messagesError[ERR_NOTREGISTERED].message);
+        return (sendMessageToClient(client, errorMsg));
+    }
 
     // El primer parámetro contiene la lista de canales separados por ','
     std::vector<std::string> channels = str_to_vector(cmd.params[0], ',');
@@ -449,32 +565,41 @@ void    ServerLogic::handlePART(Client* client, const Command& cmd)
         // Primero buscamos el canal
         std::map<std::string, Channel*>::iterator it = _serverChannels.find(channelName);
         if (it == _serverChannels.end())
-            throw (ERR_NOSUCHCHANNEL);
-
+        {
+            prefix += messagesError[ERR_NOSUCHCHANNEL].code + " " + client->getNickname() + " ";
+            errorMsg = buildErrorMessage(prefix,
+                                        channelName,
+                                        messagesError[ERR_NOSUCHCHANNEL].message);
+            
+            // Enviar el mensaje de error al cliente
+            sendMessageToClient(client, errorMsg);
+            break ;
+        }
         Channel* channel = it->second;
 
         // Si el cliente no es miembro del canal, lanzamos un error
         if (!channel->hasClient(client))
-            throw (ERR_NOTONCHANNEL);
-
-        // Quitamos al cliente del canal y viceversa
-        try
         {
-            // Construimos el mensaje de PART para enviar a todos
-            std::string prefix = client->getNickname() + "!" + client->getUsername() + "@" + _serverHost;
-            std::string partMsg = buildMessage(prefix, "PART", channelName, msg);
-
-            channel->removeClient(client);
-            client->leaveChannel(channel);
-
-
-            // Notificamos a todos los miembros del canal
-            sendMessageToChannel(channel, partMsg, client);
+            prefix += messagesError[ERR_NOTONCHANNEL].code + " " + client->getNickname() + " ";
+            errorMsg = buildErrorMessage(prefix,
+                                        channel->getName(),
+                                        messagesError[ERR_NOTONCHANNEL].message);
+            
+            // Enviar el mensaje de error al cliente
+            sendMessageToClient(client, errorMsg);
+            break ;
         }
-        catch(int error)
-        {
-            throw (error);
-        }
+        // Construimos el mensaje de PART para enviar a todos
+        std::string prefix = client->getNickname() + "!" + client->getUsername() + "@" + _serverHost;
+        std::string partMsg = buildMessage(prefix, "PART", channelName, msg);
+
+        channel->removeClient(client);
+        client->leaveChannel(channel);
+
+
+        // Notificamos a todos los miembros del canal
+        sendMessageToChannel(channel, partMsg, client);
+        
         i++;
     }
 }
