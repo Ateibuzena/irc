@@ -11,6 +11,7 @@ class Client
 
         int                             _fd;
         std::string                     _nickname;
+        std::string                     _oldNickname;
         std::string                     _username;
         std::string                     _password;
         bool                            _registered;
@@ -28,6 +29,7 @@ class Client
 
         int                             getFd() const;
         const std::string&              getNickname() const;
+        const std::string&              getOldNickname() const;
         const std::string&              getUsername() const;
         const std::string&              getPassword() const;
         bool                            isRegistered() const;
@@ -39,6 +41,7 @@ class Client
 
         void                            setFd(int fd);
         void                            setNickname(const std::string& nickname);
+        void                            setOldNickname(const std::string& oldNickname);
         void                            setUsername(const std::string& username);
         void                            setPassword(const std::string& password);
         void                            setRegistered(bool state);

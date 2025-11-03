@@ -5,6 +5,7 @@
 Client::Client(int fd)
     :   _fd(fd),
         _nickname(""),
+        _oldNickname(""),
         _username(""),
         _password(""),
         _registered(false),
@@ -20,6 +21,7 @@ Client::Client(int fd)
 Client::~Client()
 {
     _nickname.clear();
+    _oldNickname.clear();
     _username.clear();
     _password.clear();
     _registered = false;
@@ -39,6 +41,11 @@ int Client::getFd() const
 const   std::string& Client::getNickname() const
 {
     return (_nickname);
+}
+
+const   std::string& Client::getOldNickname() const
+{
+    return (_oldNickname);
 }
 
 const   std::string& Client::getUsername() const
@@ -83,6 +90,12 @@ void    Client::setNickname(const std::string& nickname)
 {
     _nickname = nickname;
     std::cout << GREEN << "✅ Nickname set to: " << _nickname << RESET << std::endl;
+}
+
+void    Client::setOldNickname(const std::string& oldNickname)
+{
+    _oldNickname = oldNickname;
+    std::cout << GREEN << "✅ Old Nickname set to: " << _oldNickname << RESET << std::endl;
 }
 
 void    Client::setUsername(const std::string& username)
