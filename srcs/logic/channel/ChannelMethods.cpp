@@ -76,7 +76,9 @@ void   Channel::removeClient(Client* client)
 
 bool    Channel::hasClient(Client* client) const
 {
-    return (_clients.find(client) != _clients.end());
+    if (_clients.find(client) != _clients.end())
+        return (true);
+    return (false);
 }
 
 /*void    Channel::broadcast(const std::string& message, Client* sender)

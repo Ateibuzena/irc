@@ -6,6 +6,8 @@
 Channel::Channel(const std::string& name, size_t maxClients)
     :   _name(name),
         _topic(""),
+        _setter(""),
+        _timeSet(""),
         _clients(),
         _isInviteOnly(false),
         _isTopicProtected(false),
@@ -23,6 +25,8 @@ Channel::Channel(const std::string& name, size_t maxClients)
 Channel::~Channel()
 {
     _topic.clear();
+    _setter.clear();
+    _timeSet.clear();
     _clients.clear();
     _isInviteOnly = false;
     _isTopicProtected = false;
@@ -43,6 +47,17 @@ const std::string& Channel::getTopic() const
 {
     return (_topic);
 }
+
+const std::string& Channel::getSetter() const
+{
+    return (_setter);
+}
+
+const std::string& Channel::getTimeSet() const
+{
+    return (_timeSet);
+}
+
 
 const std::set<Client *>& Channel::getClients() const
 {
@@ -105,6 +120,16 @@ const std::string Channel::getModes() const
 void Channel::setTopic(const std::string& topic)
 {
     _topic = topic;
+}
+
+void Channel::setSetter(const std::string& setter)
+{
+    _setter = setter;
+}
+
+void Channel::setTimeSet(const std::string& timeSet)
+{
+    _timeSet = timeSet;
 }
 
 void Channel::setInviteOnly(bool inviteOnly)
