@@ -1,6 +1,6 @@
 #include "../../../includes/logic/ServerLogic.hpp"
 
-// Manejar el comando NOTICE (enviar mensaje de aviso)
+// Manejar el comando NOTICE (enviar mensaje de aviso) (Replay listo, Msg listo, NULL)
 void    ServerLogic::handleNOTICE(Client* client, const Command& cmd)
 {
     // Verificamos que el cliente esté registrado
@@ -28,9 +28,14 @@ void    ServerLogic::handleNOTICE(Client* client, const Command& cmd)
         {
             Client* recipient = nickIt->second;
 
-            // Construimos el mensaje completo
-            std::string noticeMsg = buildMessage(client, NULL, "NOTICE", recipient->getNickname() + " :" + msg);
+            // Construimos el mensaje de NOTICE para notificar a otro cliente
+            std::string prefix = ":" + client->getNickname() + "!" + client->getUsername() + "@" + _serverHost;
+            std::string noticeMsg = buildMessage(prefix,
+                                                "NOTICE",
+                                                recipient->getNickname(),
+                                                msg);
 
+            // Enviamos el mensaje al destinatario
             sendMessageToClient(recipient, noticeMsg);
             continue ;
         }
@@ -40,10 +45,12 @@ void    ServerLogic::handleNOTICE(Client* client, const Command& cmd)
         if (chanIt != _serverChannels.end())
         {
             Channel* channel = chanIt->second;
-            
-            // Construimos el mensaje completo
-            std::string noticeMsg = buildMessage(client, NULL, "NOTICE", channel->getName() + " :" + msg);
 
+            // Construimos el mensaje de NOTICE para notificar a un canal
+            std::string prefix = ":" + client->getNickname() + "!" + client->getUsername() + "@" + _serverHost;
+            std::string noticeMsg = buildMessage(prefix, "NOTICE", channel->getName(), msg);
+
+            // Enviamos el mensaje a todos los clientes del canal
             sendMessageToChannel(channel, noticeMsg, client);
             continue ;
         }
@@ -51,7 +58,7 @@ void    ServerLogic::handleNOTICE(Client* client, const Command& cmd)
     }
 }
 
-// Manejar el comando PRIVMSG (enviar mensaje privado)
+// Manejar el comando PRIVMSG (enviar mensaje privado) (Replay listo, Msg listo, NULL)
 void    ServerLogic::handlePRIVMSG(Client* client, const Command& cmd)
 {
     // Verificamos que el cliente esté registrado
@@ -80,9 +87,11 @@ void    ServerLogic::handlePRIVMSG(Client* client, const Command& cmd)
         {
             Client* recipient = nickIt->second;
 
-            // Construimos el mensaje completo
-            std::string privMsg = buildMessage(client, NULL, "NOTICE", recipient->getNickname() + " :" + msg);
+            // Construimos el mensaje de PRIVMSG para notificar a otro cliente
+            std::string prefix = ":" + client->getNickname() + "!" + client->getUsername() + "@" + _serverHost;
+            std::string privMsg = buildMessage(prefix, "PRIVMSG", recipient->getNickname(), msg);
 
+            // Enviamos el mensaje al destinatario
             sendMessageToClient(recipient, privMsg);
             
             i++;
@@ -94,9 +103,10 @@ void    ServerLogic::handlePRIVMSG(Client* client, const Command& cmd)
         if (chanIt != _serverChannels.end())
         {
             Channel* channel = chanIt->second;
-            
-            // Construimos el mensaje completo
-            std::string privMsg = buildMessage(client, NULL, "NOTICE", channel->getName() + " :" + msg);
+
+            // Construimos el mensaje de PRIVMSG para notificar a un canal
+            std::string prefix = ":" + client->getNickname() + "!" + client->getUsername() + "@" + _serverHost;
+            std::string privMsg = buildMessage(prefix, "PRIVMSG", channel->getName(), msg);
 
             sendMessageToChannel(channel, privMsg, client);
             i++;

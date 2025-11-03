@@ -1,6 +1,6 @@
 #include "../../../includes/logic/ServerLogic.hpp"
 
-// Manejar el comando PASS (establecer contraseña)
+// Manejar el comando PASS (establecer contraseña) (Replay listo, Msg listo, NULL)
 void    ServerLogic::handlePASS(Client* client, const Command& cmd)
 {
     const std::string& password = cmd.params[0];
@@ -20,7 +20,7 @@ void    ServerLogic::handlePASS(Client* client, const Command& cmd)
         setClientRegistered(client);
 }
 
-// Manejar el comando NICK (establecer nickname)
+// Manejar el comando NICK (establecer nickname) (Replay listo, Msg listo, NULL)
 void    ServerLogic::handleNICK(Client* client, const Command& cmd)
 {
     const std::string nickname = cmd.params[0];
@@ -29,11 +29,11 @@ void    ServerLogic::handleNICK(Client* client, const Command& cmd)
     if (_serverNicknames.find(nickname) != _serverNicknames.end())
         throw (ERR_NICKNAMEINUSE);
 
-    std::string oldNickname = client->getNickname();
+    client->setOldNickname(client->getNickname());
 
     // Si tenía un nickname anterior, lo eliminamos del map
-    if (!oldNickname.empty())
-        _serverNicknames.erase(oldNickname);
+    if (!client->getOldNickname().empty())
+        _serverNicknames.erase(client->getOldNickname());
 
     // Asignamos el nuevo nickname
     client->setNickname(nickname);
@@ -47,8 +47,11 @@ void    ServerLogic::handleNICK(Client* client, const Command& cmd)
     // Enviar mensaje de cambio de nickname
     if (client->isRegistered())
     {
-        std::string nickMsg = buildMessage(client, NULL, "NICK", oldNickname);
+        // Construir mensaje de NICK para los canales
+        std::string prefix = ":" + client->getOldNickname() + "!" + client->getUsername() + "@" + _serverHost;
+        std::string nickMsg = buildMessage(prefix, "NICK", NULL, client->getNickname());
 
+        // Enviar a todos los canales donde está el cliente
         std::set<std::string> channelsNames = client->getChannels();
         std::set<std::string>::iterator it = channelsNames.begin();
         while (it != channelsNames.end())
@@ -61,6 +64,8 @@ void    ServerLogic::handleNICK(Client* client, const Command& cmd)
             }
             ++it;
         }
+
+        // También enviamos el mensaje al propio cliente
         sendMessageToClient(client, nickMsg);
 
         // Añadimos al map de nicknames
@@ -68,7 +73,7 @@ void    ServerLogic::handleNICK(Client* client, const Command& cmd)
     }
 }
 
-// Manejar el comando USER (establecer username)
+// Manejar el comando USER (establecer username) (Replay listo, Msg listo, NULL)
 void    ServerLogic::handleUSER(Client* client, const Command& cmd)
 {
     const std::string username = cmd.params[0];
@@ -86,7 +91,7 @@ void    ServerLogic::handleUSER(Client* client, const Command& cmd)
 
 }
 
-// Manejar el comando QUIT (desconectar cliente)
+// Manejar el comando QUIT (desconectar cliente) (Replay listo, Msg listo, NULL)
 void    ServerLogic::handleQUIT(Client* client, const Command& cmd)
 {
     // Construir mensaje de QUIT
@@ -96,7 +101,8 @@ void    ServerLogic::handleQUIT(Client* client, const Command& cmd)
         msg.clear();
         msg = cmd.params[0];
     }
-    std::string quitMsg = buildMessage(client, NULL, "QUIT", msg);
+    std::string prefix = ":" + client->getNickname() + "!" + client->getUsername() + "@" + _serverHost;
+    std::string quitMsg = buildMessage(prefix, "QUIT", NULL, msg);
 
     // Limpiar canales a los que pertenece
     const std::set<std::string>& channelsNames = client->getChannels();

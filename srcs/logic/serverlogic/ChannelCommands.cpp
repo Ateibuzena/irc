@@ -1,6 +1,6 @@
 #include "../../../includes/logic/ServerLogic.hpp"
 
-// revisar si se puede invitar a alguien a varios canales a la vez
+// revisar si se puede invitar a alguien a varios canales a la vez (Replay listo, Msg listo, NULL)
 void    ServerLogic::handleINVITE(Client* client, const Command& cmd)
 {
     const std::string& channelName = cmd.params[0];
@@ -31,12 +31,24 @@ void    ServerLogic::handleINVITE(Client* client, const Command& cmd)
     // Invitamos al cliente al canal
     channel->inviteClient(invitedClient);
 
-    // Enviamos el mensaje de invitación al invitado
-    std::string inviteMsg = buildMessage(client, channel, "INVITE", invitedClient->getNickname() + " :" + channel->getName());
-    sendMessageToChannel(channel, inviteMsg, client);
+    // Construimos el mensaje de INVITE para enviar al invitado
+    std::string prefix = client->getNickname() + "!" + client->getUsername() + "@" + _serverHost;
+    std::string inviteMsg = buildMessage(prefix,
+                                        "INVITE",
+                                        invitedClient->getNickname(),
+                                        channel->getName());
 
-    // Enviamos mensaje de confirmación al invitador CAMBIAR POR ESTRUCTURA RPL
-    std::string replayMsg = buildReplyMessage(messagesReplay[RPL_INVITING].code, client, invitedClient->getNickname(), channel->getName(), NULL);
+    // Enviamos el mensaje de invitación al cliente invitado
+    sendMessageToClient(invitedClient, inviteMsg);
+
+    // Construimos el mensaje de confirmación para el invitador
+    std::string replayMsg = buildReplyMessage(messagesReplay[RPL_INVITING].code,
+                                            client,
+                                            invitedClient->getNickname(),
+                                            channel->getName(),
+                                            NULL);
+
+    // Enviamos el mensaje de confirmación al invitador
     sendMessageToClient(client, replayMsg);
 }
 
@@ -86,13 +98,18 @@ void    ServerLogic::handleKICK(Client* client, const Command& cmd)
     // Quitamos al cliente del canal y viceversa
     try
     {
-        std::string kickMsg = buildMessage(client, channel, "KICK", targetClient->getNickname() + " :" + msg);
-    
-        // Notificamos a todos los miembros del canal
-        sendMessageToChannel(channel, kickMsg, NULL);
-        
+        // Construir mensaje de KICK para enviar a todos
+        std::string prefix = client->getNickname() + "!" + client->getUsername() + "@" + _serverHost;
+
+        std::string kickMsg = buildMessage(prefix, "KICK", NULL, NULL);
+        kickMsg += " " + channel->getName() + " " + targetClient->getNickname() + " :" + msg + "\r\n";
+
+        // Quitamos al cliente del canal
         channel->removeClient(targetClient);
         targetClient->leaveChannel(channel);
+        
+        // Notificamos a todos los miembros del canal
+        sendMessageToChannel(channel, kickMsg, NULL);
     }
     catch(int error)
     {
@@ -124,25 +141,34 @@ void    ServerLogic::handleTOPIC(Client* client, const Command& cmd)
     // Si solo hay un parámetro, mostramos el tema actual
     if (cmd.params.size() == 1)
     {
-        // Solo queremos ver el tema actual
         std::string topic = channel->getTopic();
+
+        // Si no hay tema establecido
         if (topic.empty())
-            replayMsg = buildReplyMessage(messagesReplay[RPL_NOTOPIC].code, client, channelName, NULL, messagesReplay[RPL_NOTOPIC].message);
-        else
+            replayMsg = buildReplyMessage(messagesReplay[RPL_NOTOPIC].code,
+                                        client,
+                                        channelName,
+                                        NULL,
+                                        messagesReplay[RPL_NOTOPIC].message);
+        else // Hay un tema establecido
         {
             std::string setter = channel->getSetter();
             std::string timeSet = channel->getTimeSet();
 
-            replayMsg = buildReplyMessage(messagesReplay[RPL_TOPIC].code, client, channelName, NULL, topic);
-            replayMsg += buildReplyMessage(messagesReplay[RPL_TOPICWHOTIME].code, client, channelName, setter + " " + timeSet, NULL);
+            replayMsg = buildReplyMessage(messagesReplay[RPL_TOPIC].code,
+                                        client,
+                                        channelName,
+                                        NULL,
+                                        topic);
+            replayMsg += buildReplyMessage(messagesReplay[RPL_TOPICWHOTIME].code,
+                                        client,
+                                        channelName,
+                                        setter + " " + timeSet,
+                                        NULL);
         }
 
+        // Enviamos el mensaje al cliente
         sendMessageToClient(client, replayMsg);
-
-        //¿esto es necesario en todos los comandos? ¿cuando?
-        // Si hubo error al enviar el mensaje porque el cliente se desconectó, eliminamos el cliente
-        /*if (client->getFd() < 0)
-            serverRemoveClient(client->getFd());*/
 
         return ;
     }
@@ -162,10 +188,14 @@ void    ServerLogic::handleTOPIC(Client* client, const Command& cmd)
     std::time_t now = std::time(NULL);
     channel->setTimeSet(time_to_string(now));
 
-    // Notificamos a todos los miembros del canal
-    std::string topicMsg = buildMessage(client, channel, "TOPIC", newTopic);
+    // Construimos el mensaje de TOPIC para enviar a todos
+    std::string prefix = client->getNickname() + "!" + client->getUsername() + "@" + _serverHost;
+    std::string topicMsg = buildMessage(prefix, "TOPIC", channel->getName(), newTopic);
 
+    // Notificamos a todos los miembros del canal
     sendMessageToChannel(channel, topicMsg, NULL);
+
+    // También enviamos el mensaje al cliente que cambió el tema
     sendMessageToClient(client, topicMsg);
 }
 
@@ -396,17 +426,17 @@ void    ServerLogic::handleMODE(Client* client, const Command& cmd)
     sendMessageToChannel(channel, fullMsg, client);
 }
 
-
-
-// Manejar el comando PART (salir de canal)
+// Manejar el comando PART (salir de canal) (Replay listo, Msg listo, NULL)
 void    ServerLogic::handlePART(Client* client, const Command& cmd)
 {
     if (!client->isRegistered())
         throw (ERR_NOTREGISTERED);
 
+    // El primer parámetro contiene la lista de canales separados por ','
     std::vector<std::string> channels = str_to_vector(cmd.params[0], ',');
     std::string msg;
 
+    // Mensaje opcional
     if (cmd.params.size() > 1)
         msg = cmd.params[1];
 
@@ -423,18 +453,23 @@ void    ServerLogic::handlePART(Client* client, const Command& cmd)
 
         Channel* channel = it->second;
 
-        // Construimos el mensaje de PART para enviar a todos
-        std::string fullMsg = buildMessage(client->getNickname(), "PART", channelName, msg);
-
-        // Broadcast antes de eliminar al cliente
-        //channel->broadcast(fullMsg, client);
-        sendMessageToChannel(channel, fullMsg, client);
+        // Si el cliente no es miembro del canal, lanzamos un error
+        if (!channel->hasClient(client))
+            throw (ERR_NOTONCHANNEL);
 
         // Quitamos al cliente del canal y viceversa
         try
         {
+            // Construimos el mensaje de PART para enviar a todos
+            std::string prefix = client->getNickname() + "!" + client->getUsername() + "@" + _serverHost;
+            std::string partMsg = buildMessage(prefix, "PART", channelName, msg);
+
             channel->removeClient(client);
             client->leaveChannel(channel);
+
+
+            // Notificamos a todos los miembros del canal
+            sendMessageToChannel(channel, partMsg, client);
         }
         catch(int error)
         {

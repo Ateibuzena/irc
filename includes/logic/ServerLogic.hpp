@@ -63,10 +63,10 @@ class ServerLogic
         void                                setHostname(const std::string& hostname);
         void                                setClientRegistered(Client* client);
 
-        std::string                         buildMessage(const Client* client = NULL,
-                                                        const Channel* channel = NULL,
-                                                        const std::string& command = "",
-                                                        const std::string& aux = "") const;
+        std::string                         buildMessage(const std::string& prefix,
+                                                        const std::string& command,
+                                                        const std::string& target,
+                                                        const std::string& aux) const;
 
         std::string                         buildErrorMessage(const Client* client, errorCodes code) const;
 

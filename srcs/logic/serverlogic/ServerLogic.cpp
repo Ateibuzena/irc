@@ -109,53 +109,36 @@ void    ServerLogic::setClientRegistered(Client* client)
 
 /*----------------------------------METHODS------------------------------------*/
 
-std::string ServerLogic::buildMessage(const Client* client,
-                                      const Channel* channel,
-                                      const std::string& command,
-                                      const std::string& aux) const
+std::string ServerLogic::buildMessage(const std::string& prefix,
+                                       const std::string& command,
+                                       const std::string& target,
+                                       const std::string& aux) const
 {
+    // Construir el mensaje completo
     std::string fullMsg;
 
-    //no pass porque no se envía mensaje de confirmación
-    //no user porque no se envía mensaje de confirmación
-    if (command == "NICK")
+    if (command == "NICK"
+        || command == "QUIT")
     {
-        fullMsg = ":" + aux + "!" + client->getUsername() + "@" + _serverHost + " NICK :" + client->getNickname() + "\r\n";
+        fullMsg = prefix + " " + command + " :" + aux + "\r\n";
         return (fullMsg);
     }
-    else if (command == "QUIT")
+    else if (command == "INVITE"
+        || command == "TOPIC"
+        || command == "PART"
+        || command == "NOTICE"
+        || command == "PRIVMSG")
     {
-        fullMsg = ":" + client->getNickname() + "!" + client->getUsername() + "@" + _serverHost + " QUIT :" + aux + "\r\n";
-        return (fullMsg);
-    }
-    else if (command == "NOTICE")
-    {
-        fullMsg = ":" + client->getNickname() + "!" + client->getUsername() + "@" + _serverHost + " NOTICE " + aux + "\r\n";
-        return (fullMsg);
-    }
-    else if (command == "PRIVMSG")
-    {
-        fullMsg = ":" + client->getNickname() + "!" + client->getUsername() + "@" + _serverHost + " PRIVMSG " + aux + "\r\n";
-        return (fullMsg);
-    }
-    else if (command == "INVITE")
-    {
-        fullMsg = ":" + client->getNickname() + "!" + client->getUsername() + "@" + _serverHost + " INVITE " + aux + "\r\n";
+        fullMsg = prefix + " " + command + " " + target + " :" + aux + "\r\n";
         return (fullMsg);
     }
     else if (command == "KICK")
     {
-        fullMsg = ":" + client->getNickname() + "!" + client->getUsername() + "@" + _serverHost + " KICK " + aux + "\r\n";
-        return (fullMsg);
-    }
-    else if (command == "TOPIC")
-    {
-        fullMsg = ":" + client->getNickname() + "!" + client->getUsername() + "@" + _serverHost + " TOPIC " + channel->getName() + " :" + aux + "\r\n";
+        fullMsg = prefix + " " + command;
         return (fullMsg);
     }
 
-    std::string fullMsg = ":" + prefix + " " + command + " " + target + " :" + aux + "\r\n";
-
+    // Truncar si excede el máximo permitido
     if (fullMsg.size() > MAX_MESSAGE_LENGTH)
     {
         // Reservamos espacio para CRLF y los demás campos
@@ -167,16 +150,20 @@ std::string ServerLogic::buildMessage(const Client* client,
     return (fullMsg);
 }
 
-std::string ServerLogic::buildReplyMessage(std::string code, const Client* client, const std::string& target, const std::string& aux = "", const std::string& msg = "") const
+std::string ServerLogic::buildReplyMessage(std::string code,
+                                        const Client* client,
+                                        const std::string& target,
+                                        const std::string& aux = "",
+                                        const std::string& msg = "") const
 {
     std::string fullMsg;
 
     if (!target.empty() && !aux.empty() && msg.empty())
-        fullMsg = ":" + _serverName + " " + to_string_c98(code) + " " + client->getNickname() + " " + target + " " + aux + "\r\n";
+        fullMsg = ":" + _serverName + " " + code + " " + client->getNickname() + " " + target + " " + aux + "\r\n";
     else if (!target.empty() && aux.empty() && !msg.empty())
-        fullMsg = ":" + _serverName + " " + to_string_c98(code) + " " + client->getNickname() + " " + target + " :" + msg + "\r\n";
+        fullMsg = ":" + _serverName + " " + code + " " + client->getNickname() + " " + target + " :" + msg + "\r\n";
     else if (target.empty() && aux.empty() && !msg.empty())
-        fullMsg = ":" + _serverName + " " + to_string_c98(code) + " " + client->getNickname() + " :" + msg + "\r\n";
+        fullMsg = ":" + _serverName + " " + code + " " + client->getNickname() + " :" + msg + "\r\n";
     else
         fullMsg = "You're not supposed to go in here\r\n"; // POR AHORA MAMAHUEVA
 }
