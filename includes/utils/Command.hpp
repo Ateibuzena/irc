@@ -38,10 +38,33 @@
 
 struct Command
 {
-    std::string name;                 // Ej: "NICK", "JOIN", "PRIVMSG"
-    std::vector<std::string> params;  // Ej: {"#42Malaga", "hola mundo"}
-    std::string raw;                  // Mensaje original (por debug)
+    std::string                 name; // Ej: "NICK", "JOIN", "PRIVMSG"
+    std::vector<std::string>    params; // Ej: {"#42Malaga", "hola mundo"}
+    std::string                 raw; // Mensaje original (por debug)
 };
+
+// ---------------- STRUCT ----------------
+struct MessageInfo
+{
+    int         code;
+    std::string message;
+
+    MessageInfo()
+        :   code(0),
+            message("")
+    {
+
+    }
+
+    MessageInfo(int c, const std::string& msg)
+        :   code(c),
+            message(msg)
+    {
+
+    }
+};
+
+// ---------------- ENUMS ----------------
 enum errorCodes
 {
     ERR_SUCCESS,
@@ -114,8 +137,8 @@ enum replayCodes
     RPL_AWAY
 };
 
-extern std::map<int, std::string> messagesError;
-extern std::map<int, std::string> messagesReplay;
+extern std::map<errorCodes, MessageInfo> messagesError;
+extern std::map<replayCodes, MessageInfo> messagesReplay;
 
 #include <sstream> // Para convertir int a string en C++98
 

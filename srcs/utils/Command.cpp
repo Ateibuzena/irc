@@ -1,75 +1,77 @@
 #include "../../includes/utils/Command.hpp"
 
-std::map<int, std::string> messagesError =
+void initErrorMessages(void)
 {
-    {200, "Success"},                       // ERR_SUCCESS
-    {461, "Not enough parameters"},          // ERR_NEEDMOREPARAMS
-    {462, "You may not reregister"},         // ERR_ALREADYREGISTERED
-    {464, "Password incorrect"},             // ERR_PASSWDMISMATCH
-    {431, "No nickname given"},              // ERR_NONICKNAMEGIVEN
-    {432, "Erroneous nickname"},             // ERR_ERRONEUSNICKNAME
-    {433, "Nickname is already in use"},     // ERR_NICKNAMEINUSE
-    {409, "No origin specified"},            // ERR_NOORIGIN
-    {491, "No OPer host"},                   // ERR_NOOPERHOST
-    {403, "No such channel"},                // ERR_NOSUCHCHANNEL
-    {405, "Too many channels"},              // ERR_TOOMANYCHANNELS
-    {475, "Bad channel key"},                // ERR_BADCHANNELKEY
-    {474, "Banned from channel"},            // ERR_BANNEDFROMCHAN
-    {471, "Channel is full"},                // ERR_CHANNELISFULL
-    {473, "Invite only channel"},            // ERR_INVITEONLYCHAN
-    {476, "Bad channel mask"},               // ERR_BADCHANMASK
-    {442, "Not on channel"},                 // ERR_NOTONCHANNEL
-    {482, "You're not channel operator"},    // ERR_CHANOPRIVSNEEDED
-    {443, "User is already on channel"},     // ERR_USERONCHANNEL
-    {441, "User not in channel"},            // ERR_USERNOTINCHANNEL
-    {402, "No such server"},                 // ERR_NOSUCHSERVER
-    {422, "No MOTD"},                        // ERR_NOMOTD
-    {491, "No privileges"},                  // ERR_NOPRIVILEGES
-    {502, "No privs"},                       // ERR_NOPRIVS
-    {401, "No such nick"},                   // ERR_NOSUCHNICK
-    {502, "Users don't match"},              // ERR_USERSDONTMATCH
-    {501, "Unknown MODE flag"},              // ERR_UMODEUNKNOWNFLAG
-    {404, "Cannot send to channel"},         // ERR_CANNOTSENDTOCHAN
-    {407, "Too many targets"},               // ERR_TOOMANYTARGETS
-    {411, "No recipient given (PRIVMSG)"},   // ERR_NORECIPIENT
-    {412, "No text to send"},                // ERR_NOTEXTTOSEND
-    {413, "No toplevel domain specified"},   // ERR_NOTOPLEVEL
-    {414, "Wildcard in toplevel domain"},    // ERR_WILDTOPLEVEL
-    {421, "Unknown Error"},                  // ERR_UNKNOWN
-    {451, "You have not registered"},        // ERR_NOTREGISTERED
-    {465, "Password not authorized"},        // ERR_PASSWDAUTHORIZED
-    {-1,  "Quit : Closing Link: SERVER_NAME"}// QUIT
-};
+    // Error messages
+    messagesError[ERR_SUCCESS]              = MessageInfo(200, "Success");
+    messagesError[ERR_NEEDMOREPARAMS]       = MessageInfo(461, "Not enough parameters");
+    messagesError[ERR_ALREADYREGISTERED]    = MessageInfo(462, "You may not reregister");
+    messagesError[ERR_PASSWDMISMATCH]       = MessageInfo(464, "Password incorrect");
+    messagesError[ERR_NONICKNAMEGIVEN]      = MessageInfo(431, "No nickname given");
+    messagesError[ERR_ERRONEUSNICKNAME]     = MessageInfo(432, "Erroneous nickname");
+    messagesError[ERR_NICKNAMEINUSE]        = MessageInfo(433, "Nickname is already in use");
+    messagesError[ERR_NOORIGIN]             = MessageInfo(409, "No origin specified");
+    messagesError[ERR_NOOPERHOST]           = MessageInfo(491, "No OPer host");
+    messagesError[ERR_NOSUCHCHANNEL]        = MessageInfo(403, "No such channel");
+    messagesError[ERR_TOOMANYCHANNELS]      = MessageInfo(405, "Too many channels");
+    messagesError[ERR_BADCHANNELKEY]        = MessageInfo(475, "Bad channel key");
+    messagesError[ERR_BANNEDFROMCHAN]       = MessageInfo(474, "Banned from channel");
+    messagesError[ERR_CHANNELISFULL]        = MessageInfo(471, "Channel is full");
+    messagesError[ERR_INVITEONLYCHAN]       = MessageInfo(473, "Invite only channel");
+    messagesError[ERR_BADCHANMASK]          = MessageInfo(476, "Bad channel mask");
+    messagesError[ERR_NOTONCHANNEL]         = MessageInfo(442, "Not on channel");
+    messagesError[ERR_CHANOPRIVSNEEDED]     = MessageInfo(482, "You're not channel operator");
+    messagesError[ERR_USERONCHANNEL]        = MessageInfo(443, "User is already on channel");
+    messagesError[ERR_USERNOTINCHANNEL]     = MessageInfo(441, "User not in channel");
+    messagesError[ERR_NOSUCHSERVER]         = MessageInfo(402, "No such server");
+    messagesError[ERR_NOMOTD]               = MessageInfo(422, "No MOTD");
+    messagesError[ERR_NOPRIVILEGES]         = MessageInfo(491, "No privileges");
+    messagesError[ERR_NOPRIVS]              = MessageInfo(502, "No privs");
+    messagesError[ERR_NOSUCHNICK]           = MessageInfo(401, "No such nick");
+    messagesError[ERR_USERSDONTMATCH]       = MessageInfo(502, "Users don't match");
+    messagesError[ERR_UMODEUNKNOWNFLAG]     = MessageInfo(501, "Unknown MODE flag");
+    messagesError[ERR_CANNOTSENDTOCHAN]     = MessageInfo(404, "Cannot send to channel");
+    messagesError[ERR_TOOMANYTARGETS]       = MessageInfo(407, "Too many targets");
+    messagesError[ERR_NORECIPIENT]          = MessageInfo(411, "No recipient given (PRIVMSG)");
+    messagesError[ERR_NOTEXTTOSEND]         = MessageInfo(412, "No text to send");
+    messagesError[ERR_NOTOPLEVEL]           = MessageInfo(413, "No toplevel domain specified");
+    messagesError[ERR_WILDTOPLEVEL]         = MessageInfo(414, "Wildcard in toplevel domain");
+    messagesError[ERR_UNKNOWN]              = MessageInfo(421, "Unknown Error");
+    messagesError[ERR_NOTREGISTERED]        = MessageInfo(451, "You have not registered");
+    messagesError[ERR_PASSWDAUTHORIZED]     = MessageInfo(465, "Password not authorized");
+    messagesError[QUIT]                     = MessageInfo(-1, "Quit : Closing Link: SERVER_NAME");
+}
 
-std::map<int, std::string> messagesReplay =
+void    initReplayMessages(void)
 {
-    {381, "You're OPer"},                    // RPL_YOUREOPER
-    {332, "Topic"},                          // RPL_TOPIC
-    {333, "Topic who time"},                 // RPL_TOPICWHOTIME
-    {353, "Name reply"},                     // RPL_NAMREPLY
-    {366, "End of names"},                   // RPL_ENDOFNAMES
-    {331, "No topic is set"},                // RPL_NOTOPIC
-    {321, "List start"},                     // RPL_LISTSTART
-    {322, "List"},                           // RPL_LIST
-    {323, "List end"},                       // RPL_LISTEND
-    {341, "Inviting"},                       // RPL_INVITING
-    {375, "MOTD start"},                     // RPL_MOTDSTART
-    {372, "MOTD"},                           // RPL_MOTD
-    {376, "End of MOTD"},                    // RPL_ENDOFMOTD
-    {5,   "ISUPPORT"},                       // RPL_ISUPPORT (005 → 5)
-    {351, "VERSION"},                        // RPL_VERSION
-    {256, "Admin Me"},                       // RPL_ADMINME
-    {257, "Admin Loc1"},                     // RPL_ADMINLOC1
-    {258, "Admin Loc2"},                     // RPL_ADMINLOC2
-    {259, "Admin Email"},                    // RPL_ADMINEMAIL
-    {391, "Time"},                           // RPL_TIME
-    {371, "Info"},                           // RPL_INFO
-    {374, "End of Info"},                    // RPL_ENDOFINFO
-    {221, "User mode is"},                   // RPL_UMODEIS
-    {324, "Channel mode is"},                // RPL_CHANNELMODEIS
-    {329, "Creation time"},                  // RPL_CREATIONTIME
-    {301, "Away"}                            // RPL_AWAY
-};
+    // Replay messages
+    messagesReplay[RPL_YOUREOPER]           = MessageInfo(381, "You're OPer");
+    messagesReplay[RPL_TOPIC]               = MessageInfo(332, "Topic");
+    messagesReplay[RPL_TOPICWHOTIME]        = MessageInfo(333, "Topic who time");
+    messagesReplay[RPL_NAMREPLY]            = MessageInfo(353, "Name reply");
+    messagesReplay[RPL_ENDOFNAMES]          = MessageInfo(366, "End of names");
+    messagesReplay[RPL_NOTOPIC]             = MessageInfo(331, "No topic is set");
+    messagesReplay[RPL_LISTSTART]           = MessageInfo(321, "List start");
+    messagesReplay[RPL_LIST]                = MessageInfo(322, "List");
+    messagesReplay[RPL_LISTEND]             = MessageInfo(323, "List end");
+    messagesReplay[RPL_INVITING]            = MessageInfo(341, "Inviting");
+    messagesReplay[RPL_MOTDSTART]           = MessageInfo(375, "MOTD start");
+    messagesReplay[RPL_MOTD]                = MessageInfo(372, "MOTD");
+    messagesReplay[RPL_ENDOFMOTD]           = MessageInfo(376, "End of MOTD");
+    messagesReplay[RPL_ISUPPORT]            = MessageInfo(5,   "ISUPPORT");
+    messagesReplay[RPL_VERSION]             = MessageInfo(351, "VERSION");
+    messagesReplay[RPL_ADMINME]             = MessageInfo(256, "Admin Me");
+    messagesReplay[RPL_ADMINLOC1]           = MessageInfo(257, "Admin Loc1");
+    messagesReplay[RPL_ADMINLOC2]           = MessageInfo(258, "Admin Loc2");
+    messagesReplay[RPL_ADMINEMAIL]          = MessageInfo(259, "Admin Email");
+    messagesReplay[RPL_TIME]                = MessageInfo(391, "Time");
+    messagesReplay[RPL_INFO]                = MessageInfo(371, "Info");
+    messagesReplay[RPL_ENDOFINFO]           = MessageInfo(374, "End of Info");
+    messagesReplay[RPL_UMODEIS]             = MessageInfo(221, "User mode is");
+    messagesReplay[RPL_CHANNELMODEIS]       = MessageInfo(324, "Channel mode is");
+    messagesReplay[RPL_CREATIONTIME]        = MessageInfo(329, "Creation time");
+    messagesReplay[RPL_AWAY]                = MessageInfo(301, "Away");
+}
 
 std::string to_string_c98(int value)
 {
