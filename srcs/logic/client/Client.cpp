@@ -83,25 +83,25 @@ const   std::vector<std::string>& Client::getReceivedMessages() const // Para te
 void    Client::setFd(int fd)
 {
     _fd = fd;
-    std::cout << GREEN << "✅ FD set to: " << _fd << RESET << std::endl;
+    //std::cout << GREEN << "✅ FD set to: " << _fd << RESET << std::endl;
 }
 
 void    Client::setNickname(const std::string& nickname)
 {
     _nickname = nickname;
-    std::cout << GREEN << "✅ Nickname set to: " << _nickname << RESET << std::endl;
+    //std::cout << GREEN << "✅ Nickname set to: " << _nickname << RESET << std::endl;
 }
 
 void    Client::setOldNickname(const std::string& oldNickname)
 {
     _oldNickname = oldNickname;
-    std::cout << GREEN << "✅ Old Nickname set to: " << _oldNickname << RESET << std::endl;
+    //std::cout << GREEN << "✅ Old Nickname set to: " << _oldNickname << RESET << std::endl;
 }
 
 void    Client::setUsername(const std::string& username)
 {
     _username = username;
-    std::cout << GREEN << "✅ Username set to: " << _username << RESET << std::endl;
+    //std::cout << GREEN << "✅ Username set to: " << _username << RESET << std::endl;
 }
 
 void    Client::setPassword(const std::string& password)
@@ -113,7 +113,7 @@ void    Client::setPassword(const std::string& password)
 void    Client::setRegistered(bool state)
 {
     _registered = state;
-    std::cout << CYAN << "📜 Registered status: "
+    /*std::cout << CYAN << "📜 Registered status: "
               << (_registered ? "true" : "false")
-              << RESET << std::endl;
+              << RESET << std::endl;*/
 }

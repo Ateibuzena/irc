@@ -52,7 +52,7 @@ class Client
         void                            receiveMessage(const std::string& message, const std::string& sender);
         void                            sendMessage(const std::string& message);
 
-        void                            printInfo() const; // Imprime info del cliente para debugging
+        //void                            printInfo() const; // Imprime info del cliente para debugging
 }; 
 
 #endif // CLIENT_HPP

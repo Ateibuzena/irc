@@ -13,7 +13,7 @@ ServerLogic::ServerLogic(Server* server, const std::string& serverName, const st
         _serverNicknames(),
         _serverChannels()
 {
-    std::cout << "✅ ServerLogic initialized." << std::endl;
+    //std::cout << "✅ ServerLogic initialized." << std::endl;
 }
 
 /*--------------------------------DESTRUCTORS---------------------------------*/
@@ -98,79 +98,22 @@ void    ServerLogic::setClientRegistered(Client* client)
     client->setRegistered(true);
 
     std::string replayMsg;
-
-    replayMsg = buildReplyMessage(messagesReplay[RPL_WELCOME].code, client, NULL, NULL, messagesReplay[RPL_WELCOME].message + client->getNickname() + "!" + client->getUsername() + "@" + _serverHost);
-    replayMsg += buildReplyMessage(messagesReplay[RPL_YOURHOST].code, client, NULL, NULL, messagesReplay[RPL_YOURHOST].message + _serverName + ", version " + _serverVersion);
-    replayMsg += buildReplyMessage(messagesReplay[RPL_CREATED].code, client, NULL, NULL, messagesReplay[RPL_CREATED].message + time_to_string(_serverStartTime));
-    replayMsg += buildReplyMessage(messagesReplay[RPL_MYINFO].code, client, NULL, NULL, messagesReplay[RPL_MYINFO].message + _serverName + " " + _serverVersion + " o O"); //preguntar "ao mtov"??
-
+    
+    replayMsg = buildReplyMessage(messagesReplay[RPL_WELCOME].code, client, "", "", messagesReplay[RPL_WELCOME].message + client->getNickname() + "!" + client->getUsername() + "@" + _serverHost);
+    replayMsg += buildReplyMessage(messagesReplay[RPL_YOURHOST].code, client, "", "", messagesReplay[RPL_YOURHOST].message + _serverName + ", version " + _serverVersion);
+    replayMsg += buildReplyMessage(messagesReplay[RPL_CREATED].code, client, "", "", messagesReplay[RPL_CREATED].message + time_to_string(_serverStartTime));
+    replayMsg += buildReplyMessage(messagesReplay[RPL_MYINFO].code, client, "", "", messagesReplay[RPL_MYINFO].message + _serverName + " " + _serverVersion + " o O"); //preguntar "ao mtov"??
+    
     sendMessageToClient(client, replayMsg);
 }
 
 /*----------------------------------METHODS------------------------------------*/
 
-std::string ServerLogic::buildMessage(const std::string& prefix,
-                                       const std::string& command,
-                                       const std::string& target,
-                                       const std::string& aux) const
-{
-    // Construir el mensaje completo
-    std::string fullMsg;
-
-    if (command == "NICK"
-        || command == "QUIT")
-    {
-        fullMsg = prefix + " " + command + " :" + aux + "\r\n";
-        return (fullMsg);
-    }
-    else if (command == "INVITE"
-        || command == "TOPIC"
-        || command == "PART"
-        || command == "NOTICE"
-        || command == "PRIVMSG")
-    {
-        fullMsg = prefix + " " + command + " " + target + " :" + aux + "\r\n";
-        return (fullMsg);
-    }
-    else if (command == "KICK")
-    {
-        fullMsg = prefix + " " + command;
-        return (fullMsg);
-    }
-
-    // Truncar si excede el máximo permitido
-    if (fullMsg.size() > MAX_MESSAGE_LENGTH)
-    {
-        // Reservamos espacio para CRLF y los demás campos
-        size_t maxLen = MAX_MESSAGE_LENGTH - (prefix.size() + command.size() + target.size() + 4);
-        std::string truncated = aux.substr(0, maxLen);
-        fullMsg = ":" + prefix + " " + command + " " + target + " :" + truncated + "\r\n";
-    }
-
-    return (fullMsg);
-}
-
-std::string ServerLogic::buildErrorMessage(const std::string& prefix,
-                                        const std::string& aux,
-                                        const std::string& msg) const
-{
-    std::string fullMsg = prefix + " ";
-
-    if (!aux.empty())
-    {
-        fullMsg += aux + " ";
-    }
-
-    fullMsg += ":" + msg + "\r\n";
-
-    return (fullMsg);
-}
-
 std::string ServerLogic::buildReplyMessage(std::string code,
                                         const Client* client,
                                         const std::string& target,
-                                        const std::string& aux = "",
-                                        const std::string& msg = "") const
+                                        const std::string& aux,
+                                        const std::string& msg) const
 {
     std::string fullMsg;
 
@@ -182,6 +125,7 @@ std::string ServerLogic::buildReplyMessage(std::string code,
         fullMsg = ":" + _serverName + " " + code + " " + client->getNickname() + " :" + msg + "\r\n";
     else
         fullMsg = "You're not supposed to go in here\r\n"; // POR AHORA MAMAHUEVA
+    return (fullMsg);
 }
 
 // Devuelve un canal existente o lo crea si no existe
@@ -193,7 +137,10 @@ Channel*    ServerLogic::createChannel(const std::string& name, Client* creator)
 
     Channel* newChannel = new Channel(name); // Por defecto límite de clientes
     if (!newChannel)
-        throw (ERR_UNKNOWN);
+    {
+        std::string errorMsg = ":" + _serverName + " " + messagesError[ERR_UNKNOWN].code + " " + creator->getNickname() + " " + name + " :Cannot create channel\r\n";
+        throw (errorMsg);
+    }
 
     _serverChannels[name] = newChannel;
     
@@ -210,8 +157,17 @@ void    ServerLogic::serverAddClient(int fd)
 
     Client* newClient = new Client(fd);
     if (!newClient)
-        throw (ERR_UNKNOWN);
+    {
+        std::string errorMsg = ":" + _serverName + " *" + " :Cannot allocate memory for new client\r\n";
+        throw (errorMsg);
+    }
 
+    if (_serverClients.size() + 1 > MAX_CLIENTS)
+    {
+        delete (newClient);
+        std::string errorMsg = ":" + _serverName + " *" + " :Server is full\r\n";
+        throw (errorMsg);
+    }
     _serverClients[fd] = newClient;
 }
 
@@ -251,16 +207,19 @@ void    ServerLogic::serverRemoveClient(int fd)
     delete (client);
 
     /*también enviar un mensaje tipo PART a los demás clientes si quieres avisar que se fue.*/
-    std::cout << CYAN << "📌 Client removed with fd " 
-              << to_string_c98(fd) << RESET << std::endl;
+    /*std::cout << CYAN << "📌 Client removed with fd " 
+              << to_string_c98(fd) << RESET << std::endl;*/
 }
 
 void    ServerLogic::executeCommand(const Command& cmd, int clientFd)
 {
+    if (cmd.name.empty() || cmd.params.empty())
+        return ;
+    
     // Primero, buscamos el cliente
     std::map<int, Client*>::iterator it = _serverClients.find(clientFd);
     if (it == _serverClients.end())
-        throw (ERR_UNKNOWN);
+        return ;
 
     Client* client = it->second;
     const std::string& command = cmd.name;        // ej: "NICK", "USER", "JOIN"
@@ -279,8 +238,8 @@ void    ServerLogic::executeCommand(const Command& cmd, int clientFd)
         else if (command == "USER")
             handleUSER(client, cmd);
         /*Channel Operations*/
-        else if (command == "JOIN")
-            handleJOIN(client, cmd);
+        /*else if (command == "JOIN")
+            handleJOIN(client, cmd);*/
         else if (command == "PART")
             handlePART(client, cmd);
         else if (command == "TOPIC")
@@ -289,17 +248,17 @@ void    ServerLogic::executeCommand(const Command& cmd, int clientFd)
             handleINVITE(client, cmd);
         else if (command == "KICK")
             handleKICK(client, cmd);
-        else if (command == "MODE")
-            handleMODE(client, cmd);
+        /*else if (command == "MODE")
+            handleMODE(client, cmd);*/
         /*Sending Messages*/
         else if (command == "NOTICE")
             handleNOTICE(client, cmd);
         else if (command == "PRIVMSG")
             handlePRIVMSG(client, cmd);
     }
-    catch(int error)
+    catch(const std::string& errorMsg)
     {
-        throw (error);
+        throw (errorMsg);
     }
 }
 

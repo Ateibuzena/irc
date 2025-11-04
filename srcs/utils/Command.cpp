@@ -1,5 +1,8 @@
 #include "../../includes/utils/Command.hpp"
 
+std::map<int, MessageInfo> messagesError;
+std::map<int, MessageInfo> messagesReplay;
+
 void initErrorMessages(void)
 {
     // Error messages
@@ -36,10 +39,11 @@ void initErrorMessages(void)
     messagesError[ERR_NOTEXTTOSEND]         = MessageInfo("412", "No text to send");
     messagesError[ERR_NOTOPLEVEL]           = MessageInfo("413", "No toplevel domain specified");
     messagesError[ERR_WILDTOPLEVEL]         = MessageInfo("414", "Wildcard in toplevel domain");
-    messagesError[ERR_UNKNOWN]              = MessageInfo("421", "Unknown Error");
     messagesError[ERR_NOTREGISTERED]        = MessageInfo("451", "You have not registered");
     messagesError[ERR_PASSWDAUTHORIZED]     = MessageInfo("465", "Password not authorized");
     messagesError[QUIT]                     = MessageInfo("-1", "Quit : Closing Link: SERVER_NAME");
+    messagesError[ERR_INVALIDUSERNAME]     = MessageInfo("468", "Invalid username");
+    messagesError[ERR_UNKNOWN]              = MessageInfo("421", "Unknown command");
 }
 
 void    initReplayMessages(void)
@@ -113,4 +117,61 @@ std::string time_to_string(std::time_t t)
     std::strftime(buffer, 80, "%Y-%m-%d %H:%M:%S", timeinfo);
 
     return (std::string(buffer));
+}
+
+std::string buildMessage(const std::string& prefix,
+                        const std::string& command,
+                        const std::string& target,
+                        const std::string& aux)
+{
+    // Construir el mensaje completo
+    std::string fullMsg;
+
+    if (command == "NICK"
+        || command == "QUIT")
+    {
+        fullMsg = prefix + " " + command + " :" + aux + "\r\n";
+        return (fullMsg);
+    }
+    else if (command == "INVITE"
+        || command == "TOPIC"
+        || command == "PART"
+        || command == "NOTICE"
+        || command == "PRIVMSG")
+    {
+        fullMsg = prefix + " " + command + " " + target + " :" + aux + "\r\n";
+        return (fullMsg);
+    }
+    else if (command == "KICK")
+    {
+        fullMsg = prefix + " " + command;
+        return (fullMsg);
+    }
+
+    // Truncar si excede el máximo permitido
+    if (fullMsg.size() > MAX_MESSAGE_LENGTH)
+    {
+        // Reservamos espacio para CRLF y los demás campos
+        size_t maxLen = MAX_MESSAGE_LENGTH - (prefix.size() + command.size() + target.size() + 4);
+        std::string truncated = aux.substr(0, maxLen);
+        fullMsg = ":" + prefix + " " + command + " " + target + " :" + truncated + "\r\n";
+    }
+
+    return (fullMsg);
+}
+
+std::string buildErrorMessage(const std::string& prefix,
+                            const std::string& aux,
+                            const std::string& msg)
+{
+    std::string fullMsg = prefix + " ";
+
+    if (!aux.empty())
+    {
+        fullMsg += aux + " ";
+    }
+
+    fullMsg += ":" + msg + "\r\n";
+
+    return (fullMsg);
 }

@@ -3,7 +3,7 @@
 // Manejar el comando NOTICE (enviar mensaje de aviso) (Replay listo, Msg listo, NULL)
 void    ServerLogic::handleNOTICE(Client* client, const Command& cmd)
 {
-    std::string prefix = ":" + _serverHost + " ";
+    std::string prefix = ":" + _serverName + " ";
     std::string errorMsg; 
 
     // Verificamos que el cliente esté registrado
@@ -11,7 +11,7 @@ void    ServerLogic::handleNOTICE(Client* client, const Command& cmd)
     {
         prefix += messagesError[ERR_NOTREGISTERED].code + " " + client->getNickname();
         errorMsg = buildErrorMessage(prefix,
-                                    NULL,
+                                    "",
                                     messagesError[ERR_NOTREGISTERED].message);
         return (sendMessageToClient(client, errorMsg));
     }
@@ -25,7 +25,7 @@ void    ServerLogic::handleNOTICE(Client* client, const Command& cmd)
     {
         prefix += messagesError[ERR_NOTEXTTOSEND].code + " " + client->getNickname();
         errorMsg = buildErrorMessage(prefix,
-                                    NULL,
+                                    "",
                                     messagesError[ERR_NOTEXTTOSEND].message);
         return (sendMessageToClient(client, errorMsg));
     }
@@ -39,7 +39,7 @@ void    ServerLogic::handleNOTICE(Client* client, const Command& cmd)
         {
             prefix += messagesError[ERR_NORECIPIENT].code + " " + client->getNickname();
             errorMsg = buildErrorMessage(prefix,
-                                        NULL,
+                                        "",
                                         messagesError[ERR_NORECIPIENT].message);
             return (sendMessageToClient(client, errorMsg));
         }
@@ -83,7 +83,7 @@ void    ServerLogic::handleNOTICE(Client* client, const Command& cmd)
 // Manejar el comando PRIVMSG (enviar mensaje privado) (Replay listo, Msg listo, NULL)
 void    ServerLogic::handlePRIVMSG(Client* client, const Command& cmd)
 {
-    std::string prefix = ":" + _serverHost + " ";
+    std::string prefix = ":" + _serverName + " ";
     std::string errorMsg;
 
     // Verificamos que el cliente esté registrado
@@ -91,7 +91,7 @@ void    ServerLogic::handlePRIVMSG(Client* client, const Command& cmd)
     {
         prefix += messagesError[ERR_NOTREGISTERED].code + " " + client->getNickname();
         errorMsg = buildErrorMessage(prefix,
-                                    NULL,
+                                    "",
                                     messagesError[ERR_NOTREGISTERED].message);
         return (sendMessageToClient(client, errorMsg));
     }
@@ -104,7 +104,7 @@ void    ServerLogic::handlePRIVMSG(Client* client, const Command& cmd)
     {
         prefix += messagesError[ERR_NOTEXTTOSEND].code + " " + client->getNickname();
         errorMsg = buildErrorMessage(prefix,
-                                    NULL,
+                                    "",
                                     messagesError[ERR_NOTEXTTOSEND].message);
         return (sendMessageToClient(client, errorMsg));
     }
@@ -120,7 +120,7 @@ void    ServerLogic::handlePRIVMSG(Client* client, const Command& cmd)
         {
             prefix += messagesError[ERR_NORECIPIENT].code + " " + client->getNickname();
             errorMsg = buildErrorMessage(prefix,
-                                        NULL,
+                                        "",
                                         messagesError[ERR_NORECIPIENT].message);
             return (sendMessageToClient(client, errorMsg));
         }
@@ -162,14 +162,14 @@ void    ServerLogic::handlePRIVMSG(Client* client, const Command& cmd)
         {
             prefix += messagesError[ERR_CANNOTSENDTOCHAN].code + " " + client->getNickname() + " " + target;
             errorMsg = buildErrorMessage(prefix,
-                                        NULL,
+                                        "",
                                         messagesError[ERR_CANNOTSENDTOCHAN].message);
         }
         else
         {
             prefix += messagesError[ERR_NOSUCHNICK].code + " " + client->getNickname() + " " + target;
             errorMsg = buildErrorMessage(prefix,
-                                        NULL,
+                                        "",
                                         messagesError[ERR_NOSUCHNICK].message);
         }
         return (sendMessageToClient(client, errorMsg));

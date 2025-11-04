@@ -8,14 +8,14 @@ void    ServerLogic::handleINVITE(Client* client, const Command& cmd)
     const std::string& channelName = cmd.params[0];
     const std::string& nickname = cmd.params[1];
 
-    std::string prefix = ":" + _serverHost + " ";
+    std::string prefix = ":" + _serverName + " ";
     std::string errorMsg;
 
     if (!client->isRegistered())
     {
         prefix += messagesError[ERR_NOTREGISTERED].code + " " + client->getNickname() + " ";
         errorMsg = buildErrorMessage(prefix,
-                                    NULL,
+                                    "",
                                     messagesError[ERR_NOTREGISTERED].message);
         return (sendMessageToClient(client, errorMsg));
     }
@@ -78,7 +78,7 @@ void    ServerLogic::handleINVITE(Client* client, const Command& cmd)
     channel->inviteClient(invitedClient);
 
     // Construimos el mensaje de INVITE para enviar al invitado
-    std::string prefix = client->getNickname() + "!" + client->getUsername() + "@" + _serverHost;
+    prefix = client->getNickname() + "!" + client->getUsername() + "@" + _serverHost;
     std::string inviteMsg = buildMessage(prefix,
                                         "INVITE",
                                         invitedClient->getNickname(),
@@ -92,7 +92,7 @@ void    ServerLogic::handleINVITE(Client* client, const Command& cmd)
                                             client,
                                             invitedClient->getNickname(),
                                             channel->getName(),
-                                            NULL);
+                                            "");
 
     // Enviamos el mensaje de confirmación al invitador
     sendMessageToClient(client, replayMsg);
@@ -103,14 +103,14 @@ void    ServerLogic::handleKICK(Client* client, const Command& cmd)
 {
     //Juan :irc.server.com 461 <nick> KICK :Not enough parameters
 
-    std::string prefix = ":" + _serverHost + " ";
+    std::string prefix = ":" + _serverName + " ";
     std::string errorMsg;
 
     if (!client->isRegistered())
     {
         prefix += messagesError[ERR_NOTREGISTERED].code + " " + client->getNickname() + " ";
         errorMsg = buildErrorMessage(prefix,
-                                    NULL,
+                                    "",
                                     messagesError[ERR_NOTREGISTERED].message);
         return (sendMessageToClient(client, errorMsg));
     }
@@ -171,9 +171,9 @@ void    ServerLogic::handleKICK(Client* client, const Command& cmd)
     }
 
     // Construir mensaje de KICK para enviar a todos
-    std::string prefix = client->getNickname() + "!" + client->getUsername() + "@" + _serverHost;
+    prefix = client->getNickname() + "!" + client->getUsername() + "@" + _serverHost;
 
-    std::string kickMsg = buildMessage(prefix, "KICK", NULL, NULL);
+    std::string kickMsg = buildMessage(prefix, "KICK", "", "");
     kickMsg += " " + channel->getName() + " " + targetClient->getNickname() + " :" + msg + "\r\n";
 
     // Quitamos al cliente del canal
@@ -191,7 +191,7 @@ void    ServerLogic::handleTOPIC(Client* client, const Command& cmd)
 
     const std::string& channelName = cmd.params[0];
 
-    std::string prefix = ":" + _serverHost + " ";
+    std::string prefix = ":" + _serverName + " ";
     std::string errorMsg;
 
     // Comprobar si el cliente está registrado
@@ -199,7 +199,7 @@ void    ServerLogic::handleTOPIC(Client* client, const Command& cmd)
     {
         prefix += messagesError[ERR_NOTREGISTERED].code + " " + client->getNickname() + " ";
         errorMsg = buildErrorMessage(prefix,
-                                    NULL,
+                                    "",
                                     messagesError[ERR_NOTREGISTERED].message);
         return (sendMessageToClient(client, errorMsg));
     }
@@ -238,7 +238,7 @@ void    ServerLogic::handleTOPIC(Client* client, const Command& cmd)
             replayMsg = buildReplyMessage(messagesReplay[RPL_NOTOPIC].code,
                                         client,
                                         channelName,
-                                        NULL,
+                                        "",
                                         messagesReplay[RPL_NOTOPIC].message);
         else // Hay un tema establecido
         {
@@ -248,13 +248,13 @@ void    ServerLogic::handleTOPIC(Client* client, const Command& cmd)
             replayMsg = buildReplyMessage(messagesReplay[RPL_TOPIC].code,
                                         client,
                                         channelName,
-                                        NULL,
+                                        "",
                                         topic);
             replayMsg += buildReplyMessage(messagesReplay[RPL_TOPICWHOTIME].code,
                                         client,
                                         channelName,
                                         setter + " " + timeSet,
-                                        NULL);
+                                        "");
         }
 
         // Enviamos el mensaje al cliente
@@ -284,7 +284,7 @@ void    ServerLogic::handleTOPIC(Client* client, const Command& cmd)
     channel->setTimeSet(time_to_string(now));
 
     // Construimos el mensaje de TOPIC para enviar a todos
-    std::string prefix = client->getNickname() + "!" + client->getUsername() + "@" + _serverHost;
+    prefix = client->getNickname() + "!" + client->getUsername() + "@" + _serverHost;
     std::string topicMsg = buildMessage(prefix, "TOPIC", channel->getName(), newTopic);
 
     // Notificamos a todos los miembros del canal
@@ -295,13 +295,18 @@ void    ServerLogic::handleTOPIC(Client* client, const Command& cmd)
 }
 
 // Manejar el comando JOIN (unirse a canal)
-void    ServerLogic::handleJOIN(Client* client, const Command& cmd)
+/*void    ServerLogic::handleJOIN(Client* client, const Command& cmd)
 {
+    // Juan :irc.server.com 461 <nick> MODE :Not enough parameters
+
+    std::string prefix = ":" + _serverName + " ";
+    std::string errorMsg;
+
     if (!client->isRegistered())
     {
         prefix += messagesError[ERR_NOTREGISTERED].code + " " + client->getNickname() + " ";
         errorMsg = buildErrorMessage(prefix,
-                                    NULL,
+                                    "",
                                     messagesError[ERR_NOTREGISTERED].message);
     }
 
@@ -366,7 +371,8 @@ void    ServerLogic::handleJOIN(Client* client, const Command& cmd)
                 throw (ERR_NOSUCHCHANNEL);
 
             Channel* channel = createChannel(channelName, client);
-
+            if (!channel)
+                throw (ERR_UNKNOWN);
             if (!channel->getPassword().empty()) // Canal ya existente con clave
             {
                 if (key.empty() || channel->getPassword() != key)
@@ -409,11 +415,16 @@ void    ServerLogic::handleJOIN(Client* client, const Command& cmd)
 // Manejar el comando MODE (ver o cambiar modos de canal)
 void    ServerLogic::handleMODE(Client* client, const Command& cmd)
 {
+    // Juan :irc.server.com 461 <nick> MODE :Not enough parameters
+
+    std::string prefix = ":" + _serverName + " ";
+    std::string errorMsg;
+
     if (!client->isRegistered())
     {
         prefix += messagesError[ERR_NOTREGISTERED].code + " " + client->getNickname() + " ";
         errorMsg = buildErrorMessage(prefix,
-                                    NULL,
+                                    "",
                                     messagesError[ERR_NOTREGISTERED].message);
     }
 
@@ -528,14 +539,14 @@ void    ServerLogic::handleMODE(Client* client, const Command& cmd)
     std::string fullMsg = buildMessage(client->getNickname(), "MODE", channel->getName(), modeChanges);
     //channel->broadcast(fullMsg, client);
     sendMessageToChannel(channel, fullMsg, client);
-}
+}*/
 
 // Manejar el comando PART (salir de canal) (Replay listo, Msg listo, NULL)
 void    ServerLogic::handlePART(Client* client, const Command& cmd)
 {
     // Juan :irc.server.com 461 <nick> PART :Not enough parameters
 
-    std::string prefix = ":" + _serverHost + " ";
+    std::string prefix = ":" + _serverName + " ";
     std::string errorMsg;
 
     // Comprobar si el cliente está registrado
@@ -543,7 +554,7 @@ void    ServerLogic::handlePART(Client* client, const Command& cmd)
     {
         prefix += messagesError[ERR_NOTREGISTERED].code + " " + client->getNickname() + " ";
         errorMsg = buildErrorMessage(prefix,
-                                    NULL,
+                                    "",
                                     messagesError[ERR_NOTREGISTERED].message);
         return (sendMessageToClient(client, errorMsg));
     }

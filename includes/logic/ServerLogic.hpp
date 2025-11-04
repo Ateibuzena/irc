@@ -32,14 +32,14 @@ class ServerLogic
         void                                handleUSER(Client* client, const Command& cmd);
 
         //Channel Operations
-        void                                handleJOIN(Client* client, const Command& cmd);
+        //void                                handleJOIN(Client* client, const Command& cmd);
         void                                handlePART(Client* client, const Command& cmd);
         void                                handleTOPIC(Client* client, const Command& cmd);
         void                                handleINVITE(Client* client, const Command& cmd);
         void                                handleKICK(Client* client, const Command& cmd);
 
         //Server Queries and Information
-        void                                handleMODE(Client* client, const Command& cmd);
+        //void                                handleMODE(Client* client, const Command& cmd);
 
         //Sending Messages
         void                                handleNOTICE(Client* client, const Command& cmd);
@@ -58,19 +58,10 @@ class ServerLogic
         const std::string&                  getServerName() const;
         const std::string&                  getServerHost() const;
         const std::string&                  getServerVersion() const;
-        const std::time_t                   getServerStartTime() const;
+        std::time_t                         getServerStartTime() const;
 
         void                                setHostname(const std::string& hostname);
         void                                setClientRegistered(Client* client);
-
-        std::string                         buildMessage(const std::string& prefix,
-                                                        const std::string& command,
-                                                        const std::string& target,
-                                                        const std::string& aux) const;
-
-        std::string                         buildErrorMessage(const std::string& prefix,
-                                                            const std::string& aux,
-                                                            const std::string& msg) const;
 
         std::string                         buildReplyMessage(std::string code,
                                                             const Client* client,

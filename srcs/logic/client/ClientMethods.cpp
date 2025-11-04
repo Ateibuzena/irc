@@ -13,7 +13,7 @@ void    Client::leaveChannel(Channel* channel)
     _channels.erase(channel->getName());
 }
 
-void    Client::printInfo() const
+/*void    Client::printInfo() const
 {
     std::cout << BOLDWHITE << "---- Client Info ----" << RESET << std::endl;
     std::cout << "FD: " << _fd << std::endl;
@@ -27,4 +27,4 @@ void    Client::printInfo() const
     }
     std::cout << std::endl;
     std::cout << BOLDWHITE << "---------------------" << RESET << std::endl;
-}
+}*/

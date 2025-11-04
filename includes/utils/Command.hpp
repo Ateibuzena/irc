@@ -28,20 +28,37 @@
 //
 // 🎨 Colores ANSI
 //
-#define RESET   "\033[0m"
+/*#define RESET   "\033[0m"
 #define RED     "\033[0;31m"
 #define GREEN   "\033[0;32m"
 #define YELLOW  "\033[1;33m"
 #define BLUE    "\033[1;34m"
 #define CYAN    "\033[0;36m"
 #define MAGENTA "\033[0;35m"
-#define BOLDWHITE "\033[1;37m"
+#define BOLDWHITE "\033[1;37m"*/
+
+// 🎨 Colores IRC — usan el carácter de control \x03
+#define RESET      "\x03"      // Resetea el color
+#define RED        "\x034"     // Rojo
+#define GREEN      "\x033"     // Verde
+#define YELLOW     "\x038"     // Amarillo (naranja en algunos clientes)
+#define BLUE       "\x032"     // Azul
+#define MAGENTA    "\x036"     // Púrpura / magenta
+
 
 struct Command
 {
     std::string                 name; // Ej: "NICK", "JOIN", "PRIVMSG"
     std::vector<std::string>    params; // Ej: {"#42Malaga", "hola mundo"}
     std::string                 raw; // Mensaje original (por debug)
+
+    Command()
+        :   name(""),
+            params(),
+            raw("")
+    {
+
+    }
 };
 
 // ---------------- STRUCT ----------------
@@ -102,10 +119,11 @@ enum errorCodes
     ERR_NOTEXTTOSEND,
     ERR_NOTOPLEVEL,
     ERR_WILDTOPLEVEL,
-    ERR_UNKNOWN,
     ERR_NOTREGISTERED,
     ERR_PASSWDAUTHORIZED,
-    QUIT // mensaje especial
+    QUIT, // mensaje especial
+    ERR_UNKNOWN,
+    ERR_INVALIDUSERNAME
 };
 
 enum replayCodes
@@ -154,9 +172,22 @@ void    initReplayMessages(void);
 // Función auxiliar para C++98
 std::string to_string_c98(int value);
 
+// Función para dividir una cadena en un vector de cadenas usando un delimitador
 std::vector<std::string> str_to_vector(const std::string& str, char delimiter);
 
+// Función para convertir tiempo a string
 std::string time_to_string(std::time_t t);
+
+// Funciones para construir mensajes
+std::string buildMessage(const std::string& prefix,
+                        const std::string& command,
+                        const std::string& target = "",
+                        const std::string& aux = "");
+
+// Función para construir mensajes de error
+std::string buildErrorMessage(const std::string& prefix,
+                            const std::string& aux = "",
+                            const std::string& msg = "");
 
 #endif // COMMAND_HPP
 

@@ -147,6 +147,8 @@ bool    Server::findLineEnd(const std::string &buf, size_t &pos)
 
 int Server::run()
 {
+    Parser::initCommands();
+
     // Evita que send() mate el proceso si el peer cierra (Linux/BSD)
     signal(SIGPIPE, SIG_IGN);
 
@@ -339,20 +341,35 @@ void Server::handleReadable(size_t idx)
                     recvBuf_[fd].erase(0, pos + 2);
                 else
                     recvBuf_[fd].erase(0, pos + 1);
-
-                Parser parser;
-
-                std::cout << "[*] Parsing command from line: " << line << "\n";
                 
-                std::cout << "[*] Received from fd=" << fd << ": " << line << "\n";
+                std::cout << "[<] fd=" << fd << " line=\"" << line << "\"\n";
+                std::cout << "Raw buffer after extracting line: \"" << recvBuf_[fd] << "\"\n";
+                Command cmd;
                 try
                 {
-                    Command cmd = parser.parse(line);
+                    cmd = Parser::parse(line);
+                }
+                catch(const std::string& msg)
+                {
+                    Client* client = logic_->getClient(fd);
+                    std::string errorMsg;
+
+                    if (client->getNickname().empty())
+                        errorMsg = ":" + logic_->getServerName() + " *" + msg;
+                    else
+                        errorMsg = ":" + logic_->getServerName() + " " + client->getNickname() + msg;
+
+                    queueMessage(fd, errorMsg + "\r\n");
+
+                    continue ;
+                }
+                try
+                {
                     logic_->executeCommand(cmd, fd);
                 }
-                catch(ErrorCodes error)
+                catch(const std::string& errorMsg)
                 {
-                    std::cerr << MessagesError[error] << '\n';
+                    queueMessage(fd, errorMsg + "\r\n");
                 }
                 
             }

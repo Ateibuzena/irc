@@ -7,14 +7,14 @@ void    ServerLogic::handlePASS(Client* client, const Command& cmd)
 
     const std::string& password = cmd.params[0];
 
-    std::string prefix = ":" + _serverHost + " ";
+    std::string prefix = ":" + _serverName + " ";
     std::string errorMsg; 
 
     if (client->isRegistered())
     {
         prefix += messagesError[ERR_NOTREGISTERED].code + " " + client->getNickname();
         errorMsg = buildErrorMessage(prefix,
-                                    NULL,
+                                    "",
                                     messagesError[ERR_ALREADYREGISTERED].message);
         return (sendMessageToClient(client, errorMsg));
     }
@@ -23,7 +23,7 @@ void    ServerLogic::handlePASS(Client* client, const Command& cmd)
     {
         prefix += messagesError[ERR_PASSWDMISMATCH].code + " " + client->getNickname();
         errorMsg = buildErrorMessage(prefix,
-                                    NULL,
+                                    "",
                                     messagesError[ERR_PASSWDMISMATCH].message);
         return (sendMessageToClient(client, errorMsg));
     }
@@ -50,7 +50,7 @@ void    ServerLogic::handleNICK(Client* client, const Command& cmd)
 
     const std::string nickname = cmd.params[0];
 
-    std::string prefix = ":" + _serverHost + " ";
+    std::string prefix = ":" + _serverName + " ";
     std::string errorMsg;
 
     // Comprobamos si ya existe otro cliente con ese nickname
@@ -58,7 +58,7 @@ void    ServerLogic::handleNICK(Client* client, const Command& cmd)
     {
         prefix += messagesError[ERR_NICKNAMEINUSE].code + " * " + client->getNickname();
         errorMsg = buildErrorMessage(prefix,
-                                    NULL,
+                                    "",
                                     messagesError[ERR_NICKNAMEINUSE].message);
         return (sendMessageToClient(client, errorMsg));
     }
@@ -83,7 +83,7 @@ void    ServerLogic::handleNICK(Client* client, const Command& cmd)
     {
         // Construir mensaje de NICK para los canales
         std::string prefix = ":" + client->getOldNickname() + "!" + client->getUsername() + "@" + _serverHost;
-        std::string nickMsg = buildMessage(prefix, "NICK", NULL, client->getNickname());
+        std::string nickMsg = buildMessage(prefix, "NICK", "", client->getNickname());
 
         // Enviar a todos los canales donde está el cliente
         std::set<std::string> channelsNames = client->getChannels();
@@ -114,14 +114,14 @@ void    ServerLogic::handleUSER(Client* client, const Command& cmd)
 
     const std::string username = cmd.params[0];
 
-    std::string prefix = ":" + _serverHost + " ";
+    std::string prefix = ":" + _serverName + " ";
     std::string errorMsg;
 
     if (client->isRegistered())
     {
         prefix += messagesError[ERR_ALREADYREGISTERED].code + " " + client->getNickname();
         errorMsg = buildErrorMessage(prefix,
-                                    NULL,
+                                    "",
                                     messagesError[ERR_ALREADYREGISTERED].message);
         return (sendMessageToClient(client, errorMsg));
     }
@@ -133,7 +133,6 @@ void    ServerLogic::handleUSER(Client* client, const Command& cmd)
         && (_serverPassword.empty() || client->getPassword() == _serverPassword)
         && !client->getNickname().empty())
         setClientRegistered(client);
-
 }
 
 // Manejar el comando QUIT (desconectar cliente) (Replay listo, Msg listo, NULL)
@@ -147,7 +146,7 @@ void    ServerLogic::handleQUIT(Client* client, const Command& cmd)
         msg = cmd.params[0];
     }
     std::string prefix = ":" + client->getNickname() + "!" + client->getUsername() + "@" + _serverHost;
-    std::string quitMsg = buildMessage(prefix, "QUIT", NULL, msg);
+    std::string quitMsg = buildMessage(prefix, "QUIT", "", msg);
 
     // Limpiar canales a los que pertenece
     const std::set<std::string>& channelsNames = client->getChannels();
