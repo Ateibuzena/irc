@@ -42,7 +42,7 @@ Command Parser::parse(const std::string &rawMessage)
         i ++;
 
     if (i < size)
-        this->ft_params(rawMessage, toret, i, size);
+        ft_params(rawMessage, toret, i, size);
 
     toret.raw = rawMessage;
 
@@ -70,7 +70,7 @@ void Parser::ft_params(const std::string &rawMessage, Command &toret, unsigned l
         u ++;
 
     if (u < size)
-        this->ft_params(rawMessage, toret, u, size);
+        ft_params(rawMessage, toret, u, size);
 }
 
 void Parser::ft_lastparam(const std::string &rawMessage, Command &toret, unsigned long i, unsigned long size)
@@ -85,10 +85,10 @@ void Parser::ft_lastparam(const std::string &rawMessage, Command &toret, unsigne
 
 void Parser::ft_parsecommand(Command tocheck)
 {
-    const std::map<std::string, int>::iterator node = this->commands.find(tocheck.name);
+    const std::map<std::string, int>::iterator node = commands.find(tocheck.name);
     int command;
 
-    if (node == this->commands.end())
+    if (node == commands.end())
         command = -1;
     else
         command = node->second;
@@ -101,13 +101,13 @@ void Parser::ft_parsecommand(Command tocheck)
         case 1:
             if (tocheck.params.size() < 1)
                 throw ERR_NONICKNAMEGIVEN;
-            if (this->ft_isvalidusername(tocheck.params[0]) != true)
+            if (ft_isvalidusername(tocheck.params[0]) != true)
                 throw ERR_ERRONEUSNICKNAME;
             break;
         case 2:
             if (tocheck.params.size() < 4)
                 throw ERR_NEEDMOREPARAMS;
-            if (this->ft_isvalidusername(tocheck.params[0]) != true)
+            if (ft_isvalidusername(tocheck.params[0]) != true)
                 throw ERR_ERRONEUSNICKNAME;
             if (tocheck.params[1].size() != 1)
                 throw ERR_UMODEUNKNOWNFLAG;
@@ -350,8 +350,6 @@ bool Parser::ft_checknumber(std::string str)
 
 bool Parser::ft_checkflags(Command tocheck)
 {
-    unsigned long size = tocheck.params.size();
-
     if (tocheck.params[1][0] != '+' && tocheck.params[1][0] != '-')
         return (false);
 
