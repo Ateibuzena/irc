@@ -258,8 +258,6 @@ int Server::run()
             int fd = pfds_[i].fd;
             short re = pfds_[i].revents;
 
-
-            std::cout << "Checking fd=" << fd << " revents=" << re << "\n";
             // 1) errores / cierre
             if (re & (POLLERR | POLLHUP | POLLNVAL))
             {
@@ -300,7 +298,20 @@ void Server::addClient(int cfd)
     pfds_.push_back(c);
     recvBuf_[cfd] = "";
     sendBuf_[cfd] = "";
-    logic_->serverAddClient(cfd); // informar a la lógica
+    try
+    {
+        logic_->serverAddClient(cfd); // informar a la lógica
+    }
+    catch(const std::string& errorMsg)
+    {
+        // enviar mensaje de error al cliente
+        queueMessage(cfd, errorMsg + "\r\n");
+
+        // cerrar conexión inmediatamente
+        removeClientAtIndex(pfds_.size() - 1);
+        
+    }
+    
 }
 
 void Server::removeClientAtIndex(size_t idx)
@@ -317,48 +328,42 @@ void Server::handleReadable(size_t idx)
 {
     int fd = pfds_[idx].fd;
 
-    std::cout << "[*] Reading from fd=" << fd << "\n";
     char buf[1024];
     for (;;)
     {
         ssize_t n = recv(fd, buf, sizeof(buf), 0);
         if (n > 0)
         {
-            std::cout << "[*] Received " << n << " bytes from fd=" << fd << "\n";
             recvBuf_[fd].append(buf, n);
 
             // extraer y despachar líneas completas
             size_t pos;
             while (findLineEnd(recvBuf_[fd], pos))
             {
-                std::cout << "[*] Found complete line in fd=" << fd << "\n";
                 std::string line = recvBuf_[fd].substr(0, pos);
 
-                // borrar separador
+                // quitar CRLF o LF
                 if (pos + 1 < recvBuf_[fd].size()
                     && recvBuf_[fd][pos] == '\r'
                     && recvBuf_[fd][pos+1] == '\n')
                     recvBuf_[fd].erase(0, pos + 2);
-                else
+                else // sólo LF
                     recvBuf_[fd].erase(0, pos + 1);
-                
-                std::cout << "[<] fd=" << fd << " line=\"" << line << "\"\n";
-                std::cout << "Raw buffer after extracting line: \"" << recvBuf_[fd] << "\"\n";
+
                 Command cmd;
                 try
                 {
-                    cmd = Parser::parse(line);
-                }
-                catch(const std::string& msg)
-                {
                     Client* client = logic_->getClient(fd);
-                    std::string errorMsg;
-
-                    if (client->getNickname().empty())
-                        errorMsg = ":" + logic_->getServerName() + " *" + msg;
+                    std::string nickname;
+                    if (!client)
+                        nickname = "*";
                     else
-                        errorMsg = ":" + logic_->getServerName() + " " + client->getNickname() + msg;
+                        nickname = client->getNickname();
 
+                    cmd = Parser::parse(line, logic_->getServerName(), nickname);
+                }
+                catch(const std::string& errorMsg)
+                {
                     queueMessage(fd, errorMsg + "\r\n");
 
                     continue ;

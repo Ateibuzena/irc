@@ -1,6 +1,6 @@
 #include "../../../includes/logic/ServerLogic.hpp"
 
-// Manejar el comando NOTICE (enviar mensaje de aviso) (Replay listo, Msg listo, NULL)
+// Manejar el comando NOTICE (enviar mensaje de aviso) (Replay listo, Msg listo, Error listo))
 void    ServerLogic::handleNOTICE(Client* client, const Command& cmd)
 {
     std::string prefix = ":" + _serverName + " ";
@@ -59,7 +59,6 @@ void    ServerLogic::handleNOTICE(Client* client, const Command& cmd)
 
             // Enviamos el mensaje al destinatario
             sendMessageToClient(recipient, noticeMsg);
-            continue ;
         }
         
         // Buscamos si es un canal
@@ -74,13 +73,12 @@ void    ServerLogic::handleNOTICE(Client* client, const Command& cmd)
 
             // Enviamos el mensaje a todos los clientes del canal
             sendMessageToChannel(channel, noticeMsg, client);
-            continue ;
         }
         i++;
     }
 }
 
-// Manejar el comando PRIVMSG (enviar mensaje privado) (Replay listo, Msg listo, NULL)
+// Manejar el comando PRIVMSG (enviar mensaje privado) (Replay listo, Msg listo, Error listo)
 void    ServerLogic::handlePRIVMSG(Client* client, const Command& cmd)
 {
     std::string prefix = ":" + _serverName + " ";

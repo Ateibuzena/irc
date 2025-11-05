@@ -134,10 +134,10 @@ bool Parser::ft_checkchannel(std::string str)
     {
         if (str[n] != '&' && str[n] != '#')
             return (false);
-        n ++;
+        n++;
         i = n;
         while (i < len && ((str[i] > 64 && str[i] < 91) || (str[i] > 96 && str[i] < 123) || (str[i] > 47 && str[i] < 58) || str[i] == '-' || str[i] == '_'))
-            i ++;
+            i++;
         if (i == n)
             return (false);
         if (i >= len)
@@ -199,7 +199,7 @@ bool Parser::ft_checksinglechannel(std::string str)
     return (false);
 }*/
 
-/*bool Parser::ft_checkskey(std::string str)
+bool Parser::ft_checkkey(std::string str)
 {
     unsigned long n = 0;
     unsigned long len = str.length();
@@ -214,10 +214,10 @@ bool Parser::ft_checksinglechannel(std::string str)
     {
         if (str[n] < 33 || str[n] > 126 || str[n] == ',')
             return (false);
-        n ++;
+        n++;
     }
     return (true);
-}*/
+}
 
 /*----------------------------------FLAGS VALIDATION----------------------------------*/
 
@@ -258,7 +258,7 @@ bool Parser::ft_checkflags(Command tocheck)
 
 /*----------------------------------PARSE----------------------------------*/
 
-void Parser::ft_parsecommand(Command tocheck)
+void Parser::ft_parsecommand(Command tocheck, const std::string& servername, const std::string& nickname)
 {
     const std::map<std::string, int>::iterator node = commands.find(tocheck.name);
     int command;
@@ -268,85 +268,112 @@ void Parser::ft_parsecommand(Command tocheck)
     else
         command = node->second;
 
+    std::string prefix = ":" + servername;
     std::string errorMsg;
     switch (command)
     {
         case 0: //pass
             if (tocheck.params.size() < 1)
             {
-                errorMsg = " 461 PASS :Not enough parameters\r\n";
+                errorMsg = buildErrorMessage(prefix,
+                                            messagesError[ERR_NEEDMOREPARAMS].code + " " + nickname + " PASS",
+                                            messagesError[ERR_NEEDMOREPARAMS].message);
                 throw (errorMsg);
             }
             break ;
         case 1: //nick
             if (tocheck.params.size() < 1)
             {
-                errorMsg = " 461 NICK :Not enough parameters\r\n";
+                errorMsg = buildErrorMessage(prefix,
+                                            messagesError[ERR_NEEDMOREPARAMS].code + " " + nickname + " NICK",
+                                            messagesError[ERR_NEEDMOREPARAMS].message);
                 throw (errorMsg);
             }
             if (ft_isvalidusername(tocheck.params[0]) != true)
             {
-                errorMsg = " 432 " + tocheck.params[0] + " :Erroneus nickname\r\n";
+                errorMsg = buildErrorMessage(prefix,
+                                            messagesError[ERR_ERRONEUSNICKNAME].code + " " + nickname + " " + tocheck.params[0],
+                                            messagesError[ERR_ERRONEUSNICKNAME].message);
                 throw (errorMsg);
             }
             break;
         case 2: //user
             if (tocheck.params.size() < 4)
             {
-                errorMsg = " 461 USER :Not enough parameters\r\n";
+                errorMsg = buildErrorMessage(prefix,
+                                            messagesError[ERR_NEEDMOREPARAMS].code + " " + nickname + " USER",
+                                            messagesError[ERR_NEEDMOREPARAMS].message);
                 throw (errorMsg);
             }
             if (ft_isvalidusername(tocheck.params[0]) != true)
             {
-                errorMsg = " 468 " + tocheck.params[0] + " :Invalid username\r\n";
+                errorMsg = buildErrorMessage(prefix,
+                                            messagesError[ERR_INVALIDUSERNAME].code + " " + nickname + " " + tocheck.params[0],
+                                            messagesError[ERR_INVALIDUSERNAME].message);
                 throw (errorMsg);
             }
             if (tocheck.params[1].size() != 1 || (tocheck.params[1][0] < '0' || tocheck.params[1][0] > '9'))
             {
-                errorMsg = " 472 " + tocheck.params[1] + " :Unknown mode flag\r\n";
+                errorMsg = buildErrorMessage(prefix,
+                                            messagesError[ERR_UNKNOWNMODEFLAG].code + " " + nickname + " " + tocheck.params[1],
+                                            messagesError[ERR_UNKNOWNMODEFLAG].message);
                 throw (errorMsg);
             }
             if (tocheck.params[2][0] != '*')
             {
-                errorMsg = " 478 " + tocheck.params[2] + " :Unknown mode flag\r\n";
+                errorMsg = buildErrorMessage(prefix,
+                                            messagesError[ERR_UNKNOWNMODEFLAG].code + " " + nickname + " " + tocheck.params[2],
+                                            messagesError[ERR_UNKNOWNMODEFLAG].message);
                 throw (errorMsg);
             }
             break;
         case 3: //join
             if (tocheck.params.size() < 1)
             {
-                errorMsg = " 461 JOIN :Not enough parameters\r\n";
+                errorMsg = buildErrorMessage(prefix,
+                                            messagesError[ERR_NEEDMOREPARAMS].code + " " + nickname + " JOIN",
+                                            messagesError[ERR_NEEDMOREPARAMS].message);
                 throw (errorMsg);
             }
             break;
         case 4: //part
             if (tocheck.params.size() < 1)
             {
-                errorMsg = " 461 PART :Not enough parameters\r\n";
+                errorMsg = buildErrorMessage(prefix,
+                                            messagesError[ERR_NEEDMOREPARAMS].code + " " + nickname + " PART",
+                                            messagesError[ERR_NEEDMOREPARAMS].message);
                 throw (errorMsg);
             }
             break;
         case 5:  //privmsg
             if (tocheck.params.size() < 1)
             {
-                errorMsg = " 461 PRIVMSG :Not enough parameters\r\n";
+                errorMsg = buildErrorMessage(prefix,
+                                            messagesError[ERR_NEEDMOREPARAMS].code + " " + nickname + " PRIVMSG",
+                                            messagesError[ERR_NEEDMOREPARAMS].message);
                 throw (errorMsg);
             }
             if (tocheck.params.size() == 1)
             {
-                errorMsg = " 412 PRIVMSG :No text to send\r\n";
+                errorMsg = buildErrorMessage(prefix,
+                                            messagesError[ERR_NOTEXTTOSEND].code + " " + nickname + " PRIVMSG",
+                                            messagesError[ERR_NOTEXTTOSEND].message);
                 throw (errorMsg);
             }
             break;
         case 6: //notice
             if (tocheck.params.size() < 1)
             {
-                errorMsg = " 461 NOTICE :Not enough parameters\r\n";
+                errorMsg = buildErrorMessage(prefix,
+                                            messagesError[ERR_NEEDMOREPARAMS].code + " " + nickname + " NOTICE",
+                                            messagesError[ERR_NEEDMOREPARAMS].message);
                 throw (errorMsg);
             }
             if (tocheck.params.size() == 1 || tocheck.params[1].size() < 1)
             {
-                errorMsg = " 412 NOTICE :No text to send\r\n";
+                errorMsg = buildErrorMessage(prefix,
+                                            messagesError[ERR_NOTEXTTOSEND].code + " " + nickname + " NOTICE",
+                                            messagesError[ERR_NOTEXTTOSEND].message);
                 throw (errorMsg);
             }
             break;
@@ -355,7 +382,9 @@ void Parser::ft_parsecommand(Command tocheck)
             {
                 if (tocheck.params[0].size() < 1)
                 {
-                    errorMsg = " 412 QUIT :No text to send\r\n";
+                    errorMsg = buildErrorMessage(prefix,
+                                                messagesError[ERR_NOTEXTTOSEND].code + " " + nickname + " QUIT",
+                                                messagesError[ERR_NOTEXTTOSEND].message);
                     throw (errorMsg);
                 }
             }
@@ -363,78 +392,102 @@ void Parser::ft_parsecommand(Command tocheck)
         case 8: //mode
             if (tocheck.params.size() < 1)
             {
-                errorMsg = " 461 MODE :Not enough parameters\r\n";
+                errorMsg = buildErrorMessage(prefix,
+                                            messagesError[ERR_NEEDMOREPARAMS].code + " " + nickname + " MODE",
+                                            messagesError[ERR_NEEDMOREPARAMS].message);
                 throw (errorMsg);
             }
             if (tocheck.params.size() > 1)
             {
                 if (!ft_checkflags(tocheck))
                 {
-                    errorMsg = " 472 " + tocheck.params[1] + " :Unknown mode flag\r\n";
+                    errorMsg = buildErrorMessage(prefix,
+                                                messagesError[ERR_UNKNOWNMODEFLAG].code + " " + nickname + " " + tocheck.params[1],
+                                                messagesError[ERR_UNKNOWNMODEFLAG].message);
                     throw (errorMsg);
                 }
             }
             if (ft_checksinglechannel(tocheck.params[0]) == false)
             {
-                errorMsg = " 403 " + tocheck.params[0] + " :No such channel\r\n";
+                errorMsg = buildErrorMessage(prefix,
+                                            messagesError[ERR_NOSUCHCHANNEL].code + " " + nickname + " " + tocheck.params[0],
+                                            messagesError[ERR_NOSUCHCHANNEL].message);
                 throw (errorMsg);
             }
             break;
         case 9: //topic
             if (tocheck.params.size() < 1)
             {
-                errorMsg = " 461 TOPIC :Not enough parameters\r\n";
+                errorMsg = buildErrorMessage(prefix,
+                                            messagesError[ERR_NEEDMOREPARAMS].code + " " + nickname + " TOPIC",
+                                            messagesError[ERR_NEEDMOREPARAMS].message);
                 throw (errorMsg);
             }
             if (ft_checksinglechannel(tocheck.params[0]) == false)
             {
-                errorMsg = " 403 " + tocheck.params[0] + " :No such channel\r\n";
+                errorMsg = buildErrorMessage(prefix,
+                                            messagesError[ERR_NOSUCHCHANNEL].code + " " + nickname + " " + tocheck.params[0],
+                                            messagesError[ERR_NOSUCHCHANNEL].message);
                 throw (errorMsg);
             }
             break;
         case 10: //invite
             if (tocheck.params.size() < 2)
             {
-                errorMsg = " 461 INVITE :Not enough parameters\r\n";
+                errorMsg = buildErrorMessage(prefix,
+                                            messagesError[ERR_NEEDMOREPARAMS].code + " " + nickname + " INVITE",
+                                            messagesError[ERR_NEEDMOREPARAMS].message);
                 throw (errorMsg);
             }
             if (!ft_checksinglechannel(tocheck.params[1]))
             {
-                errorMsg = " 403 " + tocheck.params[1] + " :No such channel\r\n";
+                errorMsg = buildErrorMessage(prefix,
+                                            messagesError[ERR_NOSUCHCHANNEL].code + " " + nickname + " " + tocheck.params[1],
+                                            messagesError[ERR_NOSUCHCHANNEL].message);
                 throw (errorMsg);
             }
             if (!ft_isvalidusername(tocheck.params[0]))
             {
-                errorMsg = " 401 " + tocheck.params[0] + " :No such nick/channel\r\n";
+                errorMsg = buildErrorMessage(prefix,
+                                            messagesError[ERR_NOSUCHNICK].code + " " + nickname + " " + tocheck.params[0],
+                                            messagesError[ERR_NOSUCHNICK].message);
                 throw (errorMsg);
             }
             break;
         case 11: //kick
             if (tocheck.params.size() < 2)
             {
-                errorMsg = " 461 KICK :Not enough parameters\r\n";
+                errorMsg = buildErrorMessage(prefix,
+                                            messagesError[ERR_NEEDMOREPARAMS].code + " " + nickname + " KICK",
+                                            messagesError[ERR_NEEDMOREPARAMS].message);
                 throw (errorMsg);
             }
             if (!ft_checksinglechannel(tocheck.params[1]))
             {
-                errorMsg = " 403 " + tocheck.params[1] + " :No such channel\r\n";
+                errorMsg = buildErrorMessage(prefix,
+                                            messagesError[ERR_NOSUCHCHANNEL].code + " " + nickname + " " + tocheck.params[1],
+                                            messagesError[ERR_NOSUCHCHANNEL].message);
                 throw (errorMsg);
             }
             if (!ft_isvalidusername(tocheck.params[0]))
             {
-                errorMsg = " 401 " + tocheck.params[0] + " :No such nick/channel\r\n";
+                errorMsg = buildErrorMessage(prefix,
+                                            messagesError[ERR_NOSUCHNICK].code + " " + nickname + " " + tocheck.params[0],
+                                            messagesError[ERR_NOSUCHNICK].message);
                 throw (errorMsg);
             }
             break;
         default:
         {
-            errorMsg = " 421 " + tocheck.name + " :Unknown command\r\n";
+            errorMsg = buildErrorMessage(prefix,
+                                        messagesError[ERR_UNKNOWN].code + " " + nickname + " " + tocheck.name,
+                                        messagesError[ERR_UNKNOWN].message);
             throw (errorMsg);
         }
     }
 }
 
-Command Parser::parse(const std::string &rawMessage)
+Command Parser::parse(const std::string &rawMessage, const std::string& servername, const std::string& nickname)
 {
     /*if (rawMessage.size() < 2)
         throw ERR_UNKNOWN;*/
@@ -450,12 +503,8 @@ Command Parser::parse(const std::string &rawMessage)
     while (i < size && rawMessage[i] != ' ')
         i++;
     if (i == 0)
-    {
-        std::cout << "Empty command received\n";
         return (toret);
-    }
     toret.name = rawMessage.substr(0, i);
-    std::cout << "Parsed command name: " << toret.name << "\n";
 
     // Extract parameters
     while (i < size && rawMessage[i] == ' ')
@@ -469,7 +518,7 @@ Command Parser::parse(const std::string &rawMessage)
     // Validate command and parameters
     try
     {
-        ft_parsecommand(toret);
+        ft_parsecommand(toret, servername, nickname);
     }
     catch(const std::string& msg)
     {

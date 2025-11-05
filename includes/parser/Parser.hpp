@@ -27,14 +27,14 @@ class Parser
         static bool                         ft_checksinglechannel(std::string str);
 
         //static bool                         ft_checkkeys(std::string str);
-        //static bool                         ft_checkskey(std::string str);
+        static bool                         ft_checkkey(std::string str);
 
         static bool                         ft_checkflags(Command tocheck);
         
         //static bool                         ft_checknumber(std::string str);
 
-        static Command                      parse(const std::string &rawMessage);
-        static void                         ft_parsecommand(Command toret);
+        static Command                      parse(const std::string &rawMessage, const std::string& servername, const std::string& nickname);
+        static void                         ft_parsecommand(Command tocheck, const std::string& servername, const std::string& nickname);
 };
 
 #endif

@@ -32,14 +32,14 @@ class ServerLogic
         void                                handleUSER(Client* client, const Command& cmd);
 
         //Channel Operations
-        //void                                handleJOIN(Client* client, const Command& cmd);
+        void                                handleJOIN(Client* client, const Command& cmd);
         void                                handlePART(Client* client, const Command& cmd);
         void                                handleTOPIC(Client* client, const Command& cmd);
         void                                handleINVITE(Client* client, const Command& cmd);
         void                                handleKICK(Client* client, const Command& cmd);
 
         //Server Queries and Information
-        //void                                handleMODE(Client* client, const Command& cmd);
+        void                                handleMODE(Client* client, const Command& cmd);
 
         //Sending Messages
         void                                handleNOTICE(Client* client, const Command& cmd);

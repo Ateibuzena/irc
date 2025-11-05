@@ -107,7 +107,7 @@ void    ServerLogic::handleNICK(Client* client, const Command& cmd)
     }
 }
 
-// Manejar el comando USER (establecer username) (Replay listo, Msg listo, NULL)
+// Manejar el comando USER (establecer username) (Replay listo, Msg listo, Error listo)
 void    ServerLogic::handleUSER(Client* client, const Command& cmd)
 {
     //Juan :irc.server.com 461 <nick> USER :Not enough parameters
@@ -135,7 +135,7 @@ void    ServerLogic::handleUSER(Client* client, const Command& cmd)
         setClientRegistered(client);
 }
 
-// Manejar el comando QUIT (desconectar cliente) (Replay listo, Msg listo, NULL)
+// Manejar el comando QUIT (desconectar cliente) (Replay listo, Msg listo, Error listo)
 void    ServerLogic::handleQUIT(Client* client, const Command& cmd)
 {
     // Construir mensaje de QUIT

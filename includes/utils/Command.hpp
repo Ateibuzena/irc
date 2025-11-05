@@ -122,8 +122,9 @@ enum errorCodes
     ERR_NOTREGISTERED,
     ERR_PASSWDAUTHORIZED,
     QUIT, // mensaje especial
-    ERR_UNKNOWN,
-    ERR_INVALIDUSERNAME
+    ERR_INVALIDUSERNAME,
+    ERR_UNKNOWNMODEFLAG,
+    ERR_UNKNOWN
 };
 
 enum replayCodes

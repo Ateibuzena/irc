@@ -118,33 +118,64 @@ std::string ServerLogic::buildReplyMessage(std::string code,
     std::string fullMsg;
 
     if (!target.empty() && !aux.empty() && msg.empty())
+    {
+        std::cout << "ENTRO 1" << std::endl;
         fullMsg = ":" + _serverName + " " + code + " " + client->getNickname() + " " + target + " " + aux + "\r\n";
+    }
     else if (!target.empty() && aux.empty() && !msg.empty())
+    {
+        std::cout << "ENTRO 2" << std::endl;
         fullMsg = ":" + _serverName + " " + code + " " + client->getNickname() + " " + target + " :" + msg + "\r\n";
+    }
     else if (target.empty() && aux.empty() && !msg.empty())
+    {
+        std::cout << "ENTRO 3" << std::endl;
         fullMsg = ":" + _serverName + " " + code + " " + client->getNickname() + " :" + msg + "\r\n";
+    }
     else
+    {
+        std::cout << "ENTRO 4" << std::endl;
         fullMsg = "You're not supposed to go in here\r\n"; // POR AHORA MAMAHUEVA
+    }
     return (fullMsg);
 }
 
 // Devuelve un canal existente o lo crea si no existe
 Channel*    ServerLogic::createChannel(const std::string& name, Client* creator)
 {
+    // Validar nombre de canal
+    if (!Parser::ft_checksinglechannel(name))
+    {
+        std::string prefix = ":" + _serverName + " ";
+        std::string errorMsg = buildErrorMessage(prefix +
+                                                messagesError[ERR_BADCHANMASK].code + " " + creator->getNickname() + " ",
+                                                name,
+                                                messagesError[ERR_BADCHANMASK].message);
+        sendMessageToClient(creator, errorMsg);
+        return (NULL);
+    }
+
+    // Buscar canal existente
     std::map<std::string, Channel*>::const_iterator it = _serverChannels.find(name);
     if (it != _serverChannels.end())
         return (it->second);
 
-    Channel* newChannel = new Channel(name); // Por defecto límite de clientes
-    if (!newChannel)
+    // Crear nuevo canal
+    Channel* newChannel;
+    try
     {
-        std::string errorMsg = ":" + _serverName + " " + messagesError[ERR_UNKNOWN].code + " " + creator->getNickname() + " " + name + " :Cannot create channel\r\n";
-        throw (errorMsg);
+        newChannel = new Channel(name); // Por defecto límite de clientes
+    }
+    catch(const std::bad_alloc& e)
+    {
+        throw(std::string(e.what()));
     }
 
+    // Añadir al mapa de canales
     _serverChannels[name] = newChannel;
-    
-    newChannel->addOperator(creator); // El creador es operador por defecto
+
+    // El creador es operador por defecto
+    newChannel->addOperator(creator);
 
     return (newChannel);
 }
@@ -155,11 +186,14 @@ void    ServerLogic::serverAddClient(int fd)
     if (_serverClients.find(fd) != _serverClients.end())
         return ;
 
-    Client* newClient = new Client(fd);
-    if (!newClient)
+    Client* newClient = NULL;
+    try
     {
-        std::string errorMsg = ":" + _serverName + " *" + " :Cannot allocate memory for new client\r\n";
-        throw (errorMsg);
+        newClient = new Client(fd);
+    }
+    catch(const std::bad_alloc& e)
+    {
+        throw (std::string(e.what()));
     }
 
     if (_serverClients.size() + 1 > MAX_CLIENTS)
@@ -238,8 +272,8 @@ void    ServerLogic::executeCommand(const Command& cmd, int clientFd)
         else if (command == "USER")
             handleUSER(client, cmd);
         /*Channel Operations*/
-        /*else if (command == "JOIN")
-            handleJOIN(client, cmd);*/
+        else if (command == "JOIN")
+            handleJOIN(client, cmd);
         else if (command == "PART")
             handlePART(client, cmd);
         else if (command == "TOPIC")
