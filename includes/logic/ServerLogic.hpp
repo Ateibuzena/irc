@@ -1,10 +1,10 @@
 #ifndef SERVERLOGIC_HPP
 #define SERVERLOGIC_HPP
 
-#include "Client.hpp"
-#include "Channel.hpp"
-#include "../utils/Command.hpp"
-#include "../server/Server.hpp"
+# include "Client.hpp"
+# include "Channel.hpp"
+# include "../utils/Utils.hpp"
+# include "../server/Server.hpp"
 
 class Server;
 
@@ -24,26 +24,26 @@ class ServerLogic
         std::map<std::string, Channel *>    _serverChannels;
 
         //User Authentication
-        void                                handlePASS(Client* client, const Command& cmd);
-        void                                handleQUIT(Client* client, const Command& cmd);
+        void                                handlePASS(Client* client, const ParsedInput& input);
+        void                                handleQUIT(Client* client, const ParsedInput& input);
 
         //User Registration
-        void                                handleNICK(Client* client, const Command& cmd);
-        void                                handleUSER(Client* client, const Command& cmd);
+        void                                handleNICK(Client* client, const ParsedInput& input);
+        void                                handleUSER(Client* client, const ParsedInput& input);
 
         //Channel Operations
-        void                                handleJOIN(Client* client, const Command& cmd);
-        void                                handlePART(Client* client, const Command& cmd);
-        void                                handleTOPIC(Client* client, const Command& cmd);
-        void                                handleINVITE(Client* client, const Command& cmd);
-        void                                handleKICK(Client* client, const Command& cmd);
+        void                                handleJOIN(Client* client, const ParsedInput& input);
+        void                                handlePART(Client* client, const ParsedInput& input);
+        void                                handleTOPIC(Client* client, const ParsedInput& input);
+        void                                handleINVITE(Client* client, const ParsedInput& input);
+        void                                handleKICK(Client* client, const ParsedInput& input);
 
         //Server Queries and Information
-        void                                handleMODE(Client* client, const Command& cmd);
+        void                                handleMODE(Client* client, const ParsedInput& input);
 
         //Sending Messages
-        void                                handleNOTICE(Client* client, const Command& cmd);
-        void                                handlePRIVMSG(Client* client, const Command& cmd);
+        void                                handleNOTICE(Client* client, const ParsedInput& input);
+        void                                handlePRIVMSG(Client* client, const ParsedInput& input);
 
     public:
 
@@ -74,7 +74,7 @@ class ServerLogic
         void                                serverAddClient(int fd);
         void                                serverRemoveClient(int fd);
 
-        void                                executeCommand(const Command& cmd, int clientFd);
+        void                                executeCommand(const ParsedInput& input, int clientFd);
 
         void                                sendMessageToClient(Client* client, const std::string& message);
         void                                sendMessageToChannel(Channel* channel, const std::string& message, Client* sender = NULL);

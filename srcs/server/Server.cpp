@@ -350,27 +350,27 @@ void Server::handleReadable(size_t idx)
                 else // sólo LF
                     recvBuf_[fd].erase(0, pos + 1);
 
-                Command cmd;
+                ParsedInput input;
                 try
                 {
                     Client* client = logic_->getClient(fd);
                     std::string nickname;
-                    if (!client)
+                    if (client->getNickname().empty())
                         nickname = "*";
                     else
                         nickname = client->getNickname();
 
-                    cmd = Parser::parse(line, logic_->getServerName(), nickname);
+                    input = Parser::parse(line, logic_->getServerName(), nickname);
                 }
                 catch(const std::string& errorMsg)
                 {
-                    queueMessage(fd, errorMsg + "\r\n");
+                    queueMessage(fd, errorMsg);
 
                     continue ;
                 }
                 try
                 {
-                    logic_->executeCommand(cmd, fd);
+                    logic_->executeCommand(input, fd);
                 }
                 catch(const std::string& errorMsg)
                 {

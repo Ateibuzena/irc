@@ -1,7 +1,7 @@
 #include "../../../includes/logic/ServerLogic.hpp"
 
 // Manejar el comando NOTICE (enviar mensaje de aviso) (Replay listo, Msg listo, Error listo))
-void    ServerLogic::handleNOTICE(Client* client, const Command& cmd)
+void    ServerLogic::handleNOTICE(Client* client, const ParsedInput& input)
 {
     std::string prefix = ":" + _serverName + " ";
     std::string errorMsg; 
@@ -17,10 +17,10 @@ void    ServerLogic::handleNOTICE(Client* client, const Command& cmd)
     }
 
     // Obtenemos la lista de destinatarios
-    std::vector<std::string> receivers = str_to_vector(cmd.params[0], ',');
+    std::vector<std::string> receivers = str_to_vector(input.params[0], ',');
 
     // Verificamos si hay mensaje
-    std::string msg = cmd.params[1];
+    std::string msg = input.params[1];
     if (msg.empty())
     {
         prefix += messagesError[ERR_NOTEXTTOSEND].code + " " + client->getNickname();
@@ -79,7 +79,7 @@ void    ServerLogic::handleNOTICE(Client* client, const Command& cmd)
 }
 
 // Manejar el comando PRIVMSG (enviar mensaje privado) (Replay listo, Msg listo, Error listo)
-void    ServerLogic::handlePRIVMSG(Client* client, const Command& cmd)
+void    ServerLogic::handlePRIVMSG(Client* client, const ParsedInput& input)
 {
     std::string prefix = ":" + _serverName + " ";
     std::string errorMsg;
@@ -95,10 +95,10 @@ void    ServerLogic::handlePRIVMSG(Client* client, const Command& cmd)
     }
 
     // Obtenemos la lista de destinatarios
-    std::vector<std::string> receivers = str_to_vector(cmd.params[0], ',');
+    std::vector<std::string> receivers = str_to_vector(input.params[0], ',');
 
     // Verificamos si hay mensaje
-    if (cmd.params.size() < 2)
+    if (input.params.size() < 2)
     {
         prefix += messagesError[ERR_NOTEXTTOSEND].code + " " + client->getNickname();
         errorMsg = buildErrorMessage(prefix,
@@ -107,7 +107,7 @@ void    ServerLogic::handlePRIVMSG(Client* client, const Command& cmd)
         return (sendMessageToClient(client, errorMsg));
     }
 
-    std::string msg = cmd.params[1];
+    std::string msg = input.params[1];
 
     size_t i = 0;
     while (i < receivers.size())

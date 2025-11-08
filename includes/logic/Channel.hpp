@@ -1,7 +1,7 @@
 #ifndef CHANNEL_HPP
 #define CHANNEL_HPP
 
-#include "../utils/Command.hpp"
+#include "../utils/Utils.hpp"
 
 class Client; // Declaración adelantada
 

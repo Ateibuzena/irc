@@ -95,16 +95,19 @@ void    ServerLogic::setHostname(const std::string& hostname)
 
 void    ServerLogic::setClientRegistered(Client* client)
 {
+    if (client->isRegistered())
+        return ;
+
     client->setRegistered(true);
 
     std::string replayMsg;
-    
+
     replayMsg = buildReplyMessage(messagesReplay[RPL_WELCOME].code, client, "", "", messagesReplay[RPL_WELCOME].message + client->getNickname() + "!" + client->getUsername() + "@" + _serverHost);
     replayMsg += buildReplyMessage(messagesReplay[RPL_YOURHOST].code, client, "", "", messagesReplay[RPL_YOURHOST].message + _serverName + ", version " + _serverVersion);
     replayMsg += buildReplyMessage(messagesReplay[RPL_CREATED].code, client, "", "", messagesReplay[RPL_CREATED].message + time_to_string(_serverStartTime));
     replayMsg += buildReplyMessage(messagesReplay[RPL_MYINFO].code, client, "", "", messagesReplay[RPL_MYINFO].message + _serverName + " " + _serverVersion + " o O"); //preguntar "ao mtov"??
-    
-    sendMessageToClient(client, replayMsg);
+
+    sendMessageToClient(client, replayMsg);  
 }
 
 /*----------------------------------METHODS------------------------------------*/
@@ -245,9 +248,9 @@ void    ServerLogic::serverRemoveClient(int fd)
               << to_string_c98(fd) << RESET << std::endl;*/
 }
 
-void    ServerLogic::executeCommand(const Command& cmd, int clientFd)
+void    ServerLogic::executeCommand(const ParsedInput& input, int clientFd)
 {
-    if (cmd.name.empty() || cmd.params.empty())
+    if (input.name.empty() || input.params.empty())
         return ;
     
     // Primero, buscamos el cliente
@@ -256,39 +259,39 @@ void    ServerLogic::executeCommand(const Command& cmd, int clientFd)
         return ;
 
     Client* client = it->second;
-    const std::string& command = cmd.name;        // ej: "NICK", "USER", "JOIN"
+    const std::string& command = input.name;        // ej: "NICK", "USER", "JOIN"
 
     // Comparar comandos y llamar al handler correspondiente
     try
     {
         /*User Authentication*/
         if (command == "PASS")
-            handlePASS(client, cmd);
+            handlePASS(client, input);
         else if (command == "QUIT")
-            handleQUIT(client, cmd);
+            handleQUIT(client, input);
         /*User Registration*/
         else if (command == "NICK")
-            handleNICK(client, cmd);
+            handleNICK(client, input);
         else if (command == "USER")
-            handleUSER(client, cmd);
+            handleUSER(client, input);
         /*Channel Operations*/
         else if (command == "JOIN")
-            handleJOIN(client, cmd);
+            handleJOIN(client, input);
         else if (command == "PART")
-            handlePART(client, cmd);
+            handlePART(client, input);
         else if (command == "TOPIC")
-            handleTOPIC(client, cmd);
+            handleTOPIC(client, input);
         else if (command == "INVITE")
-            handleINVITE(client, cmd);
+            handleINVITE(client, input);
         else if (command == "KICK")
-            handleKICK(client, cmd);
-        /*else if (command == "MODE")
-            handleMODE(client, cmd);*/
+            handleKICK(client, input);
+        else if (command == "MODE")
+            handleMODE(client, input);
         /*Sending Messages*/
         else if (command == "NOTICE")
-            handleNOTICE(client, cmd);
+            handleNOTICE(client, input);
         else if (command == "PRIVMSG")
-            handlePRIVMSG(client, cmd);
+            handlePRIVMSG(client, input);
     }
     catch(const std::string& errorMsg)
     {

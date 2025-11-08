@@ -23,7 +23,7 @@ void Parser::initCommands()
 
 /*----------------------------------PARAMS----------------------------------*/
 
-void Parser::ft_params(const std::string &rawMessage, Command &toret, unsigned long i, unsigned long size)
+void Parser::ft_params(const std::string &rawMessage, ParsedInput &toret, unsigned long i, unsigned long size)
 {
     unsigned long u = i;
 
@@ -45,7 +45,7 @@ void Parser::ft_params(const std::string &rawMessage, Command &toret, unsigned l
         ft_params(rawMessage, toret, u, size);
 }
 
-void Parser::ft_lastparam(const std::string &rawMessage, Command &toret, unsigned long i, unsigned long size)
+void Parser::ft_lastparam(const std::string &rawMessage, ParsedInput &toret, unsigned long i, unsigned long size)
 {
     if (i + 1 >= size)
     {
@@ -65,7 +65,8 @@ bool Parser::ft_isvalidusername(const std::string& name)
     if (name[0] == '&' || name[0] == '#')
         return (false);
     
-    for (unsigned int i = 0; i < name.length(); i ++) {
+    for (unsigned int i = 0; i < name.length(); i++)
+    {
         if (name[i] == ' ' || name[i] == '@' || name[i] == '\r' || name[i] == '\n' || name[i] == '\0')
             return (false);
     }
@@ -221,7 +222,7 @@ bool Parser::ft_checkkey(std::string str)
 
 /*----------------------------------FLAGS VALIDATION----------------------------------*/
 
-bool Parser::ft_checkflags(Command tocheck)
+bool Parser::ft_checkflags(ParsedInput tocheck)
 {
     if (tocheck.params[1][0] != '+' && tocheck.params[1][0] != '-')
         return (false);
@@ -258,7 +259,7 @@ bool Parser::ft_checkflags(Command tocheck)
 
 /*----------------------------------PARSE----------------------------------*/
 
-void Parser::ft_parsecommand(Command tocheck, const std::string& servername, const std::string& nickname)
+void Parser::ft_parsecommand(ParsedInput tocheck, const std::string& servername, const std::string& nickname)
 {
     const std::map<std::string, int>::iterator node = commands.find(tocheck.name);
     int command;
@@ -487,7 +488,7 @@ void Parser::ft_parsecommand(Command tocheck, const std::string& servername, con
     }
 }
 
-Command Parser::parse(const std::string &rawMessage, const std::string& servername, const std::string& nickname)
+ParsedInput Parser::parse(const std::string &rawMessage, const std::string& servername, const std::string& nickname)
 {
     /*if (rawMessage.size() < 2)
         throw ERR_UNKNOWN;*/
@@ -496,8 +497,8 @@ Command Parser::parse(const std::string &rawMessage, const std::string& serverna
         throw ERR_UNKNOWN;*/
 
     unsigned long   i = 0;
-    unsigned long   size = rawMessage.size();  //quitado /r/n
-    Command         toret;
+    unsigned long   size = rawMessage.size();  //quitado /r/n -2
+    ParsedInput         toret;
 
     // Extract command name
     while (i < size && rawMessage[i] != ' ')

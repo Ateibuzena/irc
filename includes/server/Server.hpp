@@ -1,12 +1,12 @@
 #ifndef SERVER_HPP
 #define SERVER_HPP
 
-#include <string>
-#include <vector>
-#include <map>
-#include <poll.h>
-#include <cstddef>
-#include "../parser/Parser.hpp"
+# include <string>
+# include <vector>
+# include <map>
+# include <poll.h>
+# include <cstddef>
+# include "../parser/Parser.hpp"
 
 class ServerLogic;
 

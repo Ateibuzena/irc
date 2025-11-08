@@ -1,58 +1,58 @@
-#ifndef COMMAND_HPP
-#define COMMAND_HPP
+#ifndef UTILS_HPP
+#define UTILS_HPP
 
-#include <string>
-#include <map>
-#include <set>
-#include <vector>
-#include <string>
-#include <iostream>
-#include <algorithm>
-#include <unistd.h>
-#include <ctime>
+# include <string>
+# include <map>
+# include <set>
+# include <vector>
+# include <string>
+# include <iostream>
+# include <algorithm>
+# include <unistd.h>
+# include <ctime>
 
 
 
 // Límite máximo de usuarios por canal
-#define MAX_USERS_PER_CHANNEL 100
+# define MAX_USERS_PER_CHANNEL 100
 
 // Límite máximo total de clientes conectados al servidor
-#define MAX_CLIENTS 500
+# define MAX_CLIENTS 500
 
 // Límite máximo de canales por cliente
-#define MAX_CHANNELS_PER_CLIENT 100
+# define MAX_CHANNELS_PER_CLIENT 100
 
 // Límite máximo de caracteres en un mensaje IRC (RFC 2812)
-#define MAX_MESSAGE_LENGTH 512
+# define MAX_MESSAGE_LENGTH 512
 
 //
 // 🎨 Colores ANSI
 //
-/*#define RESET   "\033[0m"
-#define RED     "\033[0;31m"
-#define GREEN   "\033[0;32m"
-#define YELLOW  "\033[1;33m"
-#define BLUE    "\033[1;34m"
-#define CYAN    "\033[0;36m"
-#define MAGENTA "\033[0;35m"
-#define BOLDWHITE "\033[1;37m"*/
+/*# define RESET   "\033[0m"
+# define RED     "\033[0;31m"
+# define GREEN   "\033[0;32m"
+# define YELLOW  "\033[1;33m"
+# define BLUE    "\033[1;34m"
+# define CYAN    "\033[0;36m"
+# define MAGENTA "\033[0;35m"
+# define BOLDWHITE "\033[1;37m"*/
 
 // 🎨 Colores IRC — usan el carácter de control \x03
-#define RESET      "\x03"      // Resetea el color
-#define RED        "\x034"     // Rojo
-#define GREEN      "\x033"     // Verde
-#define YELLOW     "\x038"     // Amarillo (naranja en algunos clientes)
-#define BLUE       "\x032"     // Azul
-#define MAGENTA    "\x036"     // Púrpura / magenta
+# define RESET      "\x03"      // Resetea el color
+# define RED        "\x034"     // Rojo
+# define GREEN      "\x033"     // Verde
+# define YELLOW     "\x038"     // Amarillo (naranja en algunos clientes)
+# define BLUE       "\x032"     // Azul
+# define MAGENTA    "\x036"     // Púrpura / magenta
 
 
-struct Command
+struct ParsedInput
 {
     std::string                 name; // Ej: "NICK", "JOIN", "PRIVMSG"
     std::vector<std::string>    params; // Ej: {"#42Malaga", "hola mundo"}
     std::string                 raw; // Mensaje original (por debug)
 
-    Command()
+    ParsedInput()
         :   name(""),
             params(),
             raw("")
