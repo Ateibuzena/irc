@@ -11,8 +11,7 @@ void initErrorMessages(void)
     messagesError[ERR_NONICKNAMEGIVEN]   = MessageInfo("431", "No nickname given");
     messagesError[ERR_ERRONEUSNICKNAME]  = MessageInfo("432", "Erroneous nickname");
     messagesError[ERR_NICKNAMEINUSE]     = MessageInfo("433", "Nickname is already in use");
-    messagesError[ERR_NOSUCHNICK]        = MessageInfo("401", "No such nick");
-    messagesError[ERR_NOSUCHCHANNEL]     = MessageInfo("403", "No such channel");
+    messagesError[ERR_NOSUCHNICKCHANNEL] = MessageInfo("401", "No such nick/channel");
     messagesError[ERR_CANNOTSENDTOCHAN]  = MessageInfo("404", "Cannot send to channel");
     messagesError[ERR_TOOMANYCHANNELS]   = MessageInfo("405", "Too many channels");
     messagesError[ERR_TOOMANYTARGETS]    = MessageInfo("407", "Too many targets");

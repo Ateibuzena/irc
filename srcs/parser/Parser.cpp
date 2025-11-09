@@ -98,7 +98,7 @@ bool Parser::ft_isvalidusername(const std::string& name)
             if (i >= len)
                 return (true);
             if (str[i] != ',')
-                throw ERR_NOSUCHCHANNEL;
+                throw ERR_NOSUCHNICKCHANNEL;
             n = i + 1;
         }
         else
@@ -113,7 +113,7 @@ bool Parser::ft_isvalidusername(const std::string& name)
             if (i >= len)
                 return (true);
             if (str[i] != ',')
-                throw ERR_NOSUCHNICK;
+                throw ERR_NOSUCHNICKCHANNEL;
             n = i + 1;
         }
     }
@@ -290,7 +290,7 @@ void Parser::ft_parsecommand(ParsedInput tocheck, const std::string& servername,
                                             messagesError[ERR_NEEDMOREPARAMS].message);
                 throw (errorMsg);
             }
-            if (ft_isvalidusername(tocheck.params[0]) != true)
+            if (!ft_isvalidusername(tocheck.params[0]))
             {
                 errorMsg = buildErrorMessage(prefix,
                                             messagesError[ERR_ERRONEUSNICKNAME].code + " " + nickname + " " + tocheck.params[0],
@@ -306,7 +306,7 @@ void Parser::ft_parsecommand(ParsedInput tocheck, const std::string& servername,
                                             messagesError[ERR_NEEDMOREPARAMS].message);
                 throw (errorMsg);
             }
-            if (ft_isvalidusername(tocheck.params[0]) != true)
+            if (!ft_isvalidusername(tocheck.params[0]))
             {
                 errorMsg = buildErrorMessage(prefix,
                                             messagesError[ERR_INVALIDUSERNAME].code + " " + nickname + " " + tocheck.params[0],
@@ -350,8 +350,8 @@ void Parser::ft_parsecommand(ParsedInput tocheck, const std::string& servername,
             if (tocheck.params.size() < 1)
             {
                 errorMsg = buildErrorMessage(prefix,
-                                            messagesError[ERR_NEEDMOREPARAMS].code + " " + nickname + " PRIVMSG",
-                                            messagesError[ERR_NEEDMOREPARAMS].message);
+                                            messagesError[ERR_NORECIPIENT].code + " " + nickname + " PRIVMSG",
+                                            messagesError[ERR_NORECIPIENT].message);
                 throw (errorMsg);
             }
             if (tocheck.params.size() == 1)
@@ -366,8 +366,8 @@ void Parser::ft_parsecommand(ParsedInput tocheck, const std::string& servername,
             if (tocheck.params.size() < 1)
             {
                 errorMsg = buildErrorMessage(prefix,
-                                            messagesError[ERR_NEEDMOREPARAMS].code + " " + nickname + " NOTICE",
-                                            messagesError[ERR_NEEDMOREPARAMS].message);
+                                            messagesError[ERR_NORECIPIENT].code + " " + nickname + " NOTICE",
+                                            messagesError[ERR_NORECIPIENT].message);
                 throw (errorMsg);
             }
             if (tocheck.params.size() == 1 || tocheck.params[1].size() < 1)
@@ -408,11 +408,11 @@ void Parser::ft_parsecommand(ParsedInput tocheck, const std::string& servername,
                     throw (errorMsg);
                 }
             }
-            if (ft_checksinglechannel(tocheck.params[0]) == false)
+            if (!ft_checksinglechannel(tocheck.params[0]))
             {
                 errorMsg = buildErrorMessage(prefix,
-                                            messagesError[ERR_NOSUCHCHANNEL].code + " " + nickname + " " + tocheck.params[0],
-                                            messagesError[ERR_NOSUCHCHANNEL].message);
+                                            messagesError[ERR_NOSUCHNICKCHANNEL].code + " " + nickname + " " + tocheck.params[0],
+                                            messagesError[ERR_NOSUCHNICKCHANNEL].message);
                 throw (errorMsg);
             }
             break;
@@ -424,11 +424,11 @@ void Parser::ft_parsecommand(ParsedInput tocheck, const std::string& servername,
                                             messagesError[ERR_NEEDMOREPARAMS].message);
                 throw (errorMsg);
             }
-            if (ft_checksinglechannel(tocheck.params[0]) == false)
+            if (!ft_checksinglechannel(tocheck.params[0]))
             {
                 errorMsg = buildErrorMessage(prefix,
-                                            messagesError[ERR_NOSUCHCHANNEL].code + " " + nickname + " " + tocheck.params[0],
-                                            messagesError[ERR_NOSUCHCHANNEL].message);
+                                            messagesError[ERR_NOSUCHNICKCHANNEL].code + " " + nickname + " " + tocheck.params[0],
+                                            messagesError[ERR_NOSUCHNICKCHANNEL].message);
                 throw (errorMsg);
             }
             break;
@@ -440,18 +440,18 @@ void Parser::ft_parsecommand(ParsedInput tocheck, const std::string& servername,
                                             messagesError[ERR_NEEDMOREPARAMS].message);
                 throw (errorMsg);
             }
-            if (!ft_checksinglechannel(tocheck.params[1]))
+            if (!ft_checksinglechannel(tocheck.params[0]))
             {
                 errorMsg = buildErrorMessage(prefix,
-                                            messagesError[ERR_NOSUCHCHANNEL].code + " " + nickname + " " + tocheck.params[1],
-                                            messagesError[ERR_NOSUCHCHANNEL].message);
+                                            messagesError[ERR_NOSUCHNICKCHANNEL].code + " " + nickname + " " + tocheck.params[0],
+                                            messagesError[ERR_NOSUCHNICKCHANNEL].message);
                 throw (errorMsg);
             }
-            if (!ft_isvalidusername(tocheck.params[0]))
+            if (!ft_isvalidusername(tocheck.params[1]))
             {
                 errorMsg = buildErrorMessage(prefix,
-                                            messagesError[ERR_NOSUCHNICK].code + " " + nickname + " " + tocheck.params[0],
-                                            messagesError[ERR_NOSUCHNICK].message);
+                                            messagesError[ERR_NOSUCHNICKCHANNEL].code + " " + nickname + " " + tocheck.params[1],
+                                            messagesError[ERR_NOSUCHNICKCHANNEL].message);
                 throw (errorMsg);
             }
             break;
@@ -463,18 +463,18 @@ void Parser::ft_parsecommand(ParsedInput tocheck, const std::string& servername,
                                             messagesError[ERR_NEEDMOREPARAMS].message);
                 throw (errorMsg);
             }
-            if (!ft_checksinglechannel(tocheck.params[1]))
+            if (!ft_checksinglechannel(tocheck.params[0]))
             {
                 errorMsg = buildErrorMessage(prefix,
-                                            messagesError[ERR_NOSUCHCHANNEL].code + " " + nickname + " " + tocheck.params[1],
-                                            messagesError[ERR_NOSUCHCHANNEL].message);
+                                            messagesError[ERR_NOSUCHNICKCHANNEL].code + " " + nickname + " " + tocheck.params[0],
+                                            messagesError[ERR_NOSUCHNICKCHANNEL].message);
                 throw (errorMsg);
             }
-            if (!ft_isvalidusername(tocheck.params[0]))
+            if (!ft_isvalidusername(tocheck.params[1]))
             {
                 errorMsg = buildErrorMessage(prefix,
-                                            messagesError[ERR_NOSUCHNICK].code + " " + nickname + " " + tocheck.params[0],
-                                            messagesError[ERR_NOSUCHNICK].message);
+                                            messagesError[ERR_NOSUCHNICKCHANNEL].code + " " + nickname + " " + tocheck.params[1],
+                                            messagesError[ERR_NOSUCHNICKCHANNEL].message);
                 throw (errorMsg);
             }
             break;
@@ -512,6 +512,9 @@ ParsedInput Parser::parse(const std::string &rawMessage, const std::string& serv
         i++;
     if (i < size)
         ft_params(rawMessage, toret, i, size);
+    /*std::cout << "Parsed command: " << toret.name << std::endl;
+    for (size_t idx = 0; idx < toret.params.size(); idx++)
+        std::cout << "Param " << idx << ": " << toret.params[idx] << std::endl;*/
 
     // Store raw message
     toret.raw = rawMessage;

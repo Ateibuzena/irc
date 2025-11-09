@@ -102,8 +102,8 @@ void    ServerLogic::setClientRegistered(Client* client)
 
     std::string replayMsg;
 
-    replayMsg = buildReplyMessage(messagesReplay[RPL_WELCOME].code, client, "", "", messagesReplay[RPL_WELCOME].message + client->getNickname() + "!" + client->getUsername() + "@" + _serverHost);
-    replayMsg += buildReplyMessage(messagesReplay[RPL_YOURHOST].code, client, "", "", messagesReplay[RPL_YOURHOST].message + _serverName + ", version " + _serverVersion);
+    replayMsg = buildReplyMessage(messagesReplay[RPL_WELCOME].code, client, "", "", messagesReplay[RPL_WELCOME].message + _serverName);
+    replayMsg += buildReplyMessage(messagesReplay[RPL_YOURHOST].code, client, "", "", messagesReplay[RPL_YOURHOST].message + _serverHost + ", version " + _serverVersion);
     replayMsg += buildReplyMessage(messagesReplay[RPL_CREATED].code, client, "", "", messagesReplay[RPL_CREATED].message + time_to_string(_serverStartTime));
     replayMsg += buildReplyMessage(messagesReplay[RPL_MYINFO].code, client, "", "", messagesReplay[RPL_MYINFO].message + _serverName + " " + _serverVersion + " o O"); //preguntar "ao mtov"??
 
@@ -121,25 +121,13 @@ std::string ServerLogic::buildReplyMessage(std::string code,
     std::string fullMsg;
 
     if (!target.empty() && !aux.empty() && msg.empty())
-    {
-        std::cout << "ENTRO 1" << std::endl;
         fullMsg = ":" + _serverName + " " + code + " " + client->getNickname() + " " + target + " " + aux + "\r\n";
-    }
     else if (!target.empty() && aux.empty() && !msg.empty())
-    {
-        std::cout << "ENTRO 2" << std::endl;
         fullMsg = ":" + _serverName + " " + code + " " + client->getNickname() + " " + target + " :" + msg + "\r\n";
-    }
     else if (target.empty() && aux.empty() && !msg.empty())
-    {
-        std::cout << "ENTRO 3" << std::endl;
         fullMsg = ":" + _serverName + " " + code + " " + client->getNickname() + " :" + msg + "\r\n";
-    }
     else
-    {
-        std::cout << "ENTRO 4" << std::endl;
         fullMsg = "You're not supposed to go in here\r\n"; // POR AHORA MAMAHUEVA
-    }
     return (fullMsg);
 }
 

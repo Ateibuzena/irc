@@ -46,11 +46,6 @@ void    ServerLogic::handleNICK(Client* client, const ParsedInput& input)
 {
     //Juan:
     //:irc.server.com 431 * :No nickname given
-    //:irc.server.com 432 * <nick> :Erroneous nickname
-
-    //??
-    //:irc.server.com 436 * <nick> :Nickname collision KILL
-    //:irc.server.com 484 <nick> :Restricted
 
     const std::string nickname = input.params[0];
     std::string oldNickname = client->getNickname();
@@ -75,15 +70,15 @@ void    ServerLogic::handleNICK(Client* client, const ParsedInput& input)
         _serverNicknames.erase(oldNickname);
 
     client->setOldNickname(oldNickname);
-
+    
     // Asignamos el nuevo nickname
     client->setNickname(nickname);
 
-    // Enviar mensaje de cambio de nickname
+        // Enviar mensaje de cambio de nickname
     if (client->isRegistered())
     {
         // Construir mensaje de NICK para los canales
-        std::string prefix = ":" + client->getOldNickname() + "!" + client->getUsername() + "@" + _serverHost;
+        prefix = ":" + client->getOldNickname() + "!" + client->getUsername() + "@" + _serverHost;
         std::string nickMsg = buildMessage(prefix, "NICK", "", client->getNickname());
 
         // Enviar a todos los canales donde está el cliente
@@ -99,10 +94,7 @@ void    ServerLogic::handleNICK(Client* client, const ParsedInput& input)
             }
             ++it;
         }
-
-        // También enviamos el mensaje al propio cliente
         sendMessageToClient(client, nickMsg);
-
     }
 
     // Añadimos al map de nicknames
