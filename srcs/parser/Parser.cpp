@@ -370,7 +370,7 @@ void Parser::ft_parsecommand(ParsedInput tocheck, const std::string& servername,
                                             messagesError[ERR_NORECIPIENT].message);
                 throw (errorMsg);
             }
-            if (tocheck.params.size() == 1 || tocheck.params[1].size() < 1)
+            if (tocheck.params.size() == 1)
             {
                 errorMsg = buildErrorMessage(prefix,
                                             messagesError[ERR_NOTEXTTOSEND].code + " " + nickname + " NOTICE",

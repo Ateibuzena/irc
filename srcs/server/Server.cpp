@@ -93,7 +93,7 @@ Server::Server(int port, const std::string& password)
         pfds_(),
         recvBuf_(),
         sendBuf_(),
-        logic_(new ServerLogic(this, "MyIRCServer", password))
+        logic_(new ServerLogic(this, "irc.server.com", password))
 {
 
 }
@@ -211,9 +211,15 @@ int Server::run()
     std::cout << "[server] Listening on port " << port_
               << " (non-blocking + poll, multi-client)\n";
 
+    signal(SIGINT, &handle_kill);
     // 3) bucle principal
     while (true)
     {
+        if (sig == 1)
+        {  
+            std::cout << "\n[server] Caught SIGINT, shutting down...\n";
+            break ;
+        }
         int rv = poll(&pfds_[0], pfds_.size(), 1000);
 
         if (rv < 0)

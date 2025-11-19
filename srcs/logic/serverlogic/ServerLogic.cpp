@@ -25,9 +25,9 @@ ServerLogic::~ServerLogic()
     while (itClient != _serverClients.end())
     {
         // Cerramos el socket del cliente
-        int fd = itClient->first;
+        /*int fd = itClient->first;
         if (fd >= 0)
-            close(fd);
+            close(fd);*/
 
         // Liberamos memoria
         Client* client = itClient->second;
@@ -206,8 +206,8 @@ void    ServerLogic::serverRemoveClient(int fd)
     Client* client = it->second;
 
     // Cerrar socket si es válido
-    if (fd >= 0)
-        close(fd);
+    /*if (fd >= 0)
+        close(fd);*/
 
     /*// Limpiar canales a los que pertenece
     std::set<std::string> channelsCopy = client->getChannels();
@@ -290,7 +290,9 @@ void    ServerLogic::executeCommand(const ParsedInput& input, int clientFd)
 void    ServerLogic::sendMessageToClient(Client* client, const std::string& aux)
 {
     if (client)
+    {
         _server->queueMessage(client->getFd(), aux);
+    }
 }
 
 void    ServerLogic::sendMessageToChannel(Channel* channel, const std::string& aux, Client* sender)

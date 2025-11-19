@@ -548,10 +548,11 @@ void    ServerLogic::handleMODE(Client* client, const ParsedInput& input)
     {
         std::string modes = channel->getModes();
         prefix = ":" + _serverName + " ";
-        std::string replayMsg = buildMessage(prefix,
-                                        "MODE",
-                                        channel->getName(),
-                                        modes);
+        std::string replayMsg = buildReplyMessage(messagesReplay[RPL_CHANNELMODEIS].code,
+                                                client,
+                                                channel->getName(),
+                                                "",
+                                                modes);
 
         return (sendMessageToClient(client, replayMsg));
     }

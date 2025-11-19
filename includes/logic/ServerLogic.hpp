@@ -6,8 +6,6 @@
 # include "../utils/Utils.hpp"
 # include "../server/Server.hpp"
 
-class Server;
-
 class ServerLogic
 {
     private:

@@ -13,7 +13,7 @@ Client::Client(int fd)
         _sentMessages(),
         _receivedMessages()
 {
-    std::cout << "Client with fd: " << _fd << " created." << std::endl;
+    
 }
 
 /*------------------------------DESTRUCTORS---------------------------*/

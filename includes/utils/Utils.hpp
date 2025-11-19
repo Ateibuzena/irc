@@ -11,7 +11,7 @@
 # include <unistd.h>
 # include <ctime>
 
-
+extern int sig;
 
 // Límite máximo de usuarios por canal
 # define MAX_USERS_PER_CHANNEL 100
@@ -188,6 +188,8 @@ std::string buildMessage(const std::string& prefix,
 std::string buildErrorMessage(const std::string& prefix,
                             const std::string& aux = "",
                             const std::string& msg = "");
+
+void    handle_kill(int sig);
 
 #endif // COMMAND_HPP
 

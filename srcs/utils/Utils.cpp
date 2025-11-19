@@ -104,7 +104,8 @@ std::string buildMessage(const std::string& prefix,
         || command == "TOPIC"
         || command == "PART"
         || command == "NOTICE"
-        || command == "PRIVMSG")
+        || command == "PRIVMSG"
+        || command == "MODE")
     {
         fullMsg = prefix + " " + command + " " + target + " :" + aux + "\r\n";
         return (fullMsg);
@@ -141,4 +142,11 @@ std::string buildErrorMessage(const std::string& prefix,
     fullMsg += ":" + msg + "\r\n";
 
     return (fullMsg);
+}
+
+int sig = 0;
+void handle_kill(int sigal)
+{
+    (void)sigal;
+    sig = 1;
 }
