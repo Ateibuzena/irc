@@ -361,6 +361,7 @@ void Parser::ft_parsecommand(ParsedInput tocheck, const std::string& servername,
                                             messagesError[ERR_NOTEXTTOSEND].message);
                 throw (errorMsg);
             }
+            std::cout << "DEBUG: PRIVMSG to " << tocheck.params[0] << " with message: " << tocheck.params[1] << std::endl;
             break;
         case 6: //notice
             if (tocheck.params.size() < 1)
@@ -370,7 +371,7 @@ void Parser::ft_parsecommand(ParsedInput tocheck, const std::string& servername,
                                             messagesError[ERR_NORECIPIENT].message);
                 throw (errorMsg);
             }
-            if (tocheck.params.size() == 1)
+            if (tocheck.params.size() == 1 || tocheck.params[1].empty())
             {
                 errorMsg = buildErrorMessage(prefix,
                                             messagesError[ERR_NOTEXTTOSEND].code + " " + nickname + " NOTICE",
