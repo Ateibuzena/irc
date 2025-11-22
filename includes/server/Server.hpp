@@ -30,7 +30,7 @@ class Server
         void                            removeClientAtIndex(size_t idx); // borra pfds[idx] y limpia mapas
         void                            handleReadable(size_t idx);      // procesa POLLIN para pfds[idx]
         void                            handleWritable(size_t idx);      // procesa POLLOUT para pfds[idx]
-
+    
 
     public:
                                         Server(int port, const std::string& password);
@@ -39,6 +39,10 @@ class Server
         int                             run();  // Bucle principal (bloqueante hasta que ocurra error o se termine desde fuera)
 
         void                            queueMessage(int fd, const std::string& line); // API para Persona 2: encola una línea (se añadirá "\r\n" automáticamente)
+       /************************************************** */
+        //added by noe
+        void disconnectClient(int fd);
+        /****************************************************** */
 };
 
 #endif // SERVER_HPP

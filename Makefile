@@ -4,7 +4,7 @@
 
 NAME        := ircserv
 COMPILER	:= c++
-FLAGS	    := -Wall -Wextra -Werror -std=c++98 -Iincludes
+FLAGS	    := -Wall -Wextra -Werror -std=c++98 -g -Iincludes 
 
 # Directories
 SRC_DIR     := srcs

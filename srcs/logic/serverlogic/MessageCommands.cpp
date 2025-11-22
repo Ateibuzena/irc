@@ -70,6 +70,17 @@ void    ServerLogic::handleNOTICE(Client* client, const ParsedInput& input)
 // Manejar el comando PRIVMSG (enviar mensaje privado) (Replay listo, Msg listo, Error listo)
 void    ServerLogic::handlePRIVMSG(Client* client, const ParsedInput& input)
 {
+    /************************************************************* */
+    //added by noe debug
+    std::cout << "[DEBUG] PRIVMSG target = '" << input.params[0] << "'\n";
+    std::cout << "[DEBUG] known nicknames: ";
+    for (std::map<std::string, Client *>::const_iterator it = _serverNicknames.begin();
+         it != _serverNicknames.end(); ++it)
+    {
+        std::cout << "'" << it->first << "' ";
+    }
+    std::cout << std::endl;
+/*********************************************************************** */
     std::string prefix = ":" + _serverName + " ";
     std::string errorMsg;
 

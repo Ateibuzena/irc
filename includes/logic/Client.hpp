@@ -19,7 +19,11 @@ class Client
         std::set<std::string>           _channels;
 
         std::vector<std::string>        _sentMessages; // Buffer para mensajes enviados
-        std::vector<std::string>        _receivedMessages; // Buffer para mensajes recibidos
+        std::vector<std::string>        _receivedMessages;    // Buffer para mensajes recibidos
+        /******************************************** */
+        // added by noe
+        bool _shouldDisconnect;
+        /****************************************** */
 
     public:
 
@@ -51,6 +55,11 @@ class Client
 
         void                            receiveMessage(const std::string& message, const std::string& sender);
         void                            sendMessage(const std::string& message);
+        /*********************************************************************** */
+        //added by noe
+        void markForDisconnect();
+        bool shouldDisconnect() const;
+        /************************************************************************** */
 
         //void                            printInfo() const; // Imprime info del cliente para debugging
 }; 

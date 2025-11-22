@@ -141,20 +141,28 @@ void    ServerLogic::handleUSER(Client* client, const ParsedInput& input)
 // Manejar el comando QUIT (desconectar cliente) (Replay listo, Msg listo, Error listo)
 void    ServerLogic::handleQUIT(Client* client, const ParsedInput& input)
 {
+    /***************************************** */
+    //added by noe
     // Construir mensaje de QUIT
-    std::string msg = "Client disconnected";
+    /*std::string msg = "Client disconnected";
     if (!input.params.empty())
     {
         msg.clear();
         msg = input.params[0];
-    }
+    }*/
+   
+    std::string msg = "Client disconnected";
+    if (!input.params.empty() && !input.params[0].empty())
+        msg = input.params[0];
+    /****************************************** */
     std::string nickname = client->getNickname();
     if (nickname.empty())
         nickname = "*";
+
     std::string prefix = ":" + nickname + "!" + client->getUsername() + "@" + _serverHost;
     std::string quitMsg = buildMessage(prefix, "QUIT", "", msg);
 
-    // Limpiar canales a los que pertenece
+    // Limpiar canales a los que pertenece ⬇︎ (aquí solo notificamos)
     const std::set<std::string>& channelsNames = client->getChannels();
     std::set<std::string>::const_iterator it = channelsNames.begin();
     while (it != channelsNames.end())
@@ -166,8 +174,8 @@ void    ServerLogic::handleQUIT(Client* client, const ParsedInput& input)
 
             // Enviar mensaje de QUIT a los demás clientes del canal
             sendMessageToChannel(channel, quitMsg, client);
-
-            // Eliminar cliente del canal
+            //eliminated by noe
+            /*// Eliminar cliente del canal
             channel->removeClient(client);
 
             // Si el canal queda vacío, eliminarlo del servidor
@@ -175,11 +183,16 @@ void    ServerLogic::handleQUIT(Client* client, const ParsedInput& input)
             {
                 delete (channel);
                 _serverChannels.erase(chanIt);
-            }
+            }*/
         }
         ++it;
     }
-
-    // Eliminar cliente del servidor
-    serverRemoveClient(client->getFd());
+    /******************************************************************** */
+    //added by noe
+    client->markForDisconnect();
+    
+    // Eliminar cliente del servidor //eliminated by noe🫣
+    //serverRemoveClient(client->getFd());
+    /************************************************************************* */
 }
+

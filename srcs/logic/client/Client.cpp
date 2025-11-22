@@ -11,7 +11,11 @@ Client::Client(int fd)
         _registered(false),
         _channels(),
         _sentMessages(),
-        _receivedMessages()
+        _receivedMessages(),
+        /*********************************** */
+        //added by noe
+        _shouldDisconnect(false)
+        /************************************ */
 {
     
 }
@@ -117,3 +121,15 @@ void    Client::setRegistered(bool state)
               << (_registered ? "true" : "false")
               << RESET << std::endl;*/
 }
+/*********************************************************************************/
+//added by noe
+void Client::markForDisconnect()
+{
+    _shouldDisconnect = true;
+}
+
+bool Client::shouldDisconnect() const
+{
+    return _shouldDisconnect;
+}
+/************************************************************************************** */

@@ -322,12 +322,18 @@ void Server::addClient(int cfd)
 
 void Server::removeClientAtIndex(size_t idx)
 {
+    /********************************************** */
+    //added by noe
+    if (idx >= pfds_.size())
+        return;
+    /********************************************************** */
     int fd = pfds_[idx].fd;
     ::close(fd);
     recvBuf_.erase(fd);
     sendBuf_.erase(fd);
-    pfds_.erase(pfds_.begin() + idx);
+    
     logic_->serverRemoveClient(fd); // informar a la lógica
+    pfds_.erase(pfds_.begin() + idx);
 }
 
 void Server::handleReadable(size_t idx)
@@ -359,7 +365,15 @@ void Server::handleReadable(size_t idx)
                 ParsedInput input;
                 try
                 {
-                    Client* client = logic_->getClient(fd);
+                    Client *client = logic_->getClient(fd);
+                    /************************************************************************ */
+                    //added by noe
+                    /*if (!client)
+                    {
+                        disconnectClient(fd); // seguridad por si algo quedó colgando
+                        return;
+                    }*/
+                    /*************************************************************************** */
                     std::string nickname;
                     if (client->getNickname().empty())
                         nickname = "*";
@@ -384,6 +398,15 @@ void Server::handleReadable(size_t idx)
                 }
                 
             }
+            /******************************************************************************** */
+            //added by noe
+            Client *client = logic_->getClient(fd);
+            if (client && client->shouldDisconnect())
+            {
+                removeClientAtIndex(idx); // esto cierra fd y borra Client en la lógica
+                return;
+            }
+            /****************************************************************************** */
         }
         else if (n == 0)
         {
@@ -457,3 +480,18 @@ void Server::queueMessage(int fd, const std::string& line)
     }
 }
 
+/********************************************************************************** */
+//added by noe
+void Server::disconnectClient(int fd)
+{
+    // buscar el índice del fd en pfds_
+    for (size_t i = 1; i < pfds_.size(); ++i)
+    {
+        if (pfds_[i].fd == fd)
+        {
+            removeClientAtIndex(i); // esto ya cierra el fd y llama a logic_->serverRemoveClient()
+            break;
+        }
+    }
+}
+/************************************************************************************ */
