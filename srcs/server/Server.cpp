@@ -263,7 +263,17 @@ int Server::run()
         {
             int fd = pfds_[i].fd;
             short re = pfds_[i].revents;
-
+            /***************************************************************** */
+            //added by noe
+            if (Client *client = logic_->getClient(fd))
+            {
+                if (client->shouldDisconnect())
+                {
+                    removeClientAtIndex(i);
+                    continue; // no incrementamos i, el vector se ha compactado
+                }
+            }
+            /******************************************************** */
             // 1) errores / cierre
             if (re & (POLLERR | POLLHUP | POLLNVAL))
             {
@@ -366,14 +376,8 @@ void Server::handleReadable(size_t idx)
                 try
                 {
                     Client *client = logic_->getClient(fd);
-                    /************************************************************************ */
-                    //added by noe
-                    /*if (!client)
-                    {
-                        disconnectClient(fd); // seguridad por si algo quedó colgando
+                    if (!client)
                         return;
-                    }*/
-                    /*************************************************************************** */
                     std::string nickname;
                     if (client->getNickname().empty())
                         nickname = "*";
@@ -398,15 +402,7 @@ void Server::handleReadable(size_t idx)
                 }
                 
             }
-            /******************************************************************************** */
-            //added by noe
-            Client *client = logic_->getClient(fd);
-            if (client && client->shouldDisconnect())
-            {
-                removeClientAtIndex(idx); // esto cierra fd y borra Client en la lógica
-                return;
-            }
-            /****************************************************************************** */
+        
         }
         else if (n == 0)
         {
