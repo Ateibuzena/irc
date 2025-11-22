@@ -47,11 +47,6 @@ void Parser::ft_params(const std::string &rawMessage, ParsedInput &toret, unsign
 
 void Parser::ft_lastparam(const std::string &rawMessage, ParsedInput &toret, unsigned long i, unsigned long size)
 {
-    if (i + 1 >= size)
-    {
-        toret.params.push_back("");
-        return ;
-    }
     toret.params.push_back(rawMessage.substr(i, size - i));
 }
 
