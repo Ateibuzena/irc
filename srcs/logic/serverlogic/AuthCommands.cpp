@@ -143,14 +143,6 @@ void    ServerLogic::handleQUIT(Client* client, const ParsedInput& input)
 {
     /***************************************** */
     //added by noe
-    // Construir mensaje de QUIT
-    /*std::string msg = "Client disconnected";
-    if (!input.params.empty())
-    {
-        msg.clear();
-        msg = input.params[0];
-    }*/
-   
     std::string msg = "Client disconnected";
     if (!input.params.empty() && !input.params[0].empty())
         msg = input.params[0];
@@ -195,4 +187,6 @@ void    ServerLogic::handleQUIT(Client* client, const ParsedInput& input)
     //serverRemoveClient(client->getFd());
     /************************************************************************* */
 }
+
+
 

@@ -363,7 +363,6 @@ void Server::handleReadable(size_t idx)
             while (findLineEnd(recvBuf_[fd], pos))
             {
                 std::string line = recvBuf_[fd].substr(0, pos);
-
                 // quitar CRLF o LF
                 if (pos + 1 < recvBuf_[fd].size()
                     && recvBuf_[fd][pos] == '\r'
@@ -371,7 +370,17 @@ void Server::handleReadable(size_t idx)
                     recvBuf_[fd].erase(0, pos + 2);
                 else // sólo LF
                     recvBuf_[fd].erase(0, pos + 1);
-
+                    
+                /******************************************************** */
+                //added by noe, dejarlo para encontrar char raro
+                std::cout << "[DEBUG] raw line: '" << line << "' bytes:";
+                for (size_t k = 0; k < line.size(); ++k)
+                {
+                    std::cout << " [" << k << "]=" << (int)(unsigned char)line[k];
+                }
+                std::cout << std::endl;
+                /************************************************************************* */
+                
                 ParsedInput input;
                 try
                 {
@@ -476,18 +485,3 @@ void Server::queueMessage(int fd, const std::string& line)
     }
 }
 
-/********************************************************************************** */
-//added by noe
-void Server::disconnectClient(int fd)
-{
-    // buscar el índice del fd en pfds_
-    for (size_t i = 1; i < pfds_.size(); ++i)
-    {
-        if (pfds_[i].fd == fd)
-        {
-            removeClientAtIndex(i); // esto ya cierra el fd y llama a logic_->serverRemoveClient()
-            break;
-        }
-    }
-}
-/************************************************************************************ */

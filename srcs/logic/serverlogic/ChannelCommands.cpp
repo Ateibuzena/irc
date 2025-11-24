@@ -374,6 +374,13 @@ void    ServerLogic::handleJOIN(Client* client, const ParsedInput& input)
             key = "";
         try
         {
+            /********************************************************************************************* */
+            //added by noe para encontrar char raro
+            std::cout << "[DEBUG] handleJOIN channelName = '" << channelName << "' bytes:";
+            for (size_t k = 0; k < channelName.size(); ++k)
+                std::cout << " [" << k << "]=" << (int)(unsigned char)channelName[k];
+            std::cout << std::endl;
+            /***************************************************************************************************** */
             Channel* channel = createChannel(channelName, client);
             
             if (channel == NULL)
@@ -493,7 +500,7 @@ void    ServerLogic::handleJOIN(Client* client, const ParsedInput& input)
                                         messagesReplay[RPL_ENDOFNAMES].message);
             sendMessageToClient(client, replayMsg);
         }
-        catch (const std::string& errorMsg)
+        catch (const std::string& errorMsg)//esto captura strings?? pero el error es un int
         {
             throw (errorMsg);
         }
@@ -729,10 +736,17 @@ void    ServerLogic::handleMODE(Client* client, const ParsedInput& input)
         }
         i++;
     }
+/************************************************************************************************* */
+//added by noe
+    std::string fullMsg = buildMessage(
+        ":" + client->getNickname() + "!" + client->getUsername() + "@" + _serverHost,
+        "MODE",
+        channel->getName(),
+        modeChanges);
 
     // Notificamos a todos los miembros del canal sobre el cambio de modos
-    std::string fullMsg = buildMessage(client->getNickname(), "MODE", channel->getName(), modeChanges);
-
+    //std::string fullMsg = buildMessage(client->getNickname(), "MODE", channel->getName(), modeChanges);
+/******************************************************************************************************** */
     sendMessageToChannel(channel, fullMsg, NULL);
 }
 

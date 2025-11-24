@@ -134,15 +134,7 @@ std::string ServerLogic::buildReplyMessage(std::string code,
 // Devuelve un canal existente o lo crea si no existe
 Channel*    ServerLogic::createChannel(const std::string& name, Client* creator)
 {
-    /************************************************************ */
-    //added by noe debug channel name
-    std::cout << "[DEBUG] createChannel name = '" << name << "' bytes:";
-    for (size_t i = 0; i < name.size(); ++i)
-    {
-        std::cout << " [" << i << "]=" << (int)(unsigned char)name[i];
-    }
-    std::cout << std::endl;
-    /*************************************************************** */
+ 
     // Validar nombre de canal
     if (!Parser::ft_checksinglechannel(name))
     {
@@ -176,7 +168,15 @@ Channel*    ServerLogic::createChannel(const std::string& name, Client* creator)
 
     // El creador es operador por defecto
     newChannel->addOperator(creator);
-
+       /************************************************************ */
+    //added by noe debug channel name
+    std::cout << "[DEBUG] createChannel name = '" << name << "' bytes:";
+    for (size_t i = 0; i < name.size(); ++i)
+    {
+        std::cout << " [" << i << "]=" << (int)(unsigned char)name[i];
+    }
+    std::cout << std::endl;
+    /*************************************************************** */
     return (newChannel);
 }
 
@@ -206,7 +206,7 @@ void    ServerLogic::serverAddClient(int fd)
 }
 /************************************************************************************* */
 //added by noe
-void ServerLogic::serverRemoveClient(int fd)
+/*void ServerLogic::serverRemoveClient(int fd)
 {
     std::map<int, Client*>::iterator it = _serverClients.find(fd);
     if (it == _serverClients.end())
@@ -240,48 +240,55 @@ void ServerLogic::serverRemoveClient(int fd)
     // 3) Borrar del mapa de fds y liberar memoria
     _serverClients.erase(it);
     delete client;
-}
-/**************************************************************************************** */
+}*/
 
-/*void    ServerLogic::serverRemoveClient(int fd)
+void ServerLogic::serverRemoveClient(int fd)
 {
-    // Buscar cliente
     std::map<int, Client*>::iterator it = _serverClients.find(fd);
     if (it == _serverClients.end())
-        return ;
+        return;
 
     Client* client = it->second;
 
-    // Cerrar socket si es válido*/
-    /*if (fd >= 0)
-        close(fd);*/
-
-    /*// Limpiar canales a los que pertenece
-    std::set<std::string> channelsCopy = client->getChannels();
-    std::set<std::string>::iterator chIt;
-    for (chIt = channelsCopy.begin(); chIt != channelsCopy.end(); ++chIt)
-    {
-        Channel* channel = getChannel(*chIt); // siempre devuelve canal existente
-        channel->removeClient(client);
-        if (channel->getDeleteMe())
-        {
-            delete (channel);
-            _serverChannels.erase(chIt);
-        }
-    }*/
-
-    // Limpiar nicknames
-    /*if (!client->getNickname().empty())
+    // 1) Eliminar nickname registrado
+    if (!client->getNickname().empty())
         _serverNicknames.erase(client->getNickname());
 
-    // Borrar de mapa y liberar memoria
+    // 2) Copiar lista de canales para poder modificar mientras iteramos
+    std::set<std::string> channelsCopy(client->getChannels().begin(),
+                                       client->getChannels().end());
+
+    for (std::set<std::string>::const_iterator itCh = channelsCopy.begin();
+         itCh != channelsCopy.end(); ++itCh)
+    {
+        std::map<std::string, Channel*>::iterator chanIt = _serverChannels.find(*itCh);
+        if (chanIt == _serverChannels.end())
+            continue;
+
+        Channel* channel = chanIt->second;
+
+        // Eliminar del canal
+        channel->removeClient(client);
+
+        // Eliminar del lado del cliente
+        client->leaveChannel(channel);
+
+        // Si está vacío → destruir canal
+        if (channel->getDeleteMe())
+        {
+            delete channel;
+            _serverChannels.erase(chanIt);
+        }
+    }
+
+    // 3) Borrar el cliente del mapa del servidor
     _serverClients.erase(it);
-    delete (client);
-*/
-    /*también enviar un mensaje tipo PART a los demás clientes si quieres avisar que se fue.*/
-    /*std::cout << CYAN << "📌 Client removed with fd " 
-              << to_string_c98(fd) << RESET << std::endl;*/
-/*}*/
+
+    // 4) Liberar memoria
+    delete client;
+}
+/**************************************************************************************** */
+
 
 void    ServerLogic::executeCommand(const ParsedInput& input, int clientFd)
 {
@@ -338,6 +345,14 @@ void    ServerLogic::sendMessageToClient(Client* client, const std::string& aux)
 {
     if (client)
     {
+        /********************************************************************************** */
+        //added by noe
+        std::cout << "[TX] to fd=" << client->getFd()
+                  << " bytes:";
+        for (size_t i = 0; i < aux.size(); ++i)
+            std::cout << " [" << i << "]=" << (int)(unsigned char)aux[i];
+        std::cout << " text='" << aux << "'" << std::endl;
+        /****************************************************************************** */
         _server->queueMessage(client->getFd(), aux);
     }
 }
