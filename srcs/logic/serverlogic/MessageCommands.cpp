@@ -1,18 +1,26 @@
 #include "../../../includes/logic/ServerLogic.hpp"
 
-// Manejar el comando NOTICE (enviar mensaje de aviso)
-void    ServerLogic::handleNOTICE(Client* client, const Command& cmd)
+// Manejar el comando NOTICE (enviar mensaje de aviso) (Replay listo, Msg listo, Error listo))
+void    ServerLogic::handleNOTICE(Client* client, const ParsedInput& input)
 {
+    std::string prefix = ":" + _serverName + " ";
+    std::string errorMsg; 
+
     // Verificamos que el cliente esté registrado
     if (!client->isRegistered())
-        throw (ERR_NOTREGISTERED);
+    {
+        prefix += messagesError[ERR_NOTREGISTERED].code + " " + client->getNickname();
+        errorMsg = buildErrorMessage(prefix,
+                                    "",
+                                    messagesError[ERR_NOTREGISTERED].message);
+        return (sendMessageToClient(client, errorMsg));
+    }
 
-    std::vector<std::string> receivers = str_to_vector(cmd.params[0], ',');
+    // Obtenemos la lista de destinatarios
+    std::vector<std::string> receivers = str_to_vector(input.params[0], ',');
 
-    // Verificamos si hay mensaje
-    std::string msg = cmd.params[1];
-    if (msg.empty())
-        throw (ERR_NOTEXTTOSEND);
+    // Obtenemos el mensaje
+    std::string msg = input.params[1];
 
     size_t i = 0;
     while (i < receivers.size())
@@ -20,18 +28,26 @@ void    ServerLogic::handleNOTICE(Client* client, const Command& cmd)
         // Obtenemos el destinatario actual
         const std::string& target = receivers[i];
         if (target.empty())
-            throw (ERR_NORECIPIENT);
-
-        // Construimos el mensaje completo
-        std::string fullMsg = buildMessage(client->getNickname(), "NOTICE", target, msg);
+        {
+            i++;
+            continue ;
+        }
 
         // Buscamos si es un cliente
         std::map<std::string, Client*>::iterator nickIt = _serverNicknames.find(target);
         if (nickIt != _serverNicknames.end())
         {
             Client* recipient = nickIt->second;
-            recipient->receiveMessage(fullMsg, client->getNickname());
-            continue ;
+
+            // Construimos el mensaje de NOTICE para notificar a otro cliente
+            prefix = ":" + client->getNickname() + "!" + client->getUsername() + "@" + _serverHost;
+            std::string noticeMsg = buildMessage(prefix,
+                                                "NOTICE",
+                                                recipient->getNickname(),
+                                                msg);
+
+            // Enviamos el mensaje al destinatario
+            sendMessageToClient(recipient, noticeMsg);
         }
         
         // Buscamos si es un canal
@@ -39,26 +55,39 @@ void    ServerLogic::handleNOTICE(Client* client, const Command& cmd)
         if (chanIt != _serverChannels.end())
         {
             Channel* channel = chanIt->second;
-            channel->broadcast(fullMsg, client);
-            continue ;
+
+            // Construimos el mensaje de NOTICE para notificar a un canal
+            prefix = ":" + client->getNickname() + "!" + client->getUsername() + "@" + _serverHost;
+            std::string noticeMsg = buildMessage(prefix, "NOTICE", channel->getName(), msg);
+
+            // Enviamos el mensaje a todos los clientes del canal
+            sendMessageToChannel(channel, noticeMsg, client);
         }
         i++;
     }
 }
 
-// Manejar el comando PRIVMSG (enviar mensaje privado)
-void    ServerLogic::handlePRIVMSG(Client* client, const Command& cmd)
+// Manejar el comando PRIVMSG (enviar mensaje privado) (Replay listo, Msg listo, Error listo)
+void    ServerLogic::handlePRIVMSG(Client* client, const ParsedInput& input)
 {
+    std::string prefix = ":" + _serverName + " ";
+    std::string errorMsg;
+
     // Verificamos que el cliente esté registrado
     if (!client->isRegistered())
-        throw (ERR_NOTREGISTERED);
+    {
+        prefix += messagesError[ERR_NOTREGISTERED].code + " " + client->getNickname();
+        errorMsg = buildErrorMessage(prefix,
+                                    "",
+                                    messagesError[ERR_NOTREGISTERED].message);
+        return (sendMessageToClient(client, errorMsg));
+    }
 
-    std::vector<std::string> receivers = str_to_vector(cmd.params[0], ',');
+    // Obtenemos la lista de destinatarios
+    std::vector<std::string> receivers = str_to_vector(input.params[0], ',');
 
-    // Verificamos si hay mensaje
-    if (cmd.params.size() < 2)
-        throw (ERR_NOTEXTTOSEND);
-    std::string msg = cmd.params[1];
+    // Obtenemos el mensaje
+    std::string msg = input.params[1];
 
     size_t i = 0;
     while (i < receivers.size())
@@ -66,17 +95,25 @@ void    ServerLogic::handlePRIVMSG(Client* client, const Command& cmd)
         // Obtenemos el destinatario actual
         const std::string& target = receivers[i];
         if (target.empty())
-            throw (ERR_NORECIPIENT);
-
-        // Construimos el mensaje completo
-        std::string fullMsg = buildMessage(client->getNickname(), "PRIVMSG", target, msg);
+        {
+            i++;
+            continue ;
+        }
 
         // Buscamos si es un cliente
         std::map<std::string, Client*>::iterator nickIt = _serverNicknames.find(target);
         if (nickIt != _serverNicknames.end())
         {
             Client* recipient = nickIt->second;
-            recipient->receiveMessage(fullMsg, client->getNickname());
+
+            // Construimos el mensaje de PRIVMSG para notificar a otro cliente
+            std::string prefix = ":" + client->getNickname() + "!" + client->getUsername() + "@" + _serverHost;
+            std::string privMsg = buildMessage(prefix, "PRIVMSG", recipient->getNickname(), msg);
+
+            // Enviamos el mensaje al destinatario
+            sendMessageToClient(recipient, privMsg);
+            
+            i++;
             continue ;
         }
 
@@ -85,15 +122,33 @@ void    ServerLogic::handlePRIVMSG(Client* client, const Command& cmd)
         if (chanIt != _serverChannels.end())
         {
             Channel* channel = chanIt->second;
-            channel->broadcast(fullMsg, client);
+
+            // Construimos el mensaje de PRIVMSG para notificar a un canal
+            std::string prefix = ":" + client->getNickname() + "!" + client->getUsername() + "@" + _serverHost;
+            std::string privMsg = buildMessage(prefix, "PRIVMSG", channel->getName(), msg);
+
+            sendMessageToChannel(channel, privMsg, client);
+            
+            i++;
             continue ;
         }
 
         // Si no es ni cliente ni canal, lanzamos error
         if (target[0] == '#' || target[0] == '&')
-            throw (ERR_CANNOTSENDTOCHAN);
+        {
+            prefix += messagesError[ERR_CANNOTSENDTOCHAN].code + " " + client->getNickname() + " " + target;
+            errorMsg = buildErrorMessage(prefix,
+                                        "",
+                                        messagesError[ERR_CANNOTSENDTOCHAN].message);
+        }
         else
-            throw (ERR_NOSUCHNICK);
+        {
+            prefix += messagesError[ERR_NOSUCHNICKCHANNEL].code + " " + client->getNickname() + " " + target;
+            errorMsg = buildErrorMessage(prefix,
+                                        "",
+                                        messagesError[ERR_NOSUCHNICKCHANNEL].message);
+        }
+        sendMessageToClient(client, errorMsg);
         i++;
     }
 }

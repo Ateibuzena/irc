@@ -2,14 +2,18 @@
 
 /*--------------------------------CONSTRUCTORS--------------------------------*/
 
-ServerLogic::ServerLogic(const std::string& serverName, const std::string& serverPassword)
-    :   _serverClients(NULL),
-        _serverNicknames(NULL),
-        _serverChannels(NULL),
+ServerLogic::ServerLogic(Server* server, const std::string& serverName, const std::string& serverPassword)
+    :   _server(server),
         _serverName(serverName),
-        _serverPassword(serverPassword)
+        _serverPassword(serverPassword),
+        _serverHost("localhost"),
+        _serverVersion("1.0"),
+        _serverStartTime(std::time(NULL)),
+        _serverClients(),
+        _serverNicknames(),
+        _serverChannels()
 {
-    std::cout << "✅ ServerLogic initialized." << std::endl;
+    //std::cout << "✅ ServerLogic initialized." << std::endl;
 }
 
 /*--------------------------------DESTRUCTORS---------------------------------*/
@@ -17,15 +21,19 @@ ServerLogic::ServerLogic(const std::string& serverName, const std::string& serve
 ServerLogic::~ServerLogic()
 {
     // Limpiamos todos los clientes
-    std::map<int, Client*>::iterator it = _serverClients.begin();
-    while (it != _serverClients.end())
+    std::map<int, Client*>::iterator itClient = _serverClients.begin();
+    while (itClient != _serverClients.end())
     {
-        int fd = it->first;
+        // Cerramos el socket del cliente
+        /*int fd = itClient->first;
+        if (fd >= 0)
+            close(fd);*/
 
-        Client* client = it->second;
+        // Liberamos memoria
+        Client* client = itClient->second;
         if (client)
             delete (client);
-        ++it;
+        ++itClient;
     }
     _serverClients.clear();
 
@@ -33,13 +41,13 @@ ServerLogic::~ServerLogic()
     _serverNicknames.clear();
 
     // Limpiamos todos los canales
-    std::map<std::string, Channel*>::iterator it = _serverChannels.begin();
-    while (it != _serverChannels.end())
+    std::map<std::string, Channel*>::iterator itChannel = _serverChannels.begin();
+    while (itChannel != _serverChannels.end())
     {
-        Channel* channel = it->second;
+        Channel* channel = itChannel->second;
         if (channel)
             delete (channel);
-        ++it;
+        ++itChannel;
     }
     _serverChannels.clear();
 }
@@ -63,40 +71,102 @@ Channel* ServerLogic::getChannel(const std::string& name) const
     return (NULL);
 }
 
+const std::string& ServerLogic::getServerName() const
+{
+    return (_serverName);
+}
+
+const std::string& ServerLogic::getServerHost() const
+{
+    return (_serverHost);
+}
+
+const std::string& ServerLogic::getServerVersion() const
+{
+    return (_serverVersion);
+}
+
+/*----------------------------------SETTERS------------------------------------*/
+
+void    ServerLogic::setHostname(const std::string& hostname)
+{
+    _serverHost = hostname;
+}
+
+void    ServerLogic::setClientRegistered(Client* client)
+{
+    if (client->isRegistered())
+        return ;
+
+    client->setRegistered(true);
+
+    std::string replayMsg;
+
+    replayMsg = buildReplyMessage(messagesReplay[RPL_WELCOME].code, client, "", "", messagesReplay[RPL_WELCOME].message + _serverName);
+    replayMsg += buildReplyMessage(messagesReplay[RPL_YOURHOST].code, client, "", "", messagesReplay[RPL_YOURHOST].message + _serverHost + ", version " + _serverVersion);
+    replayMsg += buildReplyMessage(messagesReplay[RPL_CREATED].code, client, "", "", messagesReplay[RPL_CREATED].message + time_to_string(_serverStartTime));
+    replayMsg += buildReplyMessage(messagesReplay[RPL_MYINFO].code, client, "", "", messagesReplay[RPL_MYINFO].message + _serverName + " " + _serverVersion + " o O"); //preguntar "ao mtov"??
+
+    sendMessageToClient(client, replayMsg);  
+}
+
 /*----------------------------------METHODS------------------------------------*/
 
-std::string ServerLogic::buildMessage(const std::string& prefix,
-                                      const std::string& command,
-                                      const std::string& target,
-                                      const std::string& message) const
+std::string ServerLogic::buildReplyMessage(std::string code,
+                                        const Client* client,
+                                        const std::string& target,
+                                        const std::string& aux,
+                                        const std::string& msg) const
 {
-    std::string fullMsg = ":" + prefix + " " + command + " " + target + " :" + message + "\r\n";
+    std::string fullMsg;
 
-    if (fullMsg.size() > MAX_MESSAGE_LENGTH)
-    {
-        // Reservamos espacio para CRLF y los demás campos
-        size_t maxLen = MAX_MESSAGE_LENGTH - (prefix.size() + command.size() + target.size() + 4);
-        std::string truncated = message.substr(0, maxLen);
-        fullMsg = ":" + prefix + " " + command + " " + target + " :" + truncated + "\r\n";
-    }
-
+    if (!target.empty() && !aux.empty() && msg.empty())
+        fullMsg = ":" + _serverName + " " + code + " " + client->getNickname() + " " + target + " " + aux + "\r\n";
+    else if (!target.empty() && aux.empty() && !msg.empty())
+        fullMsg = ":" + _serverName + " " + code + " " + client->getNickname() + " " + target + " :" + msg + "\r\n";
+    else if (target.empty() && aux.empty() && !msg.empty())
+        fullMsg = ":" + _serverName + " " + code + " " + client->getNickname() + " :" + msg + "\r\n";
+    else
+        fullMsg = "You're not supposed to go in here\r\n"; // POR AHORA MAMAHUEVA
     return (fullMsg);
 }
 
 // Devuelve un canal existente o lo crea si no existe
 Channel*    ServerLogic::createChannel(const std::string& name, Client* creator)
 {
+    // Validar nombre de canal
+    if (!Parser::ft_checksinglechannel(name))
+    {
+        std::string prefix = ":" + _serverName + " ";
+        std::string errorMsg = buildErrorMessage(prefix +
+                                                messagesError[ERR_BADCHANMASK].code + " " + creator->getNickname() + " ",
+                                                name,
+                                                messagesError[ERR_BADCHANMASK].message);
+        sendMessageToClient(creator, errorMsg);
+        return (NULL);
+    }
+
+    // Buscar canal existente
     std::map<std::string, Channel*>::const_iterator it = _serverChannels.find(name);
     if (it != _serverChannels.end())
         return (it->second);
 
-    Channel* newChannel = new Channel(name); // Por defecto límite de clientes
-    if (!newChannel)
-        throw (ERR_UNKNOWN);
+    // Crear nuevo canal
+    Channel* newChannel;
+    try
+    {
+        newChannel = new Channel(name); // Por defecto límite de clientes
+    }
+    catch(const std::bad_alloc& e)
+    {
+        throw(std::string(e.what()));
+    }
 
+    // Añadir al mapa de canales
     _serverChannels[name] = newChannel;
-    
-    newChannel->addOperator(creator); // El creador es operador por defecto
+
+    // El creador es operador por defecto
+    newChannel->addOperator(creator);
 
     return (newChannel);
 }
@@ -107,10 +177,22 @@ void    ServerLogic::serverAddClient(int fd)
     if (_serverClients.find(fd) != _serverClients.end())
         return ;
 
-    Client* newClient = new Client(fd);
-    if (!newClient)
-        throw (ERR_UNKNOWN);
+    Client* newClient = NULL;
+    try
+    {
+        newClient = new Client(fd);
+    }
+    catch(const std::bad_alloc& e)
+    {
+        throw (std::string(e.what()));
+    }
 
+    if (_serverClients.size() + 1 > MAX_CLIENTS)
+    {
+        delete (newClient);
+        std::string errorMsg = ":" + _serverName + " *" + " :Server is full\r\n";
+        throw (errorMsg);
+    }
     _serverClients[fd] = newClient;
 }
 
@@ -124,8 +206,8 @@ void    ServerLogic::serverRemoveClient(int fd)
     Client* client = it->second;
 
     // Cerrar socket si es válido
-    if (fd >= 0)
-        close(fd);
+    /*if (fd >= 0)
+        close(fd);*/
 
     /*// Limpiar canales a los que pertenece
     std::set<std::string> channelsCopy = client->getChannels();
@@ -150,77 +232,82 @@ void    ServerLogic::serverRemoveClient(int fd)
     delete (client);
 
     /*también enviar un mensaje tipo PART a los demás clientes si quieres avisar que se fue.*/
-    std::cout << CYAN << "📌 Client removed with fd " 
-              << to_string_c98(fd) << RESET << std::endl;
+    /*std::cout << CYAN << "📌 Client removed with fd " 
+              << to_string_c98(fd) << RESET << std::endl;*/
 }
 
-void    ServerLogic::executeCommand(const Command& cmd, int clientFd)
+void    ServerLogic::executeCommand(const ParsedInput& input, int clientFd)
 {
+    if (input.name.empty() || input.params.empty())
+        return ;
+    
     // Primero, buscamos el cliente
     std::map<int, Client*>::iterator it = _serverClients.find(clientFd);
     if (it == _serverClients.end())
-        throw (ERR_UNKNOWN);
+        return ;
 
     Client* client = it->second;
-    const std::string& command = cmd.name;        // ej: "NICK", "USER", "JOIN"
+    const std::string& command = input.name;        // ej: "NICK", "USER", "JOIN"
 
     // Comparar comandos y llamar al handler correspondiente
     try
     {
         /*User Authentication*/
         if (command == "PASS")
-            handlePASS(client, cmd);
-        else if (command == "PING")
-            handlePING(client, cmd);
-        else if (command == "PONG")
-            handlePONG(client, cmd);
+            handlePASS(client, input);
         else if (command == "QUIT")
-            handleQUIT(client, cmd);
-
+            handleQUIT(client, input);
         /*User Registration*/
         else if (command == "NICK")
-            handleNICK(client, cmd);
+            handleNICK(client, input);
         else if (command == "USER")
-            handleUSER(client, cmd);
-
+            handleUSER(client, input);
         /*Channel Operations*/
         else if (command == "JOIN")
-            handleJOIN(client, cmd);
+            handleJOIN(client, input);
         else if (command == "PART")
-            handlePART(client, cmd);
+            handlePART(client, input);
         else if (command == "TOPIC")
-            handleTOPIC(client, cmd);
-        else if (command == "NAMES")
-            handleNAMES(client, cmd);
-        else if (command == "LIST")
-            handleLIST(client); //no necesita cmd
+            handleTOPIC(client, input);
         else if (command == "INVITE")
-            handleINVITE(client, cmd);
+            handleINVITE(client, input);
         else if (command == "KICK")
-            handleKICK(client, cmd);
-
-        /*Server Queries and Information*/
-        else if (command == "MOTD")
-            handleMOTD(client); //no necesita cmd
-        else if (command == "VERSION")
-            handleVERSION(client); //no necesita cmd
-        else if (command == "ADMIN")
-            handleADMIN(client); //no necesita cmd
-        else if (command == "TIME")
-            handleTIME(client); //no necesita cmd
-        else if (command == "INFO")
-            handleINFO(client); //no necesita cmd
+            handleKICK(client, input);
         else if (command == "MODE")
-            handleMODE(client, cmd);
-
+            handleMODE(client, input);
         /*Sending Messages*/
         else if (command == "NOTICE")
-            handleNOTICE(client, cmd);
+            handleNOTICE(client, input);
         else if (command == "PRIVMSG")
-            handlePRIVMSG(client, cmd);
+            handlePRIVMSG(client, input);
     }
-    catch(int error)
+    catch(const std::string& errorMsg)
     {
-        throw (error);
+        throw (errorMsg);
+    }
+}
+
+void    ServerLogic::sendMessageToClient(Client* client, const std::string& aux)
+{
+    if (client)
+    {
+        _server->queueMessage(client->getFd(), aux);
+    }
+}
+
+void    ServerLogic::sendMessageToChannel(Channel* channel, const std::string& aux, Client* sender)
+{
+    if (!channel)
+        return ;
+    // Hacemos una copia para iterar seguro aunque un cliente se elimine
+    std::set<Client*> clientsCopy = channel->getClients();
+
+    std::set<Client*>::iterator it = clientsCopy.begin();
+    while (it != clientsCopy.end())
+    {
+        Client* client = *it;
+        if (client != sender)
+            sendMessageToClient(client, aux);
+        ++it;
     }
 }

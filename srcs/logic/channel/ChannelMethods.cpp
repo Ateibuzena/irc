@@ -53,8 +53,7 @@ void    Channel::addClient(Client* client)
 void   Channel::removeClient(Client* client)
 {
     // Eliminar el cliente del canal
-    if (_clients.erase(client) == 0)
-        throw (ERR_NOTONCHANNEL);
+    _clients.erase(client);
 
     // Eliminar al cliente de operadores
     _operators.erase(client);
@@ -76,20 +75,7 @@ void   Channel::removeClient(Client* client)
 
 bool    Channel::hasClient(Client* client) const
 {
-    return (_clients.find(client) != _clients.end());
-}
-
-void    Channel::broadcast(const std::string& message, Client* sender)
-{
-    // Hacemos una copia para iterar seguro aunque un cliente se elimine
-    std::set<Client*> clientsCopy = _clients;
-
-    std::set<Client*>::iterator it = clientsCopy.begin();
-    while (it != clientsCopy.end())
-    {
-        Client* client = *it;
-        if (client != sender)
-            client->receiveMessage(message, _name);
-        ++it;
-    }
+    if (_clients.find(client) != _clients.end())
+        return (true);
+    return (false);
 }

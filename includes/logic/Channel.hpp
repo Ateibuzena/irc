@@ -1,7 +1,7 @@
 #ifndef CHANNEL_HPP
 #define CHANNEL_HPP
 
-#include "../utils/Command.hpp"
+#include "../utils/Utils.hpp"
 
 class Client; // Declaración adelantada
 
@@ -11,6 +11,8 @@ class Channel
 
         const std::string           _name;
         std::string                 _topic;
+        std::string                 _setter;  // Quién estableció el tema
+        std::string                 _timeSet; // Hora en que se estableció el tema
         std::set<Client *>          _clients;
         
         bool                        _isInviteOnly;
@@ -31,6 +33,8 @@ class Channel
 
                                     // Getters
         const std::string&          getName() const;
+        const std::string&          getSetter() const;
+        const std::string&          getTimeSet() const;
         const std::string&          getTopic() const;
         const std::set<Client *>&   getClients() const;
 
@@ -48,6 +52,8 @@ class Channel
 
                                     // Setters
         void                        setTopic(const std::string& topic);
+        void                        setSetter(const std::string& setter);
+        void                        setTimeSet(const std::string& timeSet);
         void                        setInviteOnly(bool inviteOnly);
         void                        setTopicProtected(bool topicProtected);
         void                        setPassword(const std::string& password);
