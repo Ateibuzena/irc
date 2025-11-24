@@ -34,18 +34,6 @@ bool    Channel::isOperator(Client* client) const
 
 void    Channel::addClient(Client* client)
 {
-    // Comprobar si el canal es invite-only
-    if (_isInviteOnly && !isOperator(client) && !isInvited(client))
-        throw (ERR_CHANOPRIVSNEEDED);
-    
-    // Suponiendo que hay una constante MAX_CHANNELS_PER_CLIENT definida en algún lugar
-    if (client->getChannels().size() >= MAX_CHANNELS_PER_CLIENT)
-        throw (ERR_TOOMANYCHANNELS);
-
-    // Comprobar si el canal está lleno
-    if (_clients.size() >= _maxClients)
-        throw (ERR_CHANNELISFULL);
-
     // Agregar el cliente al canal
     _clients.insert(client);
 }

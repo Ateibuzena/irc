@@ -374,13 +374,6 @@ void    ServerLogic::handleJOIN(Client* client, const ParsedInput& input)
             key = "";
         try
         {
-            /********************************************************************************************* */
-            //added by noe para encontrar char raro
-            std::cout << "[DEBUG] handleJOIN channelName = '" << channelName << "' bytes:";
-            for (size_t k = 0; k < channelName.size(); ++k)
-                std::cout << " [" << k << "]=" << (int)(unsigned char)channelName[k];
-            std::cout << std::endl;
-            /***************************************************************************************************** */
             Channel* channel = createChannel(channelName, client);
             
             if (channel == NULL)
@@ -433,6 +426,20 @@ void    ServerLogic::handleJOIN(Client* client, const ParsedInput& input)
 
             channel->addClient(client);
             client->joinChannel(channel);
+            /*************************************************************************************** */
+            //adeed by noe debug canal no limpia clientes??
+
+            const std::set<Client *> &members = channel->getClients();
+            std::cout << "[DEBUG] after JOIN, members of " << channel->getName() << ":";
+            for (std::set<Client *>::const_iterator itM = members.begin();
+                 itM != members.end(); ++itM)
+            {
+                Client *c = *itM;
+                std::cout << " '" << c->getNickname() << "'(fd=" << c->getFd() << ")";
+            }
+            std::cout << std::endl;
+
+            /************************************************************************************************* */
 
             // Construimos el mensaje de JOIN para enviar a todos
             prefix = ":" + client->getNickname() + "!" + client->getUsername() + "@" + _serverHost;

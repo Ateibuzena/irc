@@ -508,17 +508,7 @@ ParsedInput Parser::parse(const std::string &rawMessage, const std::string& serv
         i++;
     if (i < size)
         ft_params(rawMessage, toret, i, size);
-    /************************************************************************************** */
-    //added by noe para encontrar char raro
-    std::cout << "[DEBUG] Parsed command: " << toret.name << std::endl;
-    for (size_t pi = 0; pi < toret.params.size(); ++pi)
-    {
-        std::cout << "  [param " << pi << "] '" << toret.params[pi] << "' bytes:";
-        for (size_t k = 0; k < toret.params[pi].size(); ++k)
-            std::cout << " [" << k << "]=" << (int)(unsigned char)toret.params[pi][k];
-        std::cout << std::endl;
-    }
-/********************************************************************************************** */
+   
     /*std::cout << "Parsed command: " << toret.name << std::endl;
     for (size_t idx = 0; idx < toret.params.size(); idx++)
         std::cout << "Param " << idx << ": " << toret.params[idx] << std::endl;*/

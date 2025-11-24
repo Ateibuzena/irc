@@ -39,10 +39,7 @@ class Server
         int                             run();  // Bucle principal (bloqueante hasta que ocurra error o se termine desde fuera)
 
         void                            queueMessage(int fd, const std::string& line); // API para Persona 2: encola una línea (se añadirá "\r\n" automáticamente)
-       /************************************************** */
-        //added by noe
-        void disconnectClient(int fd);
-        /****************************************************** */
+   
 };
 
 #endif // SERVER_HPP

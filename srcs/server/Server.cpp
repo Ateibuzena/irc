@@ -371,16 +371,6 @@ void Server::handleReadable(size_t idx)
                 else // sólo LF
                     recvBuf_[fd].erase(0, pos + 1);
                     
-                /******************************************************** */
-                //added by noe, dejarlo para encontrar char raro
-                std::cout << "[DEBUG] raw line: '" << line << "' bytes:";
-                for (size_t k = 0; k < line.size(); ++k)
-                {
-                    std::cout << " [" << k << "]=" << (int)(unsigned char)line[k];
-                }
-                std::cout << std::endl;
-                /************************************************************************* */
-                
                 ParsedInput input;
                 try
                 {

@@ -72,14 +72,14 @@ void    ServerLogic::handlePRIVMSG(Client* client, const ParsedInput& input)
 {
 /*************************************************************************************** */
     //added by noe debug
-    std::cout << "[DEBUG] PRIVMSG target = '" << input.params[0] << "'\n";
+    /*std::cout << "[DEBUG] PRIVMSG target = '" << input.params[0] << "'\n";
     std::cout << "[DEBUG] known nicknames: ";
     for (std::map<std::string, Client *>::const_iterator it = _serverNicknames.begin();
          it != _serverNicknames.end(); ++it)
     {
         std::cout << "'" << it->first << "' ";
     }
-    std::cout << std::endl;
+    std::cout << std::endl;*/
 /*********************************************************************** ******************/
     std::string prefix = ":" + _serverName + " ";
     std::string errorMsg;
@@ -133,6 +133,11 @@ void    ServerLogic::handlePRIVMSG(Client* client, const ParsedInput& input)
         if (chanIt != _serverChannels.end())
         {
             Channel* channel = chanIt->second;
+            if (!channel->hasClient(client))
+            {
+                i++;
+                continue ;
+            }
 
             // Construimos el mensaje de PRIVMSG para notificar a un canal
             std::string prefix = ":" + client->getNickname() + "!" + client->getUsername() + "@" + _serverHost;

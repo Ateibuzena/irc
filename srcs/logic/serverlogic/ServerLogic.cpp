@@ -170,12 +170,12 @@ Channel*    ServerLogic::createChannel(const std::string& name, Client* creator)
     newChannel->addOperator(creator);
        /************************************************************ */
     //added by noe debug channel name
-    std::cout << "[DEBUG] createChannel name = '" << name << "' bytes:";
+    /*std::cout << "[DEBUG] createChannel name = '" << name << "' bytes:";
     for (size_t i = 0; i < name.size(); ++i)
     {
         std::cout << " [" << i << "]=" << (int)(unsigned char)name[i];
     }
-    std::cout << std::endl;
+    std::cout << std::endl;*/
     /*************************************************************** */
     return (newChannel);
 }
@@ -205,42 +205,7 @@ void    ServerLogic::serverAddClient(int fd)
     _serverClients[fd] = newClient;
 }
 /************************************************************************************* */
-//added by noe
-/*void ServerLogic::serverRemoveClient(int fd)
-{
-    std::map<int, Client*>::iterator it = _serverClients.find(fd);
-    if (it == _serverClients.end())
-        return;
 
-    Client* client = it->second;
-
-    // 1) Borrar del mapa de nicks
-    if (!client->getNickname().empty())
-        _serverNicknames.erase(client->getNickname());
-
-    // 2) Borrar de todos los canales
-    const std::set<std::string>& channelNames = client->getChannels();
-    for (std::set<std::string>::const_iterator itCh = channelNames.begin();
-         itCh != channelNames.end(); ++itCh)
-    {
-        std::map<std::string, Channel*>::iterator chanIt = _serverChannels.find(*itCh);
-        if (chanIt == _serverChannels.end())
-            continue;
-
-        Channel* channel = chanIt->second;
-        channel->removeClient(client);
-
-        if (channel->getDeleteMe())
-        {
-            delete channel;
-            _serverChannels.erase(chanIt);
-        }
-    }
-
-    // 3) Borrar del mapa de fds y liberar memoria
-    _serverClients.erase(it);
-    delete client;
-}*/
 
 void ServerLogic::serverRemoveClient(int fd)
 {
@@ -347,11 +312,11 @@ void    ServerLogic::sendMessageToClient(Client* client, const std::string& aux)
     {
         /********************************************************************************** */
         //added by noe
-        std::cout << "[TX] to fd=" << client->getFd()
+        /*std::cout << "[TX] to fd=" << client->getFd()
                   << " bytes:";
         for (size_t i = 0; i < aux.size(); ++i)
             std::cout << " [" << i << "]=" << (int)(unsigned char)aux[i];
-        std::cout << " text='" << aux << "'" << std::endl;
+        std::cout << " text='" << aux << "'" << std::endl;*/
         /****************************************************************************** */
         _server->queueMessage(client->getFd(), aux);
     }

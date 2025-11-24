@@ -179,13 +179,10 @@ void    ServerLogic::handleQUIT(Client* client, const ParsedInput& input)
         }
         ++it;
     }
-    /******************************************************************** */
+   
     //added by noe
     client->markForDisconnect();
     
-    // Eliminar cliente del servidor //eliminated by noe🫣
-    //serverRemoveClient(client->getFd());
-    /************************************************************************* */
 }
 
 
