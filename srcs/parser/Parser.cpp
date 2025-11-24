@@ -486,12 +486,6 @@ void Parser::ft_parsecommand(ParsedInput tocheck, const std::string& servername,
 
 ParsedInput Parser::parse(const std::string &rawMessage, const std::string& servername, const std::string& nickname)
 {
-    /*if (rawMessage.size() < 2)
-        throw ERR_UNKNOWN;*/
-
-    /*if (rawMessage[rawMessage.size() - 2] != '\r' || rawMessage[rawMessage.size() - 1] != '\n')
-        throw ERR_UNKNOWN;*/
-
     unsigned long   i = 0;
     unsigned long   size = rawMessage.size();  //quitado /r/n -2
     ParsedInput         toret;
@@ -508,10 +502,6 @@ ParsedInput Parser::parse(const std::string &rawMessage, const std::string& serv
         i++;
     if (i < size)
         ft_params(rawMessage, toret, i, size);
-   
-    /*std::cout << "Parsed command: " << toret.name << std::endl;
-    for (size_t idx = 0; idx < toret.params.size(); idx++)
-        std::cout << "Param " << idx << ": " << toret.params[idx] << std::endl;*/
 
     // Store raw message
     toret.raw = rawMessage;
