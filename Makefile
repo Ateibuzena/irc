@@ -17,6 +17,9 @@ SLOGIC_PATH		:= logic/serverlogic
 PARSER_PATH		:= parser
 SERVER_PATH		:= server
 UTILS_PATH		:= utils
+LOGIC_PATH		:= logic
+
+PATHS			:= $(OBJ_DIR) $(OBJ_DIR)/$(CHANNEL_PATH) $(OBJ_DIR)/$(CLIENT_PATH) $(OBJ_DIR)/$(SLOGIC_PATH) $(OBJ_DIR)/$(PARSER_PATH) $(OBJ_DIR)/$(SERVER_PATH) $(OBJ_DIR)/$(LOGIC_PATH) $(OBJ_DIR)/$(UTILS_PATH)
 
 # All .cpp files
 FILES   := 	srcs/logic/channel/Channel.cpp \
@@ -66,12 +69,12 @@ RESET           =   \033[0m
 
 all: $(NAME)
 
-$(NAME): $(OBJ_DIR) $(FILES) $(OBJ)
+$(NAME): $(PATHS) $(FILES) $(OBJ)
 	@echo "$(CYAN) Compiling $(OBJ) into $(NAME)...$(RESET)"
 	$(COMPILER) $(FLAGS) $(OBJ) -o $(NAME)
 	@echo "$(CYAN) 👍 Done compiling 👍$(RESET)"
 
-$(OBJ_DIR):
+$(PATHS):
 	mkdir -p $(OBJ_DIR)/$(CHANNEL_PATH) $(OBJ_DIR)/$(CLIENT_PATH) $(OBJ_DIR)/$(SLOGIC_PATH) $(OBJ_DIR)/$(PARSER_PATH) $(OBJ_DIR)/$(SERVER_PATH) $(OBJ_DIR)/$(UTILS_PATH)
 
 $(OBJ_DIR)/%.o: $(SRC_DIR)/%.cpp
@@ -95,4 +98,4 @@ re: fclean all
 .PHONY: all clean fclean re
 
 # Flag for creating .d files so the includes are also taken into account when compiling project
--include $(OBJ:$(%.o=%.d))
+-include $(OBJ:.o=.d)
