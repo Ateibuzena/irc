@@ -229,7 +229,6 @@ int Server::run()
             log_errno("poll");
             break ;
         }
-
         // A) nuevas conexiones (listenFd en pfds_[0])
         if (pfds_[0].revents & POLLIN)
         {
@@ -256,16 +255,18 @@ int Server::run()
                 std::cout << "[+] Client connected fd=" << cfd << "\n";
             }
         }
-
         // B) clientes existentes
         size_t i = 1;
         while (i < pfds_.size())
         {
             int fd = pfds_[i].fd;
             short re = pfds_[i].revents;
+
+            Client *client = logic_->getClient(fd);
+
             /***************************************************************** */
             //added by noe
-            if (Client *client = logic_->getClient(fd))
+            if (client)
             {
                 if (client->shouldDisconnect())
                 {
@@ -281,7 +282,6 @@ int Server::run()
                 removeClientAtIndex(i);
                 continue; // no incrementar i
             }
-
             // 2) lectura
             if (re & POLLIN)
             {
@@ -301,7 +301,6 @@ int Server::run()
             ++i;
         }
     }
-
     return (0);
 }
 

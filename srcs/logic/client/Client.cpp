@@ -9,13 +9,8 @@ Client::Client(int fd)
         _username(""),
         _password(""),
         _registered(false),
-        _channels(),
-        _sentMessages(),
-        _receivedMessages(),
-        /*********************************** */
-        //added by noe
-        _shouldDisconnect(false)
-        /************************************ */
+        _shouldDisconnect(false),
+        _channels()
 {
     
 }
@@ -30,8 +25,6 @@ Client::~Client()
     _password.clear();
     _registered = false;
     _channels.clear();
-    _sentMessages.clear();
-    _receivedMessages.clear();
     std::cout << "Client with fd " << _fd << " destroyed." << std::endl;
 }
 
@@ -72,63 +65,46 @@ const std::set<std::string>&    Client::getChannels() const
     return (_channels);
 }
 
-const   std::vector<std::string>& Client::getSentMessages() const // Para testing
-{
-    return (_sentMessages);
-}
-
-const   std::vector<std::string>& Client::getReceivedMessages() const // Para testing
-{
-    return (_receivedMessages);
-}
-
 /*------------------------------SETTERS---------------------------*/
 
 void    Client::setFd(int fd)
 {
     _fd = fd;
-    //std::cout << GREEN << "✅ FD set to: " << _fd << RESET << std::endl;
 }
 
 void    Client::setNickname(const std::string& nickname)
 {
     _nickname = nickname;
-    //std::cout << GREEN << "✅ Nickname set to: " << _nickname << RESET << std::endl;
 }
 
 void    Client::setOldNickname(const std::string& oldNickname)
 {
     _oldNickname = oldNickname;
-    //std::cout << GREEN << "✅ Old Nickname set to: " << _oldNickname << RESET << std::endl;
 }
 
 void    Client::setUsername(const std::string& username)
 {
     _username = username;
-    //std::cout << GREEN << "✅ Username set to: " << _username << RESET << std::endl;
 }
 
 void    Client::setPassword(const std::string& password)
 {
     _password = password;
-    //std::cout << GREEN << "✅ Password set." << RESET << std::endl;
 }
 
 void    Client::setRegistered(bool state)
 {
     _registered = state;
-    /*std::cout << CYAN << "📜 Registered status: "
-              << (_registered ? "true" : "false")
-              << RESET << std::endl;*/
+
 }
 /*********************************************************************************/
 //added by noe
-void Client::markForDisconnect()
+void    Client::markForDisconnect()
 {
     _shouldDisconnect = true;
 }
 
-bool Client::shouldDisconnect() const
+bool    Client::shouldDisconnect() const
 {
     return _shouldDisconnect;
 }

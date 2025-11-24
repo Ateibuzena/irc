@@ -13,7 +13,7 @@ ServerLogic::ServerLogic(Server* server, const std::string& serverName, const st
         _serverNicknames(),
         _serverChannels()
 {
-    //std::cout << "✅ ServerLogic initialized." << std::endl;
+
 }
 
 /*--------------------------------DESTRUCTORS---------------------------------*/
@@ -24,11 +24,6 @@ ServerLogic::~ServerLogic()
     std::map<int, Client*>::iterator itClient = _serverClients.begin();
     while (itClient != _serverClients.end())
     {
-        // Cerramos el socket del cliente
-        /*int fd = itClient->first;
-        if (fd >= 0)
-            close(fd);*/
-
         // Liberamos memoria
         Client* client = itClient->second;
         if (client)
@@ -134,7 +129,6 @@ std::string ServerLogic::buildReplyMessage(std::string code,
 // Devuelve un canal existente o lo crea si no existe
 Channel*    ServerLogic::createChannel(const std::string& name, Client* creator)
 {
- 
     // Validar nombre de canal
     if (!Parser::ft_checksinglechannel(name))
     {
@@ -211,7 +205,7 @@ void ServerLogic::serverRemoveClient(int fd)
 {
     std::map<int, Client*>::iterator it = _serverClients.find(fd);
     if (it == _serverClients.end())
-        return;
+        return ;
 
     Client* client = it->second;
 
@@ -223,35 +217,32 @@ void ServerLogic::serverRemoveClient(int fd)
     std::set<std::string> channelsCopy(client->getChannels().begin(),
                                        client->getChannels().end());
 
-    for (std::set<std::string>::const_iterator itCh = channelsCopy.begin();
-         itCh != channelsCopy.end(); ++itCh)
+    std::set<std::string>::const_iterator itCh = channelsCopy.begin();
+    while (itCh != channelsCopy.end())
     {
         std::map<std::string, Channel*>::iterator chanIt = _serverChannels.find(*itCh);
         if (chanIt == _serverChannels.end())
-            continue;
+            continue ;
 
         Channel* channel = chanIt->second;
-
-        // Eliminar del canal
         channel->removeClient(client);
 
         // Eliminar del lado del cliente
         client->leaveChannel(channel);
 
-        // Si está vacío → destruir canal
         if (channel->getDeleteMe())
         {
             delete channel;
             _serverChannels.erase(chanIt);
         }
+        itCh++;
     }
 
-    // 3) Borrar el cliente del mapa del servidor
+    // 3) Borrar del mapa de fds y liberar memoria
     _serverClients.erase(it);
-
-    // 4) Liberar memoria
     delete client;
 }
+
 /**************************************************************************************** */
 
 

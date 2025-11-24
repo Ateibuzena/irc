@@ -141,46 +141,62 @@ void    ServerLogic::handleUSER(Client* client, const ParsedInput& input)
 // Manejar el comando QUIT (desconectar cliente) (Replay listo, Msg listo, Error listo)
 void    ServerLogic::handleQUIT(Client* client, const ParsedInput& input)
 {
-    /***************************************** */
-    //added by noe
-    std::string msg = "Client disconnected";
-    if (!input.params.empty() && !input.params[0].empty())
-        msg = input.params[0];
-    /****************************************** */
+    std::string prefix;
+    
     std::string nickname = client->getNickname();
     if (nickname.empty())
         nickname = "*";
 
-    std::string prefix = ":" + nickname + "!" + client->getUsername() + "@" + _serverHost;
-    std::string quitMsg = buildMessage(prefix, "QUIT", "", msg);
-
-    // Limpiar canales a los que pertenece ⬇︎ (aquí solo notificamos)
-    const std::set<std::string>& channelsNames = client->getChannels();
-    std::set<std::string>::const_iterator it = channelsNames.begin();
-    while (it != channelsNames.end())
+    std::string msg = "Client disconnected";
+    if (!input.params.empty() && !input.params[0].empty())
     {
-        std::map<std::string, Channel*>::iterator chanIt = _serverChannels.find(*it);
-        if (chanIt != _serverChannels.end())
-        {
-            Channel* channel = chanIt->second;
-
-            // Enviar mensaje de QUIT a los demás clientes del canal
-            sendMessageToChannel(channel, quitMsg, client);
-            //eliminated by noe
-            /*// Eliminar cliente del canal
-            channel->removeClient(client);
-
-            // Si el canal queda vacío, eliminarlo del servidor
-            if (channel->getDeleteMe())
-            {
-                delete (channel);
-                _serverChannels.erase(chanIt);
-            }*/
-        }
-        ++it;
+        msg.clear();
+        msg = input.params[0];
     }
+
+
+    /*if (client->isRegistered())
+    {*/
+        prefix.clear();
+        prefix = ":" + nickname + "!" + client->getUsername() + "@" + _serverHost;
+        std::string quitMsg = buildMessage(prefix, "QUIT", "", msg);
+
+        // Limpiar canales a los que pertenece ⬇︎ (aquí solo notificamos)
+        const std::set<std::string>& channelsNames = client->getChannels();
+        std::set<std::string>::const_iterator it = channelsNames.begin();
+        while (it != channelsNames.end())
+        {
+            std::map<std::string, Channel*>::iterator chanIt = _serverChannels.find(*it);
+            if (chanIt != _serverChannels.end())
+            {
+                Channel* channel = chanIt->second;
+
+                // Enviar mensaje de QUIT a los demás clientes del canal
+                sendMessageToChannel(channel, quitMsg, client);
+            
+                // Eliminar cliente del canal
+                channel->removeClient(client);
+
+                // Si el canal queda vacío, eliminarlo del servidor
+                if (channel->getDeleteMe())
+                {
+                    delete (channel);
+                    _serverChannels.erase(chanIt);
+                }
+            }
+            ++it;
+        }
+    /*}
+    else
+    {
+        prefix.clear();
+        prefix = messagesError[ERR_NOTREGISTERED].code + " " + client->getNickname();
+        std::string errorMsg = buildErrorMessage(prefix,
+                                    "",
+                                    messagesError[ERR_NOTREGISTERED].message);
+        return (sendMessageToClient(client, errorMsg));
+    }*/
    
-    //added by noe
     client->markForDisconnect();
     
 }

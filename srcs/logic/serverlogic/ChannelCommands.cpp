@@ -376,7 +376,7 @@ void    ServerLogic::handleJOIN(Client* client, const ParsedInput& input)
         {
             Channel* channel = createChannel(channelName, client);
             
-            if (channel == NULL)
+            if (channel == NULL || channel->hasClient(client))
                 return ;
             
             if (!channel->getPassword().empty()) // Canal ya existente con clave
@@ -426,21 +426,7 @@ void    ServerLogic::handleJOIN(Client* client, const ParsedInput& input)
 
             channel->addClient(client);
             client->joinChannel(channel);
-            /*************************************************************************************** */
-            //adeed by noe debug canal no limpia clientes??
-
-            const std::set<Client *> &members = channel->getClients();
-            std::cout << "[DEBUG] after JOIN, members of " << channel->getName() << ":";
-            for (std::set<Client *>::const_iterator itM = members.begin();
-                 itM != members.end(); ++itM)
-            {
-                Client *c = *itM;
-                std::cout << " '" << c->getNickname() << "'(fd=" << c->getFd() << ")";
-            }
-            std::cout << std::endl;
-
-            /************************************************************************************************* */
-
+            
             // Construimos el mensaje de JOIN para enviar a todos
             prefix = ":" + client->getNickname() + "!" + client->getUsername() + "@" + _serverHost;
             std::string joinMsg = buildMessage(prefix,
@@ -670,10 +656,11 @@ void    ServerLogic::handleMODE(Client* client, const ParsedInput& input)
                             break ;; // No se puede quitar el único operador
 
                         channel->removeOperator(operatorClient);
-                        modeMsg = buildMessage(":" + client->getNickname() + "!" + client->getUsername() + "@" + _serverHost,
-                                                        "MODE",
-                                                        channel->getName(),
-                                                        "-o " + operatorClient->getUsername());
+                        prefix = ":" + client->getNickname() + "!" + client->getUsername() + "@" + _serverHost;
+                        modeMsg = buildMessage(prefix,
+                                                "MODE",
+                                                channel->getName(),
+                                                "-o " + operatorClient->getUsername());
                         sendMessageToChannel(channel, modeMsg, NULL);
 
                         // Asignar nuevo operador si el que se va es el único operador
@@ -686,7 +673,8 @@ void    ServerLogic::handleMODE(Client* client, const ParsedInput& input)
                                 if (potentialOp != operatorClient)
                                 {
                                     channel->addOperator(potentialOp);
-                                    std::string opMsg = buildMessage(":" + client->getNickname() + "!" + client->getUsername() + "@" + _serverHost,
+                                    prefix = ":" + client->getNickname() + "!" + client->getUsername() + "@" + _serverHost;
+                                    std::string opMsg = buildMessage(prefix,
                                                                     "MODE",
                                                                     channel->getName(),
                                                                     "+o " + potentialOp->getUsername());
@@ -723,8 +711,9 @@ void    ServerLogic::handleMODE(Client* client, const ParsedInput& input)
                     }
                     else
                         channel->setMaxClients(channel->getMaxClients());
-                    
-                    modeMsg = buildMessage(":" + client->getNickname() + "!" + client->getUsername() + "@" + _serverHost,
+
+                    prefix = ":" + client->getNickname() + "!" + client->getUsername() + "@" + _serverHost;
+                    modeMsg = buildMessage(prefix,
                                         "MODE",
                                         channel->getName(),
                                         "-l " + to_string_c98(channel->getMaxClients()));
@@ -743,17 +732,14 @@ void    ServerLogic::handleMODE(Client* client, const ParsedInput& input)
         }
         i++;
     }
-/************************************************************************************************* */
-//added by noe
-    std::string fullMsg = buildMessage(
-        ":" + client->getNickname() + "!" + client->getUsername() + "@" + _serverHost,
-        "MODE",
-        channel->getName(),
-        modeChanges);
 
     // Notificamos a todos los miembros del canal sobre el cambio de modos
-    //std::string fullMsg = buildMessage(client->getNickname(), "MODE", channel->getName(), modeChanges);
-/******************************************************************************************************** */
+    prefix = ":" + client->getNickname() + "!" + client->getUsername() + "@" + _serverHost;
+    std::string fullMsg = buildMessage(prefix,
+                                        "MODE",
+                                        channel->getName(),
+                                        modeChanges);
+
     sendMessageToChannel(channel, fullMsg, NULL);
 }
 
