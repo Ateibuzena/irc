@@ -1,0 +1,228 @@
+✅ PACK DE PRUEBAS PARA SERVIDOR IRC (ft_irc)
+
+🟦 1. Pruebas de desconexión de clientes
+🟩 1.1 QUIT explícito
+
+QUIT
+
+QUIT :mensaje
+
+QUIT :mensaje con espacios
+
+QUIT : (mensaje vacío pero con ":" explícito)
+
+QUIT sin CRLF (simular corte de red enviando sin \r\n)
+
+🟩 1.2 Desconexión silenciosa
+
+Cliente cierra terminal
+
+Cliente hace Ctrl+C
+
+Cliente hace kill -9
+
+Cliente pierde red (simular: desconectar wifi)
+
+Cliente cierra la conexión TCP sin mandar nada
+
+🔍 Validar:
+
+El canal se limpia correctamente
+
+No quedan clientes “fantasma”
+
+serverRemoveClient se ejecuta solo una vez
+
+No queda el canal duplicado
+
+No hay mensajes raros tipo �#test
+
+No crashea el servidor
+
+🟦 2. Pruebas de JOIN
+🟩 2.1 JOIN normal
+
+JOIN #canal
+
+JOIN al mismo canal 2 veces
+
+JOIN a un canal vacío
+
+JOIN a un canal ya existente
+
+🟩 2.2 JOIN múltiples
+
+JOIN #a,#b,#c
+
+JOIN #a,#b keyA,keyB
+
+JOIN #a,#b keySolo1
+
+🟩 2.3 Casos inválidos
+
+JOIN
+
+JOIN canalSin#
+
+JOIN #canal con espacios
+
+JOIN :#canal
+
+🟦 3. Pruebas de PART
+
+PART #canal
+
+PART #canal,#otro
+
+PART sin parámetros
+
+PART canalSin#
+
+Validar que:
+
+si el canal queda vacío → se elimina
+
+no se duplica al volver a crear después
+
+🟦 4. Pruebas de PRIVMSG
+🟩 PRIVMSG válido
+
+PRIVMSG nick :hola
+
+PRIVMSG #canal :hola a todos
+
+mensaje largo
+
+mensaje vacío: PRIVMSG nick :
+
+🟩 PRIVMSG inválido
+
+PRIVMSG
+
+PRIVMSG #canal sin mensaje
+
+enviar a nick inexistente
+
+enviar a un canal donde no estoy
+
+🟦 5. Pruebas de MODE
+🟩 Usuarios en canal
+
+MODE #canal +i
+
+MODE #canal -i
+
+MODE #canal +t
+
+MODE #canal +l 10
+
+MODE #canal +k clave
+
+🟩 Casos problemáticos
+
+Niega cuando no eres operador
+
+Quita operador y verifica operador nuevo
+
+MODE sin parámetros
+
+MODE #canal +l sin número
+
+MODE #canal +l abc
+
+MODE canalSin#
+
+🟦 6. Pruebas de NICK
+
+Cambiar NICK al conectado
+
+Cambiar NICK a uno ya usado
+
+Cambiar NICK a inválido (#aaa, espacios…)
+
+Cambiar NICK antes de USER / PASS
+
+Cambiar NICK después de registrado
+
+🟦 7. Pruebas de USER / PASS
+🟩 PASS
+
+Antes de NICK
+
+Después de registro (debe dar error)
+
+PASS incorrecto
+
+PASS vacío
+
+🟩 USER
+
+USER con parámetros correctos
+
+USER incompleto
+
+USER después de registrado
+
+🟦 8. Pruebas de INVITE / KICK / TOPIC
+🟩 INVITE
+
+Invitar como operador
+
+Invitar como no operador (error)
+
+Invitar a alguien ya dentro
+
+Invitar a canal inexistente
+
+🟩 KICK
+
+Patear como operador
+
+Patear como no operador
+
+Kicking a uno mismo
+
+Kicking a user fuera del canal
+
+🟩 TOPIC
+
+Cambiar topic como operador
+
+Cambiar topic sin permisos
+
+Quitar topic
+
+Topic vacío
+
+🟦 9. Pruebas de stress / edge cases
+🟩 Múltiples clientes
+
+3 clientes en un canal
+
+Cliente A se va, B envía mensaje → no crashea
+
+Cliente A reentra al mismo canal
+
+🟩 Concurrencia
+
+JOIN y QUIT muy rápido
+
+PRIVMSG mientras otro hace QUIT
+
+🟩 Rendimiento
+
+1000 líneas de PRIVMSG seguidas
+
+Líneas muy largas (límite RFC 512 bytes)
+
+🟦 10. Pruebas de Valgrind (memorias y FD)
+
+abrir 20 clientes → cerrar 20
+
+mirar que no queden FD activos
+
+mira que no haya leaks en canales
+
+mira que no haya double-free
+
+mira que no haya punteros colgantes a Client

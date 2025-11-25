@@ -162,7 +162,7 @@ Channel*    ServerLogic::createChannel(const std::string& name, Client* creator)
 
     // El creador es operador por defecto
     newChannel->addOperator(creator);
-       /************************************************************ */
+    /************************************************************ */
     //added by noe debug channel name
     /*std::cout << "[DEBUG] createChannel name = '" << name << "' bytes:";
     for (size_t i = 0; i < name.size(); ++i)
@@ -248,7 +248,7 @@ void ServerLogic::serverRemoveClient(int fd)
 
 void    ServerLogic::executeCommand(const ParsedInput& input, int clientFd)
 {
-    if (input.name.empty() || input.params.empty())
+    if (input.name.empty() )//|| input.params.empty())// QUIT SIN MENSAJE
         return ;
     
     // Primero, buscamos el cliente

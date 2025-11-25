@@ -1,2 +1,2 @@
 clear antes de absolutamente todos los prefix, errorMsg, ComandMsg
-coppychannels y coppyclients para todos cuando itere sobre canales o clientes
+copychannels y copyclients para todos cuando itere sobre canales o clientes

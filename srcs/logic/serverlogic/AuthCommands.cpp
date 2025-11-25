@@ -173,16 +173,18 @@ void    ServerLogic::handleQUIT(Client* client, const ParsedInput& input)
 
                 // Enviar mensaje de QUIT a los demás clientes del canal
                 sendMessageToChannel(channel, quitMsg, client);
-            
+                /***************************************************** */
+                //otra vez🫣eliminated by noe, xq?, ya que ServerLogic::serverRemoveClient hace toda la eliminacion
                 // Eliminar cliente del canal
-                channel->removeClient(client);
+                /*channel->removeClient(client);
 
                 // Si el canal queda vacío, eliminarlo del servidor
                 if (channel->getDeleteMe())
                 {
                     delete (channel);
                     _serverChannels.erase(chanIt);
-                }
+                }*/
+               /****************************************** */
             }
             ++it;
         }
