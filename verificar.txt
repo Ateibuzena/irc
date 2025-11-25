@@ -1,2 +1,9 @@
 clear antes de absolutamente todos los prefix, errorMsg, ComandMsg
 copychannels y copyclients para todos cuando itere sobre canales o clientes
+👁️ -he cambado topic si ser operador
+-he invitado sin ser oprador, le ha llegado el mje a la persona ( de la invitacion) pero no se une automaticamente. debe ser asi?
+-siendo operador me ha dado esto :
+            INVITE #test 4
+            :irc.server.com 341 6 4 #test
+
+- al kickear a alguien que ya ha salido del canal, no lo detecta como salido, sino que manda mje como kickeado
