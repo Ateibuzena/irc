@@ -82,9 +82,9 @@ void    ServerLogic::handleNICK(Client* client, const ParsedInput& input)
         std::string nickMsg = buildMessage(prefix, "NICK", "", client->getNickname());
 
         // Enviar a todos los canales donde está el cliente
-        std::set<std::string> channelsNames = client->getChannels();
-        std::set<std::string>::iterator it = channelsNames.begin();
-        while (it != channelsNames.end())
+        std::set<std::string> channelsCopy = client->getChannels();
+        std::set<std::string>::iterator it = channelsCopy.begin();
+        while (it != channelsCopy.end())
         {
             std::map<std::string, Channel*>::iterator chanIt = _serverChannels.find(*it);
             if (chanIt != _serverChannels.end())
@@ -154,53 +154,27 @@ void    ServerLogic::handleQUIT(Client* client, const ParsedInput& input)
         msg = input.params[0];
     }
 
-
-    /*if (client->isRegistered())
-    {*/
-        prefix.clear();
-        prefix = ":" + nickname + "!" + client->getUsername() + "@" + _serverHost;
-        std::string quitMsg = buildMessage(prefix, "QUIT", "", msg);
-
-        // Limpiar canales a los que pertenece ⬇︎ (aquí solo notificamos)
-        const std::set<std::string>& channelsNames = client->getChannels();
-        std::set<std::string>::const_iterator it = channelsNames.begin();
-        while (it != channelsNames.end())
-        {
-            std::map<std::string, Channel*>::iterator chanIt = _serverChannels.find(*it);
-            if (chanIt != _serverChannels.end())
-            {
-                Channel* channel = chanIt->second;
-
-                // Enviar mensaje de QUIT a los demás clientes del canal
-                sendMessageToChannel(channel, quitMsg, client);
-                /***************************************************** */
-                //otra vez🫣eliminated by noe, xq?, ya que ServerLogic::serverRemoveClient hace toda la eliminacion
-                // Eliminar cliente del canal
-                /*channel->removeClient(client);
-
-                // Si el canal queda vacío, eliminarlo del servidor
-                if (channel->getDeleteMe())
-                {
-                    delete (channel);
-                    _serverChannels.erase(chanIt);
-                }*/
-               /****************************************** */
-            }
-            ++it;
-        }
-    /*}
-    else
-    {
-        prefix.clear();
-        prefix = messagesError[ERR_NOTREGISTERED].code + " " + client->getNickname();
-        std::string errorMsg = buildErrorMessage(prefix,
-                                    "",
-                                    messagesError[ERR_NOTREGISTERED].message);
-        return (sendMessageToClient(client, errorMsg));
-    }*/
-   
     client->markForDisconnect();
+
+    prefix.clear();
+    prefix = ":" + nickname + "!" + client->getUsername() + "@" + _serverHost;
+    std::string quitMsg = buildMessage(prefix, "QUIT", "", msg);
+
     
+    std::set<std::string> channelsCopy = client->getChannels();
+    std::set<std::string>::const_iterator it = channelsCopy.begin();
+    while (it != channelsCopy.end())
+    {
+        std::map<std::string, Channel*>::iterator chanIt = _serverChannels.find(*it);
+        if (chanIt != _serverChannels.end())
+        {
+            Channel* channel = chanIt->second;
+
+            // Enviar mensaje de QUIT a los demás clientes del canal
+            sendMessageToChannel(channel, quitMsg, client);
+        }
+        ++it;
+    }
 }
 
 
