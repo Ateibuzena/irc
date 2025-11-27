@@ -31,8 +31,10 @@ Channel::~Channel()
     _isInviteOnly = false;
     _isTopicProtected = false;
     _password.clear();
+    _maxClients = 0;
     _operators.clear();
     _invited.clear();
+    _deleteMe = true;
     std::cout << "Channel destroyed: " << _name << std::endl;
 }
 
@@ -110,7 +112,7 @@ const std::string Channel::getModes() const
         modes += "k";
     if (!_operators.empty())
         modes += "o";
-    if (_maxClients != 0 && _maxClients != 50)
+    if (_maxClients != 0 && _maxClients != DEFAULT_MAX_USERS_PER_CHANNEL)
         modes += "l"; // 50 es tu valor por defecto
     return (modes);
 }

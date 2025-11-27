@@ -16,6 +16,9 @@ extern int sig;
 // Límite máximo de usuarios por canal
 # define MAX_USERS_PER_CHANNEL 100
 
+// Límite por defecto de usuarios por canal
+# define DEFAULT_MAX_USERS_PER_CHANNEL 50
+
 // Límite máximo total de clientes conectados al servidor
 # define MAX_CLIENTS 500
 

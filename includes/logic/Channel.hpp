@@ -27,7 +27,7 @@ class Channel
 
     public:
 
-                                    Channel(const std::string& name, size_t maxClients = 50);
+                                    Channel(const std::string& name, size_t maxClients = DEFAULT_MAX_USERS_PER_CHANNEL);
                                     
                                     ~Channel();
 
