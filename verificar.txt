@@ -1,6 +1,0 @@
--he invitado sin ser oprador, le ha llegado el mje a la persona ( de la invitacion) pero no se une automaticamente. debe ser asi?
--siendo operador me ha dado esto :
-            INVITE #test 4
-            :irc.server.com 341 6 4 #test
-
-- al kickear a alguien que ya ha salido del canal, no lo detecta como salido, sino que manda mje como kickeado

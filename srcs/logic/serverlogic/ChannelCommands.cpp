@@ -110,7 +110,6 @@ void    ServerLogic::handleINVITE(Client* client, const ParsedInput& input)
     sendMessageToClient(invitedClient, inviteMsg);
 
     // Construimos el mensaje de confirmación para el invitador
-
     _replyMsg.clear();
     _replyMsg = buildReplyMessage(messagesReplay[RPL_INVITING].code,
                                             client,
@@ -202,6 +201,19 @@ void    ServerLogic::handleKICK(Client* client, const ParsedInput& input)
     }
     Client* targetClient = nickIt->second;
 
+    // Comprobamos que el cliente a expulsar esté en el canal
+    if (!channel->hasClient(targetClient))
+    {
+        _prefix.clear();
+        _prefix = ":" + _serverName + " " + messagesError[ERR_USERNOTINCHANNEL].code + " " + client->getNickname();
+
+        _errorMsg.clear();
+        _errorMsg = buildErrorMessage(_prefix,
+                                    targetClient->getNickname() + " " + channel->getName(),
+                                    messagesError[ERR_USERNOTINCHANNEL].message);
+        return (sendMessageToClient(client, _errorMsg));
+    }
+    
     // Construimos el mensaje de KICK para enviar a todos
     std::string msg = "Kicked";
     if (input.params.size() > 2)
