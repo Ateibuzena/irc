@@ -434,8 +434,6 @@ void    ServerLogic::handleJOIN(Client* client, const ParsedInput& input)
         try
         {
             Channel* channel = createChannel(channelName, client);
-
-            std::set<Client*> clientsCopy = channel->getClients();
             
             if (channel == NULL || channel->hasClient(client))
                 return ;
@@ -454,7 +452,7 @@ void    ServerLogic::handleJOIN(Client* client, const ParsedInput& input)
                     return (sendMessageToClient(client, _errorMsg));
                 }
             }
-            else if (clientsCopy.empty()) // Canal nuevo
+            else if (channel->getClients().empty()) // Canal nuevo
             {
                 // Si se proporciona una clave, la establecemos
                 if (key != "" && !Parser::ft_checkkey(key))
@@ -485,7 +483,7 @@ void    ServerLogic::handleJOIN(Client* client, const ParsedInput& input)
             }
             
             // Si el canal está lleno, lanzamos error
-            if (clientsCopy.size() >= channel->getMaxClients())
+            if (channel->getClients().size() >= channel->getMaxClients())
             {
                 _prefix.clear();
                 _prefix = ":" + _serverName + " " + messagesError[ERR_CHANNELISFULL].code + " " + client->getNickname() + " ";
@@ -512,7 +510,7 @@ void    ServerLogic::handleJOIN(Client* client, const ParsedInput& input)
 
             // Creamos la lista de usuarios del canal FUNCION APARTE?
             std::string userList;
-       
+            std::set<Client *> clientsCopy = channel->getClients();
             std::set<Client *>::const_iterator it = clientsCopy.begin();
             while (it != clientsCopy.end())
             {
@@ -556,6 +554,7 @@ void    ServerLogic::handleJOIN(Client* client, const ParsedInput& input)
                                         "= " + channel->getName(),
                                         "",
                                         userList);
+            
             sendMessageToClient(client, _replyMsg);
 
             // Enviamos el fin de la lista de usuarios al cliente
