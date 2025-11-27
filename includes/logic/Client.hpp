@@ -33,22 +33,19 @@ class Client
         bool                            isRegistered() const;
         const std::set<std::string>&    getChannels() const;
 
-        const std::vector<std::string>& getSentMessages() const; // Para testing
-        const std::vector<std::string>& getReceivedMessages() const; // Para testing
-
-
         void                            setFd(int fd);
         void                            setNickname(const std::string& nickname);
         void                            setOldNickname(const std::string& oldNickname);
         void                            setUsername(const std::string& username);
         void                            setPassword(const std::string& password);
         void                            setRegistered(bool state);
+        
         void                            markForDisconnect();
+        bool                            shouldDisconnect() const;
 
         void                            joinChannel(Channel* channel);
         void                            leaveChannel(Channel* channel);
         
-        bool                            shouldDisconnect() const;
 }; 
 
 #endif // CLIENT_HPP

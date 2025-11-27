@@ -12,7 +12,7 @@ Client::Client(int fd)
         _shouldDisconnect(false),
         _channels()
 {
-    
+    std::cout << "Client with fd " << _fd << " created." << std::endl;
 }
 
 /*------------------------------DESTRUCTORS---------------------------*/
@@ -97,15 +97,3 @@ void    Client::setRegistered(bool state)
     _registered = state;
 
 }
-/*********************************************************************************/
-//added by noe
-void    Client::markForDisconnect()
-{
-    _shouldDisconnect = true;
-}
-
-bool    Client::shouldDisconnect() const
-{
-    return _shouldDisconnect;
-}
-/************************************************************************************** */
