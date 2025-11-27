@@ -34,7 +34,6 @@ bool    Channel::isOperator(Client* client) const
 
 void    Channel::addClient(Client* client)
 {
-    // Agregar el cliente al canal
     _clients.insert(client);
 }
 
@@ -42,6 +41,10 @@ void   Channel::removeClient(Client* client)
 {
     // Eliminar el cliente del canal
     _clients.erase(client);
+
+    // Si el canal queda vacío, limpiar
+    if (_clients.empty())
+        _deleteMe = true;
 
     // Eliminar al cliente de operadores
     _operators.erase(client);
@@ -55,10 +58,6 @@ void   Channel::removeClient(Client* client)
 
     // Eliminar al cliente de invitados
     _invited.erase(client);
-
-    // Si el canal queda vacío, limpiar
-    if (_clients.empty())
-        _deleteMe = true;
 }
 
 bool    Channel::hasClient(Client* client) const
