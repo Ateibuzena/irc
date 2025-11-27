@@ -109,14 +109,16 @@ void    ServerLogic::handleINVITE(Client* client, const ParsedInput& input)
     sendMessageToClient(invitedClient, inviteMsg);
 
     // Construimos el mensaje de confirmación para el invitador
-    std::string replayMsg = buildReplyMessage(messagesReplay[RPL_INVITING].code,
+
+    _replyMsg.clear();
+    _replyMsg = buildReplyMessage(messagesReplay[RPL_INVITING].code,
                                             client,
                                             invitedClient->getNickname(),
                                             channel->getName(),
                                             "");
 
     // Enviamos el mensaje de confirmación al invitador
-    sendMessageToClient(client, replayMsg);
+    sendMessageToClient(client, _replyMsg);
 }
 
 // Manejar el comando KICK (expulsar usuario de canal) (Replay listo, Msg listo, Error listo)
@@ -272,8 +274,6 @@ void    ServerLogic::handleTOPIC(Client* client, const ParsedInput& input)
         return (sendMessageToClient(client, _errorMsg));
     }
 
-    std::string replayMsg;
-    
     // Si solo hay un parámetro, mostramos el tema actual
     if (input.params.size() == 1)
     {
@@ -281,22 +281,26 @@ void    ServerLogic::handleTOPIC(Client* client, const ParsedInput& input)
 
         // Si no hay tema establecido
         if (topic.empty())
-            replayMsg = buildReplyMessage(messagesReplay[RPL_NOTOPIC].code,
+        {
+            _replyMsg.clear();
+            _replyMsg = buildReplyMessage(messagesReplay[RPL_NOTOPIC].code,
                                         client,
                                         channelName,
                                         "",
                                         messagesReplay[RPL_NOTOPIC].message);
+        }
         else // Hay un tema establecido
         {
             std::string setter = channel->getSetter();
             std::string timeSet = channel->getTimeSet();
 
-            replayMsg = buildReplyMessage(messagesReplay[RPL_TOPIC].code,
+            _replyMsg.clear();
+            _replyMsg = buildReplyMessage(messagesReplay[RPL_TOPIC].code,
                                         client,
                                         channelName,
                                         "",
                                         topic);
-            replayMsg += buildReplyMessage(messagesReplay[RPL_TOPICWHOTIME].code,
+            _replyMsg += buildReplyMessage(messagesReplay[RPL_TOPICWHOTIME].code,
                                         client,
                                         channelName,
                                         setter + " " + timeSet,
@@ -304,7 +308,7 @@ void    ServerLogic::handleTOPIC(Client* client, const ParsedInput& input)
         }
 
         // Enviamos el mensaje al cliente
-        sendMessageToClient(client, replayMsg);
+        sendMessageToClient(client, _replyMsg);
 
         return ;
     }
@@ -510,13 +514,11 @@ void    ServerLogic::handleJOIN(Client* client, const ParsedInput& input)
                     userList += chanClient->getNickname();
                 it++;
             }
-            
-            std::string replayMsg;
-
             // Enviamos topic al cliente
             if (channel->getTopic().empty())
             {
-                replayMsg = buildReplyMessage(messagesReplay[RPL_NOTOPIC].code,
+                _replyMsg.clear();
+                _replyMsg = buildReplyMessage(messagesReplay[RPL_NOTOPIC].code,
                                             client,
                                             channel->getName(),
                                             "",
@@ -524,31 +526,34 @@ void    ServerLogic::handleJOIN(Client* client, const ParsedInput& input)
             }
             else
             {
-                replayMsg = buildReplyMessage(messagesReplay[RPL_TOPIC].code,
+                _replyMsg.clear();
+                _replyMsg = buildReplyMessage(messagesReplay[RPL_TOPIC].code,
                                             client,
                                             channel->getName(),
                                             "",
                                             channel->getTopic());
             }
-            sendMessageToClient(client,  replayMsg);
+            sendMessageToClient(client,  _replyMsg);
 
             // Enviamos la lista de usuarios al cliente
-            replayMsg = buildReplyMessage(messagesReplay[RPL_NAMREPLY].code,
+            _replyMsg.clear();
+            _replyMsg = buildReplyMessage(messagesReplay[RPL_NAMREPLY].code,
                                         client,
                                         "= " + channel->getName(),
                                         "",
                                         userList);
-            sendMessageToClient(client, replayMsg);
+            sendMessageToClient(client, _replyMsg);
 
             // Enviamos el fin de la lista de usuarios al cliente
-            replayMsg = buildReplyMessage(messagesReplay[RPL_ENDOFNAMES].code,
+            _replyMsg.clear();
+            _replyMsg = buildReplyMessage(messagesReplay[RPL_ENDOFNAMES].code,
                                         client,
                                         channel->getName(),
                                         "",
                                         messagesReplay[RPL_ENDOFNAMES].message);
-            sendMessageToClient(client, replayMsg);
+            sendMessageToClient(client, _replyMsg);
         }
-        catch (const std::string& errorMsg)//esto captura strings?? pero el error es un int
+        catch (const std::string& errorMsg)
         {
             throw (errorMsg);
         }
@@ -608,13 +613,14 @@ void    ServerLogic::handleMODE(Client* client, const ParsedInput& input)
     if (input.params.size() == 1)
     {
         std::string modes = channel->getModes();
-        std::string replayMsg = buildReplyMessage(messagesReplay[RPL_CHANNELMODEIS].code,
+        _replyMsg.clear();
+        _replyMsg = buildReplyMessage(messagesReplay[RPL_CHANNELMODEIS].code,
                                                 client,
                                                 channel->getName(),
                                                 "",
                                                 modes);
 
-        return (sendMessageToClient(client, replayMsg));
+        return (sendMessageToClient(client, _replyMsg));
     }
 
     // Si el cliente no es operador, lanzamos error

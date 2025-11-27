@@ -117,30 +117,30 @@ void    ServerLogic::setClientRegistered(Client* client)
 
     client->setRegistered(true);
 
-    std::string replayMsg;
+    _replyMsg.clear();
 
-    replayMsg = buildReplyMessage(messagesReplay[RPL_WELCOME].code,
+    _replyMsg = buildReplyMessage(messagesReplay[RPL_WELCOME].code,
                                     client,
                                     "",
                                     "",
                                     messagesReplay[RPL_WELCOME].message + _serverName);
-    replayMsg += buildReplyMessage(messagesReplay[RPL_YOURHOST].code,
+    _replyMsg += buildReplyMessage(messagesReplay[RPL_YOURHOST].code,
                                     client,
                                     "",
                                     "",
                                     messagesReplay[RPL_YOURHOST].message + _serverHost + ", version " + _serverVersion);
-    replayMsg += buildReplyMessage(messagesReplay[RPL_CREATED].code,
+    _replyMsg += buildReplyMessage(messagesReplay[RPL_CREATED].code,
                                     client,
                                     "",
                                     "",
                                     messagesReplay[RPL_CREATED].message + time_to_string(_serverStartTime));
-    replayMsg += buildReplyMessage(messagesReplay[RPL_MYINFO].code,
+    _replyMsg += buildReplyMessage(messagesReplay[RPL_MYINFO].code,
                                     client,
                                     "",
                                     "",
                                     messagesReplay[RPL_MYINFO].message + _serverName + " " + _serverVersion + " o O"); //preguntar "ao mtov"??
 
-    sendMessageToClient(client, replayMsg);  
+    sendMessageToClient(client, _replyMsg);  
 }
 
 /*----------------------------------METHODS------------------------------------*/

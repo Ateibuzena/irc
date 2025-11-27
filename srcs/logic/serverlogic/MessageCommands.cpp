@@ -60,8 +60,8 @@ void    ServerLogic::handleNOTICE(Client* client, const ParsedInput& input)
         {
             Channel* channel = chanIt->second;
 
-            _prefix.clear();
             // Construimos el mensaje de NOTICE para notificar a un canal
+            _prefix.clear();
             _prefix = ":" + client->getNickname() + "!" + client->getUsername() + "@" + _serverHost;
 
             std::string noticeMsg = buildMessage(_prefix, "NOTICE", channel->getName(), msg);
@@ -153,6 +153,7 @@ void    ServerLogic::handlePRIVMSG(Client* client, const ParsedInput& input)
         {
             _prefix.clear();
             _prefix = ":" + _serverName + " " + messagesError[ERR_CANNOTSENDTOCHAN].code + " " + client->getNickname() + " " + target;
+
             _errorMsg.clear();
             _errorMsg = buildErrorMessage(_prefix,
                                         "",
@@ -162,6 +163,7 @@ void    ServerLogic::handlePRIVMSG(Client* client, const ParsedInput& input)
         {
             _prefix.clear();
             _prefix = ":" + _serverName + " " + messagesError[ERR_NOSUCHNICKCHANNEL].code + " " + client->getNickname() + " " + target;
+
             _errorMsg.clear();
             _errorMsg = buildErrorMessage(_prefix,
                                         "",
