@@ -2,7 +2,9 @@
 
 /*--------------------------------CONSTRUCTORS--------------------------------*/
 
-ServerLogic::ServerLogic(Server* server, const std::string& serverName, const std::string& serverPassword)
+ServerLogic::ServerLogic(Server* server,
+                            const std::string& serverName,
+                            const std::string& serverPassword)
     :   _server(server),
         _serverName(serverName),
         _serverPassword(serverPassword),
@@ -13,7 +15,7 @@ ServerLogic::ServerLogic(Server* server, const std::string& serverName, const st
         _serverNicknames(),
         _serverChannels()
 {
-
+    std::cout << "[INFO] ServerLogic initialized. Server name: " << _serverName << ", Password: " << (serverPassword.empty() ? "<none>" : "<set>") << std::endl;
 }
 
 /*--------------------------------DESTRUCTORS---------------------------------*/
@@ -81,6 +83,11 @@ const std::string& ServerLogic::getServerVersion() const
     return (_serverVersion);
 }
 
+std::time_t ServerLogic::getServerStartTime() const
+{
+    return (_serverStartTime);
+}
+
 /*----------------------------------SETTERS------------------------------------*/
 
 void    ServerLogic::setHostname(const std::string& hostname)
@@ -97,10 +104,26 @@ void    ServerLogic::setClientRegistered(Client* client)
 
     std::string replayMsg;
 
-    replayMsg = buildReplyMessage(messagesReplay[RPL_WELCOME].code, client, "", "", messagesReplay[RPL_WELCOME].message + _serverName);
-    replayMsg += buildReplyMessage(messagesReplay[RPL_YOURHOST].code, client, "", "", messagesReplay[RPL_YOURHOST].message + _serverHost + ", version " + _serverVersion);
-    replayMsg += buildReplyMessage(messagesReplay[RPL_CREATED].code, client, "", "", messagesReplay[RPL_CREATED].message + time_to_string(_serverStartTime));
-    replayMsg += buildReplyMessage(messagesReplay[RPL_MYINFO].code, client, "", "", messagesReplay[RPL_MYINFO].message + _serverName + " " + _serverVersion + " o O"); //preguntar "ao mtov"??
+    replayMsg = buildReplyMessage(messagesReplay[RPL_WELCOME].code,
+                                    client,
+                                    "",
+                                    "",
+                                    messagesReplay[RPL_WELCOME].message + _serverName);
+    replayMsg += buildReplyMessage(messagesReplay[RPL_YOURHOST].code,
+                                    client,
+                                    "",
+                                    "",
+                                    messagesReplay[RPL_YOURHOST].message + _serverHost + ", version " + _serverVersion);
+    replayMsg += buildReplyMessage(messagesReplay[RPL_CREATED].code,
+                                    client,
+                                    "",
+                                    "",
+                                    messagesReplay[RPL_CREATED].message + time_to_string(_serverStartTime));
+    replayMsg += buildReplyMessage(messagesReplay[RPL_MYINFO].code,
+                                    client,
+                                    "",
+                                    "",
+                                    messagesReplay[RPL_MYINFO].message + _serverName + " " + _serverVersion + " o O"); //preguntar "ao mtov"??
 
     sendMessageToClient(client, replayMsg);  
 }
@@ -147,7 +170,7 @@ Channel*    ServerLogic::createChannel(const std::string& name, Client* creator)
         return (it->second);
 
     // Crear nuevo canal
-    Channel* newChannel;
+    Channel* newChannel = NULL;
     try
     {
         newChannel = new Channel(name); // Por defecto límite de clientes
@@ -157,20 +180,18 @@ Channel*    ServerLogic::createChannel(const std::string& name, Client* creator)
         throw(std::string(e.what()));
     }
 
+    if (_serverChannels.size() + 1 > MAX_CHANNELS)
+    {
+        delete (newChannel);
+        std::string errorMsg = ":" + _serverName + " *" + " :Server is full\r\n";
+        throw (errorMsg);
+    }
     // Añadir al mapa de canales
     _serverChannels[name] = newChannel;
 
     // El creador es operador por defecto
     newChannel->addOperator(creator);
-    /************************************************************ */
-    //added by noe debug channel name
-    /*std::cout << "[DEBUG] createChannel name = '" << name << "' bytes:";
-    for (size_t i = 0; i < name.size(); ++i)
-    {
-        std::cout << " [" << i << "]=" << (int)(unsigned char)name[i];
-    }
-    std::cout << std::endl;*/
-    /*************************************************************** */
+
     return (newChannel);
 }
 
@@ -198,24 +219,21 @@ void    ServerLogic::serverAddClient(int fd)
     }
     _serverClients[fd] = newClient;
 }
-/************************************************************************************* */
-
 
 void ServerLogic::serverRemoveClient(int fd)
 {
+    // 1) Eliminar nickname registrado
     std::map<int, Client*>::iterator it = _serverClients.find(fd);
     if (it == _serverClients.end())
         return ;
 
     Client* client = it->second;
 
-    // 1) Eliminar nickname registrado
     if (!client->getNickname().empty())
         _serverNicknames.erase(client->getNickname());
 
-    // 2) Copiar lista de canales para poder modificar mientras iteramos
-    std::set<std::string> channelsCopy(client->getChannels().begin(),
-                                       client->getChannels().end());
+    // 2) Eliminar de todos los canales en los que esté
+    std::set<std::string> channelsCopy = client->getChannels();
 
     std::set<std::string>::const_iterator itCh = channelsCopy.begin();
     while (itCh != channelsCopy.end())
@@ -243,12 +261,9 @@ void ServerLogic::serverRemoveClient(int fd)
     delete client;
 }
 
-/**************************************************************************************** */
-
-
 void    ServerLogic::executeCommand(const ParsedInput& input, int clientFd)
 {
-    if (input.name.empty() )//|| input.params.empty())// QUIT SIN MENSAJE
+    if (input.name.empty() )
         return ;
     
     // Primero, buscamos el cliente
@@ -257,7 +272,7 @@ void    ServerLogic::executeCommand(const ParsedInput& input, int clientFd)
         return ;
 
     Client* client = it->second;
-    const std::string& command = input.name;        // ej: "NICK", "USER", "JOIN"
+    const std::string& command = input.name;
 
     // Comparar comandos y llamar al handler correspondiente
     try
@@ -301,14 +316,6 @@ void    ServerLogic::sendMessageToClient(Client* client, const std::string& aux)
 {
     if (client)
     {
-        /********************************************************************************** */
-        //added by noe
-        /*std::cout << "[TX] to fd=" << client->getFd()
-                  << " bytes:";
-        for (size_t i = 0; i < aux.size(); ++i)
-            std::cout << " [" << i << "]=" << (int)(unsigned char)aux[i];
-        std::cout << " text='" << aux << "'" << std::endl;*/
-        /****************************************************************************** */
         _server->queueMessage(client->getFd(), aux);
     }
 }
@@ -317,7 +324,7 @@ void    ServerLogic::sendMessageToChannel(Channel* channel, const std::string& a
 {
     if (!channel)
         return ;
-    // Hacemos una copia para iterar seguro aunque un cliente se elimine
+    
     std::set<Client*> clientsCopy = channel->getClients();
 
     std::set<Client*>::iterator it = clientsCopy.begin();

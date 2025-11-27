@@ -17,7 +17,7 @@ Channel::Channel(const std::string& name, size_t maxClients)
         _invited(),
         _deleteMe(false)
 {
-    std::cout << "Channel created: " << _name << " with max clients: " << _maxClients << std::endl;
+    std::cout << "[INFO] Channel created: " << _name << " with max clients: " << _maxClients << std::endl;
 }
 
 /*-------------------------------------DESTRUCTORS------------------------------------*/
@@ -35,7 +35,7 @@ Channel::~Channel()
     _operators.clear();
     _invited.clear();
     _deleteMe = true;
-    std::cout << "Channel destroyed: " << _name << std::endl;
+    std::cout << "[INFO] Channel destroyed: " << _name << std::endl;
 }
 
 /*-------------------------------------GETTERS------------------------------------*/

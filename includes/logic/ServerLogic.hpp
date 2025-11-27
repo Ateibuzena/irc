@@ -45,11 +45,11 @@ class ServerLogic
 
     public:
 
+                                            ~ServerLogic();
+                                            
                                             ServerLogic(Server* server,
                                                             const std::string& serverName,
                                                             const std::string& serverPassword);
-
-                                            ~ServerLogic();
 
         Client*                             getClient(int fd) const;
         Channel*                            getChannel(const std::string& name) const;
@@ -67,10 +67,10 @@ class ServerLogic
                                                             const std::string& aux = "",
                                                             const std::string& msg = "") const;
 
-        Channel*                            createChannel(const std::string& name, Client* creator);
-        
         void                                serverAddClient(int fd);
         void                                serverRemoveClient(int fd);
+
+        Channel*                            createChannel(const std::string& name, Client* creator);
 
         void                                executeCommand(const ParsedInput& input, int clientFd);
 

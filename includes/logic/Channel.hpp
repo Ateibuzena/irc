@@ -36,7 +36,7 @@ class Channel
         const std::string&          getSetter() const;
         const std::string&          getTimeSet() const;
         const std::string&          getTopic() const;
-        const std::set<Client *>&   getClients() const; // puede haber problemas?
+        const std::set<Client *>&   getClients() const;
 
         bool                        isInviteOnly() const;
         bool                        isTopicProtected() const;

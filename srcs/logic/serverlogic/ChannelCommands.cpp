@@ -52,8 +52,10 @@ void    ServerLogic::handleINVITE(Client* client, const ParsedInput& input)
         return (sendMessageToClient(client, errorMsg));
     }
 
+    std::set<Client*> clientsCopy = channel->getClients();
+
     // Si el canal está lleno, lanzamos error
-    if (channel->getClients().size() >= channel->getMaxClients())
+    if (clientsCopy.size() >= channel->getMaxClients())
     {
         prefix += messagesError[ERR_CHANNELISFULL].code + " " + client->getNickname();
         errorMsg = buildErrorMessage(prefix,
@@ -375,6 +377,8 @@ void    ServerLogic::handleJOIN(Client* client, const ParsedInput& input)
         try
         {
             Channel* channel = createChannel(channelName, client);
+
+            std::set<Client*> clientsCopy = channel->getClients();
             
             if (channel == NULL || channel->hasClient(client))
                 return ;
@@ -390,7 +394,7 @@ void    ServerLogic::handleJOIN(Client* client, const ParsedInput& input)
                     return (sendMessageToClient(client, errorMsg));
                 }
             }
-            else if (channel->getClients().empty()) // Canal nuevo
+            else if (clientsCopy.empty()) // Canal nuevo
             {
                 // Si se proporciona una clave, la establecemos
                 if (key != "" && !Parser::ft_checkkey(key))
@@ -415,7 +419,7 @@ void    ServerLogic::handleJOIN(Client* client, const ParsedInput& input)
             }
             
             // Si el canal está lleno, lanzamos error
-            if (channel->getClients().size() >= channel->getMaxClients())
+            if (clientsCopy.size() >= channel->getMaxClients())
             {
                 errorMsg = buildErrorMessage(prefix +
                                             messagesError[ERR_CHANNELISFULL].code + " " + client->getNickname() + " ",
@@ -436,12 +440,11 @@ void    ServerLogic::handleJOIN(Client* client, const ParsedInput& input)
 
             sendMessageToChannel(channel, joinMsg, NULL);
 
-            // Creamos la lista de usuarios del canal
+            // Creamos la lista de usuarios del canal FUNCION APARTE?
             std::string userList;
-            const std::set<Client *>& clientsInChannel = channel->getClients();
-            std::set<Client *>::const_iterator it = clientsInChannel.begin();
-
-            while (it != clientsInChannel.end())
+       
+            std::set<Client *>::const_iterator it = clientsCopy.begin();
+            while (it != clientsCopy.end())
             {
                 Client* chanClient = *it;
 
@@ -532,6 +535,8 @@ void    ServerLogic::handleMODE(Client* client, const ParsedInput& input)
         return (sendMessageToClient(client, errorMsg));
     }
     Channel* channel = chanIt->second;
+
+    std::set<Client*> clientsCopy = channel->getClients();
 
     // Comprobamos que el ejecutor esté en el canal
     if (!channel->hasClient(client))
@@ -652,7 +657,7 @@ void    ServerLogic::handleMODE(Client* client, const ParsedInput& input)
                         channel->addOperator(operatorClient);
                     else
                     {
-                        if (channel->getClients().size() == 1)
+                        if (clientsCopy.size() == 1)
                             break ;; // No se puede quitar el único operador
 
                         channel->removeOperator(operatorClient);
@@ -666,8 +671,8 @@ void    ServerLogic::handleMODE(Client* client, const ParsedInput& input)
                         // Asignar nuevo operador si el que se va es el único operador
                         if (channel->isOperator(operatorClient) && channel->getOperators().size() == 1)
                         {
-                            std::set<Client *>::const_iterator it = channel->getClients().begin();
-                            while (it != channel->getClients().end())
+                            std::set<Client *>::const_iterator it = clientsCopy.begin();
+                            while (it != clientsCopy.end())
                             {
                                 Client* potentialOp = *it;
                                 if (potentialOp != operatorClient)
@@ -702,7 +707,7 @@ void    ServerLogic::handleMODE(Client* client, const ParsedInput& input)
                         // parsear primero input.params[index++]
                         size_t limit = static_cast<size_t>(std::atoi(input.params[index++].c_str()));
                         
-                        if (limit <= 0 || limit < channel->getClients().size())
+                        if (limit <= 0 || limit < clientsCopy.size())
                             channel->setMaxClients(channel->getMaxClients());
                         else if (limit > MAX_USERS_PER_CHANNEL)
                             channel->setMaxClients(MAX_USERS_PER_CHANNEL);

@@ -22,6 +22,9 @@ extern int sig;
 // Límite máximo total de clientes conectados al servidor
 # define MAX_CLIENTS 500
 
+// Limite máximo de canales en el servidor
+# define MAX_CHANNELS 200
+
 // Límite máximo de canales por cliente
 # define MAX_CHANNELS_PER_CLIENT 100
 

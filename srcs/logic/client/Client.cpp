@@ -12,7 +12,7 @@ Client::Client(int fd)
         _shouldDisconnect(false),
         _channels()
 {
-    std::cout << "Client with fd " << _fd << " created." << std::endl;
+    std::cout << "[INFO] Client with fd " << _fd << " created." << std::endl;
 }
 
 /*------------------------------DESTRUCTORS---------------------------*/
@@ -25,7 +25,7 @@ Client::~Client()
     _password.clear();
     _registered = false;
     _channels.clear();
-    std::cout << "Client with fd " << _fd << " destroyed." << std::endl;
+    std::cout << "[INFO] Client with fd " << _fd << " destroyed." << std::endl;
 }
 
 /*------------------------------GETTERS---------------------------*/
