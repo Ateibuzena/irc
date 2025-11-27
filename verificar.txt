@@ -1,4 +1,3 @@
-👁️ -he cambado topic si ser operador
 -he invitado sin ser oprador, le ha llegado el mje a la persona ( de la invitacion) pero no se une automaticamente. debe ser asi?
 -siendo operador me ha dado esto :
             INVITE #test 4
