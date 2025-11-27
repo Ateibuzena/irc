@@ -8,13 +8,14 @@ void    ServerLogic::handleINVITE(Client* client, const ParsedInput& input)
     const std::string& channelName = input.params[0];
     const std::string& nickname = input.params[1];
 
-    
-    std::string errorMsg;
+    std::string clientNickname = client->getNickname();
+    if (clientNickname.empty())
+        clientNickname = "*";
 
     if (!client->isRegistered())
     {
         _prefix.clear();
-        _prefix = ":" + _serverName + " " + messagesError[ERR_NOTREGISTERED].code + " " + client->getNickname();
+        _prefix = ":" + _serverName + " " + messagesError[ERR_NOTREGISTERED].code + " " + clientNickname;
 
         _errorMsg.clear();
         _errorMsg = buildErrorMessage(_prefix,
@@ -125,10 +126,15 @@ void    ServerLogic::handleINVITE(Client* client, const ParsedInput& input)
 void    ServerLogic::handleKICK(Client* client, const ParsedInput& input)
 {
     //Juan :irc.server.com 461 <nick> KICK :Not enough parameters
+    
+    std::string clientNickname = client->getNickname();
+    if (clientNickname.empty())
+        clientNickname = "*";
+
     if (!client->isRegistered())
     {
         _prefix.clear();
-        _prefix = ":" + _serverName + " " + messagesError[ERR_NOTREGISTERED].code + " " + client->getNickname();
+        _prefix = ":" + _serverName + " " + messagesError[ERR_NOTREGISTERED].code + " " + clientNickname;
 
         _errorMsg.clear();
         _errorMsg = buildErrorMessage(_prefix,
@@ -234,10 +240,14 @@ void    ServerLogic::handleTOPIC(Client* client, const ParsedInput& input)
     const std::string& channelName = input.params[0];
 
     // Comprobar si el cliente está registrado
+    std::string clientNickname = client->getNickname();
+    if (clientNickname.empty())
+        clientNickname = "*";
+
     if (!client->isRegistered())
     {
         _prefix.clear();
-        _prefix = ":" + _serverName + " " + messagesError[ERR_NOTREGISTERED].code + " " + client->getNickname();
+        _prefix = ":" + _serverName + " " + messagesError[ERR_NOTREGISTERED].code + " " + clientNickname;
 
         _errorMsg.clear();
         _errorMsg = buildErrorMessage(_prefix,
@@ -351,10 +361,14 @@ void    ServerLogic::handleJOIN(Client* client, const ParsedInput& input)
 {
     // Juan :irc.server.com 461 <nick> MODE :Not enough parameters
 
+    std::string clientNickname = client->getNickname();
+    if (clientNickname.empty())
+        clientNickname = "*";
+
     if (!client->isRegistered())
     {
         _prefix.clear();
-        _prefix = ":" + _serverName + " " + messagesError[ERR_NOTREGISTERED].code + " " + client->getNickname();
+        _prefix = ":" + _serverName + " " + messagesError[ERR_NOTREGISTERED].code + " " + clientNickname;
 
         _errorMsg.clear();
         _errorMsg = buildErrorMessage(_prefix,
@@ -566,10 +580,14 @@ void    ServerLogic::handleMODE(Client* client, const ParsedInput& input)
 {
     // Juan :irc.server.com 461 <nick> MODE :Not enough parameters
 
+    std::string clientNickname = client->getNickname();
+    if (clientNickname.empty())
+        clientNickname = "*";
+
     if (!client->isRegistered())
     {
         _prefix.clear();
-        _prefix = ":" + _serverName + " " + messagesError[ERR_NOTREGISTERED].code + " " + client->getNickname();
+        _prefix = ":" + _serverName + " " + messagesError[ERR_NOTREGISTERED].code + " " + clientNickname;
 
         _errorMsg.clear();
         _errorMsg = buildErrorMessage(_prefix,
@@ -845,10 +863,14 @@ void    ServerLogic::handlePART(Client* client, const ParsedInput& input)
     // Juan :irc.server.com 461 <nick> PART :Not enough parameters
 
     // Comprobar si el cliente está registrado
+    std::string clientNickname = client->getNickname();
+    if (clientNickname.empty())
+        clientNickname = "*";
+
     if (!client->isRegistered())
     {
         _prefix.clear();
-        _prefix = ":" + _serverName + " " + messagesError[ERR_NOTREGISTERED].code + " " + client->getNickname();
+        _prefix = ":" + _serverName + " " + messagesError[ERR_NOTREGISTERED].code + " " + clientNickname;
 
         _errorMsg.clear();
         _errorMsg = buildErrorMessage(_prefix,

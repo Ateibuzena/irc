@@ -51,6 +51,7 @@ void    ServerLogic::handleNICK(Client* client, const ParsedInput& input)
     //:irc.server.com 431 * :No nickname given
 
     const std::string nickname = input.params[0];
+    
     std::string oldNickname = client->getNickname();
     if (oldNickname.empty())
         oldNickname = "*";

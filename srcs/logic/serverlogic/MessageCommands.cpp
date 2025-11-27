@@ -3,13 +3,15 @@
 // Manejar el comando NOTICE (enviar mensaje de aviso) (Replay listo, Msg listo, Error listo))
 void    ServerLogic::handleNOTICE(Client* client, const ParsedInput& input)
 {
-    
+    std::string clientNickname = client->getNickname();
+    if (clientNickname.empty())
+        clientNickname = "*";
 
     // Verificamos que el cliente esté registrado
     if (!client->isRegistered())
     {
         _prefix.clear();
-        _prefix = ":" + _serverName + " " + messagesError[ERR_NOTREGISTERED].code + " " + client->getNickname();
+        _prefix = ":" + _serverName + " " + messagesError[ERR_NOTREGISTERED].code + " " + clientNickname;
 
         _errorMsg.clear();
         _errorMsg = buildErrorMessage(_prefix,
@@ -76,12 +78,16 @@ void    ServerLogic::handleNOTICE(Client* client, const ParsedInput& input)
 // Manejar el comando PRIVMSG (enviar mensaje privado) (Replay listo, Msg listo, Error listo)
 void    ServerLogic::handlePRIVMSG(Client* client, const ParsedInput& input)
 {
+    std::string clientNickname = client->getNickname();
+    if (clientNickname.empty())
+        clientNickname = "*";
+
     // Verificamos que el cliente esté registrado
     if (!client->isRegistered())
     {
         _prefix.clear();
-        _prefix = ":" + _serverName + " " + messagesError[ERR_NOTREGISTERED].code + " " + client->getNickname();
-
+        _prefix = ":" + _serverName + " " + messagesError[ERR_NOTREGISTERED].code + " " + clientNickname;
+        
         _errorMsg.clear();
         _errorMsg = buildErrorMessage(_prefix,
                                     "",
