@@ -13,7 +13,10 @@ ServerLogic::ServerLogic(Server* server,
         _serverStartTime(std::time(NULL)),
         _serverClients(),
         _serverNicknames(),
-        _serverChannels()
+        _serverChannels(),
+        _prefix(""),
+        _errorMsg(""),
+        _replyMsg("")
 {
     std::cout << "[INFO] ServerLogic initialized. Server name: " << _serverName << ", Password: " << (serverPassword.empty() ? "<none>" : "<set>") << std::endl;
 }
@@ -47,6 +50,18 @@ ServerLogic::~ServerLogic()
         ++itChannel;
     }
     _serverChannels.clear();
+
+    _server = NULL;
+    //_serverName.clear();
+    //_serverPassword.clear();
+    _serverHost.clear();
+    //_serverVersion.clear();
+    //_serverStartTime.clear();
+    _prefix.clear();
+    _errorMsg.clear();
+    _replyMsg.clear();
+
+    std::cout << "[INFO] ServerLogic destroyed." << std::endl;
 }
 
 /*----------------------------------GETTERS------------------------------------*/
@@ -155,12 +170,15 @@ Channel*    ServerLogic::createChannel(const std::string& name, Client* creator)
     // Validar nombre de canal
     if (!Parser::ft_checksinglechannel(name))
     {
-        std::string prefix = ":" + _serverName + " ";
-        std::string errorMsg = buildErrorMessage(prefix +
-                                                messagesError[ERR_BADCHANMASK].code + " " + creator->getNickname() + " ",
-                                                name,
-                                                messagesError[ERR_BADCHANMASK].message);
-        sendMessageToClient(creator, errorMsg);
+        _prefix.clear();
+        _prefix = ":" + _serverName + " ";
+
+        _errorMsg.clear();
+        _errorMsg = buildErrorMessage(_prefix +
+                                        messagesError[ERR_BADCHANMASK].code + " " + creator->getNickname() + " ",
+                                        name,
+                                        messagesError[ERR_BADCHANMASK].message);
+        sendMessageToClient(creator, _errorMsg);
         return (NULL);
     }
 
@@ -183,8 +201,9 @@ Channel*    ServerLogic::createChannel(const std::string& name, Client* creator)
     if (_serverChannels.size() + 1 > MAX_CHANNELS)
     {
         delete (newChannel);
-        std::string errorMsg = ":" + _serverName + " *" + " :Server is full\r\n";
-        throw (errorMsg);
+        _errorMsg.clear();
+        _errorMsg = ":" + _serverName + " *" + " :Server is full\r\n";
+        throw (_errorMsg);
     }
     // Añadir al mapa de canales
     _serverChannels[name] = newChannel;
@@ -214,8 +233,9 @@ void    ServerLogic::serverAddClient(int fd)
     if (_serverClients.size() + 1 > MAX_CLIENTS)
     {
         delete (newClient);
-        std::string errorMsg = ":" + _serverName + " *" + " :Server is full\r\n";
-        throw (errorMsg);
+        _errorMsg.clear();
+        _errorMsg = ":" + _serverName + " *" + " :Server is full\r\n";
+        throw (_errorMsg);
     }
     _serverClients[fd] = newClient;
 }

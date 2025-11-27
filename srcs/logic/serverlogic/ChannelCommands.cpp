@@ -8,48 +8,60 @@ void    ServerLogic::handleINVITE(Client* client, const ParsedInput& input)
     const std::string& channelName = input.params[0];
     const std::string& nickname = input.params[1];
 
-    std::string prefix = ":" + _serverName + " ";
+    
     std::string errorMsg;
 
     if (!client->isRegistered())
     {
-        prefix += messagesError[ERR_NOTREGISTERED].code + " " + client->getNickname();
-        errorMsg = buildErrorMessage(prefix,
+        _prefix.clear();
+        _prefix = ":" + _serverName + " " + messagesError[ERR_NOTREGISTERED].code + " " + client->getNickname();
+
+        _errorMsg.clear();
+        _errorMsg = buildErrorMessage(_prefix,
                                     "",
                                     messagesError[ERR_NOTREGISTERED].message);
-        return (sendMessageToClient(client, errorMsg));
+        return (sendMessageToClient(client, _errorMsg));
     }
 
     // Primero buscamos el canal
     std::map<std::string, Channel*>::iterator chanIt = _serverChannels.find(channelName);
     if (chanIt == _serverChannels.end())
     {
-        prefix += messagesError[ERR_NOSUCHNICKCHANNEL].code + " " + client->getNickname();
-        errorMsg = buildErrorMessage(prefix,
+        _prefix.clear();
+        _prefix = ":" + _serverName + " " + messagesError[ERR_NOSUCHNICKCHANNEL].code + " " + client->getNickname();
+
+        _errorMsg.clear();
+        _errorMsg = buildErrorMessage(_prefix,
                                     channelName,
                                     messagesError[ERR_NOSUCHNICKCHANNEL].message);
-        return (sendMessageToClient(client, errorMsg));
+        return (sendMessageToClient(client, _errorMsg));
     }
     Channel* channel = chanIt->second;
 
     // Comprobamos que el ejecutor esté en el canal
     if (!channel->hasClient(client))
     {
-        prefix += messagesError[ERR_NOTONCHANNEL].code + " " + client->getNickname();
-        errorMsg = buildErrorMessage(prefix,
+        _prefix.clear();
+        _prefix = ":" + _serverName + " " + messagesError[ERR_NOTONCHANNEL].code + " " + client->getNickname();
+
+        _errorMsg.clear();
+        _errorMsg = buildErrorMessage(_prefix,
                                     channel->getName(),
                                     messagesError[ERR_NOTONCHANNEL].message);
-        return (sendMessageToClient(client, errorMsg));
+        return (sendMessageToClient(client, _errorMsg));
     }
 
     // Si el canal es invite-only, solo los operadores pueden invitar
     if (channel->isInviteOnly() && !channel->isOperator(client))
     {
-        prefix += messagesError[ERR_CHANOPRIVSNEEDED].code + " " + client->getNickname();
-        errorMsg = buildErrorMessage(prefix,
+        _prefix.clear();
+        _prefix = ":" + _serverName + " " + messagesError[ERR_CHANOPRIVSNEEDED].code + " " + client->getNickname();
+
+        _errorMsg.clear();
+        _errorMsg = buildErrorMessage(_prefix,
                                     channel->getName(),
                                     messagesError[ERR_CHANOPRIVSNEEDED].message);
-        return (sendMessageToClient(client, errorMsg));
+        return (sendMessageToClient(client, _errorMsg));
     }
 
     std::set<Client*> clientsCopy = channel->getClients();
@@ -57,22 +69,28 @@ void    ServerLogic::handleINVITE(Client* client, const ParsedInput& input)
     // Si el canal está lleno, lanzamos error
     if (clientsCopy.size() >= channel->getMaxClients())
     {
-        prefix += messagesError[ERR_CHANNELISFULL].code + " " + client->getNickname();
-        errorMsg = buildErrorMessage(prefix,
+        _prefix.clear();
+        _prefix = ":" + _serverName + " " + messagesError[ERR_CHANNELISFULL].code + " " + client->getNickname();
+
+        _errorMsg.clear();
+        _errorMsg = buildErrorMessage(_prefix,
                                     channel->getName(),
                                     messagesError[ERR_CHANNELISFULL].message);
-        return (sendMessageToClient(client, errorMsg));
+        return (sendMessageToClient(client, _errorMsg));
     }
 
     // Luego buscamos el cliente a invitar
     std::map<std::string, Client*>::iterator nickIt = _serverNicknames.find(nickname);
     if (nickIt == _serverNicknames.end())
     {
-        prefix += messagesError[ERR_NOSUCHNICKCHANNEL].code + " " + client->getNickname();
-        errorMsg = buildErrorMessage(prefix,
+        _prefix.clear();
+        _prefix = ":" + _serverName + " " + messagesError[ERR_NOSUCHNICKCHANNEL].code + " " + client->getNickname();
+
+        _errorMsg.clear();
+        _errorMsg = buildErrorMessage(_prefix,
                                     nickname,
                                     messagesError[ERR_NOSUCHNICKCHANNEL].message);
-        return (sendMessageToClient(client, errorMsg));
+        return (sendMessageToClient(client, _errorMsg));
     }
     Client* invitedClient = nickIt->second;
 
@@ -80,8 +98,9 @@ void    ServerLogic::handleINVITE(Client* client, const ParsedInput& input)
     channel->inviteClient(invitedClient);
 
     // Construimos el mensaje de INVITE para enviar al invitado
-    prefix = ":" + client->getNickname() + "!" + client->getUsername() + "@" + _serverHost;
-    std::string inviteMsg = buildMessage(prefix,
+    _prefix.clear();
+    _prefix = ":" + client->getNickname() + "!" + client->getUsername() + "@" + _serverHost;
+    std::string inviteMsg = buildMessage(_prefix,
                                         "INVITE",
                                         invitedClient->getNickname(),
                                         channel->getName());
@@ -104,17 +123,16 @@ void    ServerLogic::handleINVITE(Client* client, const ParsedInput& input)
 void    ServerLogic::handleKICK(Client* client, const ParsedInput& input)
 {
     //Juan :irc.server.com 461 <nick> KICK :Not enough parameters
-
-    std::string prefix = ":" + _serverName + " ";
-    std::string errorMsg;
-
     if (!client->isRegistered())
     {
-        prefix += messagesError[ERR_NOTREGISTERED].code + " " + client->getNickname();
-        errorMsg = buildErrorMessage(prefix,
+        _prefix.clear();
+        _prefix = ":" + _serverName + " " + messagesError[ERR_NOTREGISTERED].code + " " + client->getNickname();
+
+        _errorMsg.clear();
+        _errorMsg = buildErrorMessage(_prefix,
                                     "",
                                     messagesError[ERR_NOTREGISTERED].message);
-        return (sendMessageToClient(client, errorMsg));
+        return (sendMessageToClient(client, _errorMsg));
     }
 
     const std::string& channelName = input.params[0];
@@ -124,45 +142,55 @@ void    ServerLogic::handleKICK(Client* client, const ParsedInput& input)
     std::map<std::string, Channel*>::iterator chanIt = _serverChannels.find(channelName);
     if (chanIt == _serverChannels.end())
     {
-        std::cout << "No such channel: " << channelName << std::endl;
-        prefix += messagesError[ERR_NOSUCHNICKCHANNEL].code + " " + client->getNickname();
-        errorMsg = buildErrorMessage(prefix,
+        _prefix.clear();
+        _prefix = ":" + _serverName + " " + messagesError[ERR_NOSUCHNICKCHANNEL].code + " " + client->getNickname();
+
+        _errorMsg.clear();
+        _errorMsg = buildErrorMessage(_prefix,
                                     channelName,
                                     messagesError[ERR_NOSUCHNICKCHANNEL].message);
-        return (sendMessageToClient(client, errorMsg));
+        return (sendMessageToClient(client, _errorMsg));
     }
     Channel* channel = chanIt->second;
 
     // Comprobamos que el ejecutor esté en el canal
     if (!channel->hasClient(client))
     {
-        prefix += messagesError[ERR_NOTONCHANNEL].code + " " + client->getNickname();
-        errorMsg = buildErrorMessage(prefix,
+        _prefix.clear();
+        _prefix = ":" + _serverName + " " + messagesError[ERR_NOTONCHANNEL].code + " " + client->getNickname();
+
+        _errorMsg.clear();
+        _errorMsg = buildErrorMessage(_prefix,
                                     channel->getName(),
                                     messagesError[ERR_NOTONCHANNEL].message);
-        return (sendMessageToClient(client, errorMsg));
+        return (sendMessageToClient(client, _errorMsg));
     }
 
     // Si el cliente no es operador, lanzamos error
     if (!channel->isOperator(client))
     {
-        prefix += messagesError[ERR_CHANOPRIVSNEEDED].code + " " + client->getNickname();
-        errorMsg = buildErrorMessage(prefix,
+        _prefix.clear();
+        _prefix = ":" + _serverName + " " + messagesError[ERR_CHANOPRIVSNEEDED].code + " " + client->getNickname();
+
+        _errorMsg.clear();
+        _errorMsg = buildErrorMessage(_prefix,
                                     channel->getName(),
                                     messagesError[ERR_CHANOPRIVSNEEDED].message);
-        return (sendMessageToClient(client, errorMsg));
+        return (sendMessageToClient(client, _errorMsg));
     }
 
     // Buscamos el cliente a expulsar
     std::map<std::string, Client*>::iterator nickIt = _serverNicknames.find(targetNickname);
     if (nickIt == _serverNicknames.end())
     {
-        std::cout << "No such nick: " << targetNickname << std::endl;
-        prefix += messagesError[ERR_NOSUCHNICKCHANNEL].code + " " + client->getNickname();
-        errorMsg = buildErrorMessage(prefix,
+        _prefix.clear();
+        _prefix = ":" + _serverName + " " + messagesError[ERR_NOSUCHNICKCHANNEL].code + " " + client->getNickname();
+
+        _errorMsg.clear();
+        _errorMsg = buildErrorMessage(_prefix,
                                     targetNickname,
                                     messagesError[ERR_NOSUCHNICKCHANNEL].message);
-        return (sendMessageToClient(client, errorMsg));
+        return (sendMessageToClient(client, _errorMsg));
     }
     Client* targetClient = nickIt->second;
 
@@ -175,9 +203,10 @@ void    ServerLogic::handleKICK(Client* client, const ParsedInput& input)
     }
 
     // Construir mensaje de KICK para enviar a todos
-    prefix = ":" + client->getNickname() + "!" + client->getUsername() + "@" + _serverHost;
+    _prefix.clear();
+    _prefix = ":" + client->getNickname() + "!" + client->getUsername() + "@" + _serverHost;
 
-    std::string kickMsg = buildMessage(prefix, "KICK", "", "");
+    std::string kickMsg = buildMessage(_prefix, "KICK", "", "");
     kickMsg += " " + channel->getName() + " " + targetClient->getNickname() + " :" + msg + "\r\n";
 
     // Notificamos a todos los miembros del canal
@@ -202,39 +231,45 @@ void    ServerLogic::handleTOPIC(Client* client, const ParsedInput& input)
 
     const std::string& channelName = input.params[0];
 
-    std::string prefix = ":" + _serverName + " ";
-    std::string errorMsg;
-
     // Comprobar si el cliente está registrado
     if (!client->isRegistered())
     {
-        prefix += messagesError[ERR_NOTREGISTERED].code + " " + client->getNickname();
-        errorMsg = buildErrorMessage(prefix,
+        _prefix.clear();
+        _prefix = ":" + _serverName + " " + messagesError[ERR_NOTREGISTERED].code + " " + client->getNickname();
+
+        _errorMsg.clear();
+        _errorMsg = buildErrorMessage(_prefix,
                                     "",
                                     messagesError[ERR_NOTREGISTERED].message);
-        return (sendMessageToClient(client, errorMsg));
+        return (sendMessageToClient(client, _errorMsg));
     }
     
     // Primero buscamos el canal
     std::map<std::string, Channel*>::iterator it = _serverChannels.find(channelName);
     if (it == _serverChannels.end())
     {
-        prefix += messagesError[ERR_NOSUCHNICKCHANNEL].code + " " + client->getNickname();
-        errorMsg = buildErrorMessage(prefix,
+        _prefix.clear();
+        _prefix = ":" + _serverName + " " + messagesError[ERR_NOSUCHNICKCHANNEL].code + " " + client->getNickname();
+
+        _errorMsg.clear();
+        _errorMsg = buildErrorMessage(_prefix,
                                     channelName,
                                     messagesError[ERR_NOSUCHNICKCHANNEL].message);
-        return (sendMessageToClient(client, errorMsg));
+        return (sendMessageToClient(client, _errorMsg));
     }
     Channel* channel = it->second;
 
     // Si el cliente no es miembro del canal, lanzamos un error
     if (!channel->hasClient(client))
     {
-        prefix += messagesError[ERR_NOTONCHANNEL].code + " " + client->getNickname();
-        errorMsg = buildErrorMessage(prefix,
+        _prefix.clear();
+        _prefix = ":" + _serverName + " " + messagesError[ERR_NOTONCHANNEL].code + " " + client->getNickname();
+
+        _errorMsg.clear();
+        _errorMsg = buildErrorMessage(_prefix,
                                     channel->getName(),
                                     messagesError[ERR_NOTONCHANNEL].message);
-        return (sendMessageToClient(client, errorMsg));
+        return (sendMessageToClient(client, _errorMsg));
     }
 
     std::string replayMsg;
@@ -277,11 +312,14 @@ void    ServerLogic::handleTOPIC(Client* client, const ParsedInput& input)
     // Si client quiere cambiar el tema, debe ser operador y el canal debe permitirlo
     if (channel->isTopicProtected() && !channel->isOperator(client))
     {
-        prefix += messagesError[ERR_CHANOPRIVSNEEDED].code + " " + client->getNickname();
-        errorMsg = buildErrorMessage(prefix,
+        _prefix.clear();
+        _prefix = ":" + _serverName + " " + messagesError[ERR_CHANOPRIVSNEEDED].code + " " + client->getNickname();
+
+        _errorMsg.clear();
+        _errorMsg = buildErrorMessage(_prefix,
                                     channel->getName(),
                                     messagesError[ERR_CHANOPRIVSNEEDED].message);
-        return (sendMessageToClient(client, errorMsg));
+        return (sendMessageToClient(client, _errorMsg));
     }
 
     // Establecemos el nuevo tema
@@ -296,8 +334,9 @@ void    ServerLogic::handleTOPIC(Client* client, const ParsedInput& input)
     channel->setTimeSet(time_to_string(now));
 
     // Construimos el mensaje de TOPIC para enviar a todos
-    prefix = ":" + client->getNickname() + "!" + client->getUsername() + "@" + _serverHost;
-    std::string topicMsg = buildMessage(prefix, "TOPIC", channel->getName(), newTopic);
+    _prefix.clear();
+    _prefix = ":" + client->getNickname() + "!" + client->getUsername() + "@" + _serverHost;
+    std::string topicMsg = buildMessage(_prefix, "TOPIC", channel->getName(), newTopic);
 
     // Notificamos a todos los miembros del canal
     sendMessageToChannel(channel, topicMsg, NULL);
@@ -308,16 +347,16 @@ void    ServerLogic::handleJOIN(Client* client, const ParsedInput& input)
 {
     // Juan :irc.server.com 461 <nick> MODE :Not enough parameters
 
-    std::string prefix = ":" + _serverName + " ";
-    std::string errorMsg;
-
     if (!client->isRegistered())
     {
-        prefix += messagesError[ERR_NOTREGISTERED].code + " " + client->getNickname();
-        errorMsg = buildErrorMessage(prefix,
+        _prefix.clear();
+        _prefix = ":" + _serverName + " " + messagesError[ERR_NOTREGISTERED].code + " " + client->getNickname();
+
+        _errorMsg.clear();
+        _errorMsg = buildErrorMessage(_prefix,
                                     "",
                                     messagesError[ERR_NOTREGISTERED].message);
-        return (sendMessageToClient(client, errorMsg));
+        return (sendMessageToClient(client, _errorMsg));
     }
 
     // El primer parámetro contiene la lista de canales separados por ','
@@ -387,11 +426,14 @@ void    ServerLogic::handleJOIN(Client* client, const ParsedInput& input)
             {
                 if (key.empty() || channel->getPassword() != key)
                 {
-                    errorMsg = buildErrorMessage(prefix +
-                                                messagesError[ERR_BADCHANNELKEY].code + " " + client->getNickname() + " ",
+                    _prefix.clear();
+                    _prefix = ":" + _serverName + " " + messagesError[ERR_BADCHANNELKEY].code + " " + client->getNickname() + " ";
+
+                    _errorMsg.clear();
+                    _errorMsg = buildErrorMessage(_prefix,
                                                 channel->getName(),
                                                 messagesError[ERR_BADCHANNELKEY].message);
-                    return (sendMessageToClient(client, errorMsg));
+                    return (sendMessageToClient(client, _errorMsg));
                 }
             }
             else if (clientsCopy.empty()) // Canal nuevo
@@ -399,11 +441,14 @@ void    ServerLogic::handleJOIN(Client* client, const ParsedInput& input)
                 // Si se proporciona una clave, la establecemos
                 if (key != "" && !Parser::ft_checkkey(key))
                 {
-                    errorMsg = buildErrorMessage(prefix +
-                                                messagesError[ERR_BADCHANNELKEY].code + " " + client->getNickname() + " ",
+                    _prefix.clear();
+                    _prefix = ":" + _serverName + " " + messagesError[ERR_BADCHANNELKEY].code + " " + client->getNickname() + " ";
+
+                    _errorMsg.clear();
+                    _errorMsg = buildErrorMessage(_prefix,
                                                 channel->getName(),
                                                 messagesError[ERR_BADCHANNELKEY].message);                    
-                    return (sendMessageToClient(client, errorMsg));
+                    return (sendMessageToClient(client, _errorMsg));
                 }
                 channel->setPassword(key);
             }
@@ -411,29 +456,36 @@ void    ServerLogic::handleJOIN(Client* client, const ParsedInput& input)
             // Comprobar si el canal es invite-only
             if (channel->isInviteOnly() && !channel->isInvited(client))
             {
-                errorMsg = buildErrorMessage(prefix +
-                                            messagesError[ERR_INVITEONLYCHAN].code + " " + client->getNickname() + " ",
+                _prefix.clear();
+                _prefix = ":" + _serverName + " " + messagesError[ERR_INVITEONLYCHAN].code + " " + client->getNickname() + " ";
+
+                _errorMsg.clear();
+                _errorMsg = buildErrorMessage(_prefix,
                                             channel->getName(),
                                             messagesError[ERR_INVITEONLYCHAN].message);
-                return (sendMessageToClient(client, errorMsg));
+                return (sendMessageToClient(client, _errorMsg));
             }
             
             // Si el canal está lleno, lanzamos error
             if (clientsCopy.size() >= channel->getMaxClients())
             {
-                errorMsg = buildErrorMessage(prefix +
-                                            messagesError[ERR_CHANNELISFULL].code + " " + client->getNickname() + " ",
+                _prefix.clear();
+                _prefix = ":" + _serverName + " " + messagesError[ERR_CHANNELISFULL].code + " " + client->getNickname() + " ";
+
+                _errorMsg.clear();
+                _errorMsg = buildErrorMessage(_prefix,
                                             channel->getName(),
                                             messagesError[ERR_CHANNELISFULL].message);
-                return (sendMessageToClient(client, errorMsg));
+                return (sendMessageToClient(client, _errorMsg));
             }
 
             channel->addClient(client);
             client->joinChannel(channel);
             
             // Construimos el mensaje de JOIN para enviar a todos
-            prefix = ":" + client->getNickname() + "!" + client->getUsername() + "@" + _serverHost;
-            std::string joinMsg = buildMessage(prefix,
+            _prefix.clear();
+            _prefix = ":" + client->getNickname() + "!" + client->getUsername() + "@" + _serverHost;
+            std::string joinMsg = buildMessage(_prefix,
                                             "JOIN",
                                             "",
                                             channel->getName());
@@ -509,16 +561,16 @@ void    ServerLogic::handleMODE(Client* client, const ParsedInput& input)
 {
     // Juan :irc.server.com 461 <nick> MODE :Not enough parameters
 
-    std::string prefix = ":" + _serverName + " ";
-    std::string errorMsg;
-
     if (!client->isRegistered())
     {
-        prefix += messagesError[ERR_NOTREGISTERED].code + " " + client->getNickname();
-        errorMsg = buildErrorMessage(prefix,
+        _prefix.clear();
+        _prefix = ":" + _serverName + " " + messagesError[ERR_NOTREGISTERED].code + " " + client->getNickname();
+
+        _errorMsg.clear();
+        _errorMsg = buildErrorMessage(_prefix,
                                     "",
                                     messagesError[ERR_NOTREGISTERED].message);
-        return (sendMessageToClient(client, errorMsg));
+        return (sendMessageToClient(client, _errorMsg));
     }
 
     const std::string& target = input.params[0];
@@ -527,12 +579,14 @@ void    ServerLogic::handleMODE(Client* client, const ParsedInput& input)
     std::map<std::string, Channel*>::iterator chanIt = _serverChannels.find(target);
     if (chanIt == _serverChannels.end())
     {
-        // No es un canal, lanzamos error
-        prefix += messagesError[ERR_NOSUCHNICKCHANNEL].code + " " + client->getNickname();
-        errorMsg = buildErrorMessage(prefix,
+        _prefix.clear();
+        _prefix = ":" + _serverName + " " + messagesError[ERR_NOSUCHNICKCHANNEL].code + " " + client->getNickname();
+
+        _errorMsg.clear();
+        _errorMsg = buildErrorMessage(_prefix,
                                     target,
                                     messagesError[ERR_NOSUCHNICKCHANNEL].message);
-        return (sendMessageToClient(client, errorMsg));
+        return (sendMessageToClient(client, _errorMsg));
     }
     Channel* channel = chanIt->second;
 
@@ -541,18 +595,19 @@ void    ServerLogic::handleMODE(Client* client, const ParsedInput& input)
     // Comprobamos que el ejecutor esté en el canal
     if (!channel->hasClient(client))
     {
-        prefix += messagesError[ERR_NOTONCHANNEL].code + " " + client->getNickname();
-        errorMsg = buildErrorMessage(prefix,
+
+        _prefix.clear();
+        _prefix = ":" + _serverName + " " + messagesError[ERR_NOTONCHANNEL].code + " " + client->getNickname();
+        _errorMsg = buildErrorMessage(_prefix,
                                     channel->getName(),
                                     messagesError[ERR_NOTONCHANNEL].message);
-        return (sendMessageToClient(client, errorMsg));
+        return (sendMessageToClient(client, _errorMsg));
     }
 
     // Si solo hay un parámetro, mostramos el modo actual
     if (input.params.size() == 1)
     {
         std::string modes = channel->getModes();
-        prefix = ":" + _serverName + " ";
         std::string replayMsg = buildReplyMessage(messagesReplay[RPL_CHANNELMODEIS].code,
                                                 client,
                                                 channel->getName(),
@@ -565,11 +620,14 @@ void    ServerLogic::handleMODE(Client* client, const ParsedInput& input)
     // Si el cliente no es operador, lanzamos error
     if (!channel->isOperator(client))
     {
-        prefix += messagesError[ERR_CHANOPRIVSNEEDED].code + " " + client->getNickname();
-        errorMsg = buildErrorMessage(prefix,
+        _prefix.clear();
+        _prefix = ":" + _serverName + " " + messagesError[ERR_CHANOPRIVSNEEDED].code + " " + client->getNickname();
+
+        _errorMsg.clear();
+        _errorMsg = buildErrorMessage(_prefix,
                                     channel->getName(),
                                     messagesError[ERR_CHANOPRIVSNEEDED].message);
-        return (sendMessageToClient(client, errorMsg));
+        return (sendMessageToClient(client, _errorMsg));
     }
 
     // Modificar modos del canal
@@ -606,20 +664,26 @@ void    ServerLogic::handleMODE(Client* client, const ParsedInput& input)
                     {
                         if (index >= input.params.size())
                         {
-                            prefix += messagesError[ERR_NEEDMOREPARAMS].code + " " + client->getNickname();
-                            errorMsg = buildErrorMessage(prefix,
+                            _prefix.clear();
+                            _prefix = ":" + _serverName + " " + messagesError[ERR_NEEDMOREPARAMS].code + " " + client->getNickname();
+
+                            _errorMsg.clear();
+                            _errorMsg = buildErrorMessage(_prefix,
                                                         channel->getName(),
                                                         messagesError[ERR_NEEDMOREPARAMS].message);
-                            return (sendMessageToClient(client, errorMsg));
+                            return (sendMessageToClient(client, _errorMsg));
                         }
                         // parsear primero input.params[index++
                         if (!Parser::ft_checkkey(input.params[index]))
                         {
-                            prefix += messagesError[ERR_BADCHANNELKEY].code + " " + client->getNickname();
-                            errorMsg = buildErrorMessage(prefix,
+                            _prefix.clear();
+                            _prefix = ":" + _serverName + " " + messagesError[ERR_BADCHANNELKEY].code + " " + client->getNickname();
+
+                            _errorMsg.clear();
+                            _errorMsg = buildErrorMessage(_prefix,
                                                         channel->getName(),
                                                         messagesError[ERR_BADCHANNELKEY].message);
-                            return (sendMessageToClient(client, errorMsg));
+                            return (sendMessageToClient(client, _errorMsg));
                         }
                         channel->setPassword(input.params[index++]);
                     }
@@ -631,11 +695,14 @@ void    ServerLogic::handleMODE(Client* client, const ParsedInput& input)
                 {
                     if (index >= input.params.size())
                     {
-                        prefix += messagesError[ERR_NEEDMOREPARAMS].code + " " + client->getNickname();
-                        errorMsg = buildErrorMessage(prefix,
+                        _prefix.clear();
+                        _prefix = ":" + _serverName + " " + messagesError[ERR_NEEDMOREPARAMS].code + " " + client->getNickname();
+
+                        _errorMsg.clear();
+                        _errorMsg = buildErrorMessage(_prefix,
                                                     channel->getName(),
                                                     messagesError[ERR_NEEDMOREPARAMS].message);
-                        return (sendMessageToClient(client, errorMsg));
+                        return (sendMessageToClient(client, _errorMsg));
                     }
                     
                     const std::string& operatorName = input.params[index++];
@@ -644,11 +711,14 @@ void    ServerLogic::handleMODE(Client* client, const ParsedInput& input)
                     std::map<std::string, Client*>::iterator nickIt = _serverNicknames.find(operatorName);
                     if (nickIt == _serverNicknames.end())
                     {
-                        prefix += messagesError[ERR_NOSUCHNICKCHANNEL].code + " " + client->getNickname();
-                        errorMsg = buildErrorMessage(prefix,
+                        _prefix.clear();
+                        _prefix = ":" + _serverName + " " + messagesError[ERR_NOSUCHNICKCHANNEL].code + " " + client->getNickname();
+                        
+                        _errorMsg.clear();
+                        _errorMsg = buildErrorMessage(_prefix,
                                                     operatorName,
                                                     messagesError[ERR_NOSUCHNICKCHANNEL].message);
-                        return (sendMessageToClient(client, errorMsg));
+                        return (sendMessageToClient(client, _errorMsg));
                     }
 
                     Client* operatorClient = nickIt->second;
@@ -661,8 +731,12 @@ void    ServerLogic::handleMODE(Client* client, const ParsedInput& input)
                             break ;; // No se puede quitar el único operador
 
                         channel->removeOperator(operatorClient);
-                        prefix = ":" + client->getNickname() + "!" + client->getUsername() + "@" + _serverHost;
-                        modeMsg = buildMessage(prefix,
+
+                        _prefix.clear();
+                        _prefix = ":" + client->getNickname() + "!" + client->getUsername() + "@" + _serverHost;
+
+                        modeMsg.clear();
+                        modeMsg = buildMessage(_prefix,
                                                 "MODE",
                                                 channel->getName(),
                                                 "-o " + operatorClient->getUsername());
@@ -678,12 +752,16 @@ void    ServerLogic::handleMODE(Client* client, const ParsedInput& input)
                                 if (potentialOp != operatorClient)
                                 {
                                     channel->addOperator(potentialOp);
-                                    prefix = ":" + client->getNickname() + "!" + client->getUsername() + "@" + _serverHost;
-                                    std::string opMsg = buildMessage(prefix,
+
+                                    _prefix.clear();
+                                    _prefix = ":" + client->getNickname() + "!" + client->getUsername() + "@" + _serverHost;
+
+                                    modeMsg.clear();
+                                    modeMsg = buildMessage(_prefix,
                                                                     "MODE",
                                                                     channel->getName(),
                                                                     "+o " + potentialOp->getUsername());
-                                    sendMessageToChannel(channel, opMsg, NULL);
+                                    sendMessageToChannel(channel, modeMsg, NULL);
                                     break ;
                                 }
                                 it++;
@@ -698,11 +776,11 @@ void    ServerLogic::handleMODE(Client* client, const ParsedInput& input)
                     {
                         if (index >= input.params.size())
                         {
-                            prefix += messagesError[ERR_NEEDMOREPARAMS].code + " " + client->getNickname();
-                            errorMsg = buildErrorMessage(prefix,
+                            _prefix = ":" + _serverName + " " + messagesError[ERR_NEEDMOREPARAMS].code + " " + client->getNickname();
+                            _errorMsg = buildErrorMessage(_prefix,
                                                         channel->getName(),
                                                         messagesError[ERR_NEEDMOREPARAMS].message);
-                            return (sendMessageToClient(client, errorMsg));
+                            return (sendMessageToClient(client, _errorMsg));
                         }
                         // parsear primero input.params[index++]
                         size_t limit = static_cast<size_t>(std::atoi(input.params[index++].c_str()));
@@ -717,8 +795,11 @@ void    ServerLogic::handleMODE(Client* client, const ParsedInput& input)
                     else
                         channel->setMaxClients(channel->getMaxClients());
 
-                    prefix = ":" + client->getNickname() + "!" + client->getUsername() + "@" + _serverHost;
-                    modeMsg = buildMessage(prefix,
+                    _prefix.clear();
+                    _prefix = ":" + client->getNickname() + "!" + client->getUsername() + "@" + _serverHost;
+
+                    modeMsg.clear();
+                    modeMsg = buildMessage(_prefix,
                                         "MODE",
                                         channel->getName(),
                                         "-l " + to_string_c98(channel->getMaxClients()));
@@ -727,11 +808,14 @@ void    ServerLogic::handleMODE(Client* client, const ParsedInput& input)
                 }
                 default:
                 {
-                    prefix += messagesError[ERR_UNKNOWNMODEFLAG].code + " " + client->getNickname();
-                    errorMsg = buildErrorMessage(prefix,
+                    _prefix.clear();
+                    _prefix = ":" + _serverName + " " + messagesError[ERR_UNKNOWNMODEFLAG].code + " " + client->getNickname();
+
+                    _errorMsg.clear();
+                    _errorMsg = buildErrorMessage(_prefix,
                                                 std::string(1, modeChar),
                                                 messagesError[ERR_UNKNOWNMODEFLAG].message);
-                    return (sendMessageToClient(client, errorMsg));
+                    return (sendMessageToClient(client, _errorMsg));
                 }
             }
         }
@@ -739,8 +823,9 @@ void    ServerLogic::handleMODE(Client* client, const ParsedInput& input)
     }
 
     // Notificamos a todos los miembros del canal sobre el cambio de modos
-    prefix = ":" + client->getNickname() + "!" + client->getUsername() + "@" + _serverHost;
-    std::string fullMsg = buildMessage(prefix,
+    _prefix.clear();
+    _prefix = ":" + client->getNickname() + "!" + client->getUsername() + "@" + _serverHost;
+    std::string fullMsg = buildMessage(_prefix,
                                         "MODE",
                                         channel->getName(),
                                         modeChanges);
@@ -753,17 +838,17 @@ void    ServerLogic::handlePART(Client* client, const ParsedInput& input)
 {
     // Juan :irc.server.com 461 <nick> PART :Not enough parameters
 
-    std::string prefix = ":" + _serverName + " ";
-    std::string errorMsg;
-
     // Comprobar si el cliente está registrado
     if (!client->isRegistered())
     {
-        prefix += messagesError[ERR_NOTREGISTERED].code + " " + client->getNickname();
-        errorMsg = buildErrorMessage(prefix,
+        _prefix.clear();
+        _prefix = ":" + _serverName + " " + messagesError[ERR_NOTREGISTERED].code + " " + client->getNickname();
+
+        _errorMsg.clear();
+        _errorMsg = buildErrorMessage(_prefix,
                                     "",
                                     messagesError[ERR_NOTREGISTERED].message);
-        return (sendMessageToClient(client, errorMsg));
+        return (sendMessageToClient(client, _errorMsg));
     }
 
     // El primer parámetro contiene la lista de canales separados por ','
@@ -784,31 +869,38 @@ void    ServerLogic::handlePART(Client* client, const ParsedInput& input)
         std::map<std::string, Channel*>::iterator it = _serverChannels.find(channelName);
         if (it == _serverChannels.end())
         {
-            prefix += messagesError[ERR_NOSUCHNICKCHANNEL].code + " " + client->getNickname();
-            errorMsg = buildErrorMessage(prefix,
+            _prefix.clear();
+            _prefix = ":" + _serverName + " " + messagesError[ERR_NOSUCHNICKCHANNEL].code + " " + client->getNickname();
+
+            _errorMsg.clear();
+            _errorMsg = buildErrorMessage(_prefix,
                                         channelName,
                                         messagesError[ERR_NOSUCHNICKCHANNEL].message);
             
             // Enviar el mensaje de error al cliente
-            return (sendMessageToClient(client, errorMsg));
+            return (sendMessageToClient(client, _errorMsg));
         }
         Channel* channel = it->second;
 
         // Si el cliente no es miembro del canal, lanzamos un error
         if (!channel->hasClient(client))
         {
-            prefix += messagesError[ERR_NOTONCHANNEL].code + " " + client->getNickname();
-            errorMsg = buildErrorMessage(prefix,
+            _prefix.clear();
+            _prefix = ":" + _serverName + " " + messagesError[ERR_NOTONCHANNEL].code + " " + client->getNickname();
+
+            _errorMsg.clear();
+            _errorMsg = buildErrorMessage(_prefix,
                                         channel->getName(),
                                         messagesError[ERR_NOTONCHANNEL].message);
             
             // Enviar el mensaje de error al cliente
-            return (sendMessageToClient(client, errorMsg));
+            return (sendMessageToClient(client, _errorMsg));
         }
         
         // Construimos el mensaje de PART para enviar a todos
-        std::string prefix = ":" + client->getNickname() + "!" + client->getUsername() + "@" + _serverHost;
-        std::string partMsg = buildMessage(prefix, "PART", channelName, msg);
+        _prefix.clear();
+        _prefix = ":" + client->getNickname() + "!" + client->getUsername() + "@" + _serverHost;
+        std::string partMsg = buildMessage(_prefix, "PART", channelName, msg);
 
         // Notificamos a todos los miembros del canal
         sendMessageToChannel(channel, partMsg, NULL);

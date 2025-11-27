@@ -21,6 +21,10 @@ class ServerLogic
         std::map<std::string, Client*>      _serverNicknames;
         std::map<std::string, Channel *>    _serverChannels;
 
+        std::string                         _prefix;
+        std::string                         _errorMsg;
+        std::string                         _replyMsg;
+
         //User Authentication
         void                                handlePASS(Client* client, const ParsedInput& input);
         void                                handleQUIT(Client* client, const ParsedInput& input);

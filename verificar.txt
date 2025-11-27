@@ -1,5 +1,4 @@
 clear antes de absolutamente todos los prefix, errorMsg, ComandMsg
-copychannels y copyclients para todos cuando itere sobre canales o clientes
 👁️ -he cambado topic si ser operador
 -he invitado sin ser oprador, le ha llegado el mje a la persona ( de la invitacion) pero no se une automaticamente. debe ser asi?
 -siendo operador me ha dado esto :
