@@ -78,6 +78,8 @@ class ServerLogic
 
         void                                executeCommand(const ParsedInput& input, int clientFd);
 
+        void                                handleOperator(Channel* channel, Client* client);
+
         void                                sendMessageToClient(Client* client, const std::string& message);
         void                                sendMessageToChannel(Channel* channel, const std::string& message, Client* sender = NULL);
 };

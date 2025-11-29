@@ -164,56 +164,6 @@ std::string ServerLogic::buildReplyMessage(std::string code,
     return (fullMsg);
 }
 
-// Devuelve un canal existente o lo crea si no existe
-Channel*    ServerLogic::createChannel(const std::string& name, Client* creator)
-{
-    // Validar nombre de canal
-    if (!Parser::ft_checksinglechannel(name))
-    {
-        _prefix.clear();
-        _prefix = ":" + _serverName + " ";
-
-        _errorMsg.clear();
-        _errorMsg = buildErrorMessage(_prefix +
-                                        messagesError[ERR_BADCHANMASK].code + " " + creator->getNickname() + " ",
-                                        name,
-                                        messagesError[ERR_BADCHANMASK].message);
-        sendMessageToClient(creator, _errorMsg);
-        return (NULL);
-    }
-
-    // Buscar canal existente
-    std::map<std::string, Channel*>::const_iterator it = _serverChannels.find(name);
-    if (it != _serverChannels.end())
-        return (it->second);
-
-    // Crear nuevo canal
-    Channel* newChannel = NULL;
-    try
-    {
-        newChannel = new Channel(name); // Por defecto límite de clientes
-    }
-    catch(const std::bad_alloc& e)
-    {
-        throw(std::string(e.what()));
-    }
-
-    if (_serverChannels.size() + 1 > MAX_CHANNELS)
-    {
-        delete (newChannel);
-        _errorMsg.clear();
-        _errorMsg = ":" + _serverName + " *" + " :Server is full\r\n";
-        throw (_errorMsg);
-    }
-    // Añadir al mapa de canales
-    _serverChannels[name] = newChannel;
-
-    // El creador es operador por defecto
-    newChannel->addOperator(creator);
-
-    return (newChannel);
-}
-
 void    ServerLogic::serverAddClient(int fd)
 {
     // Si ya existe, no hacemos nada
@@ -281,6 +231,56 @@ void ServerLogic::serverRemoveClient(int fd)
     delete client;
 }
 
+// Devuelve un canal existente o lo crea si no existe
+Channel*    ServerLogic::createChannel(const std::string& name, Client* creator)
+{
+    // Validar nombre de canal
+    if (!Parser::ft_checksinglechannel(name))
+    {
+        _prefix.clear();
+        _prefix = ":" + _serverName + " ";
+
+        _errorMsg.clear();
+        _errorMsg = buildErrorMessage(_prefix +
+                                        messagesError[ERR_BADCHANMASK].code + " " + creator->getNickname() + " ",
+                                        name,
+                                        messagesError[ERR_BADCHANMASK].message);
+        sendMessageToClient(creator, _errorMsg);
+        return (NULL);
+    }
+
+    // Buscar canal existente
+    std::map<std::string, Channel*>::const_iterator it = _serverChannels.find(name);
+    if (it != _serverChannels.end())
+        return (it->second);
+
+    // Crear nuevo canal
+    Channel* newChannel = NULL;
+    try
+    {
+        newChannel = new Channel(name); // Por defecto límite de clientes
+    }
+    catch(const std::bad_alloc& e)
+    {
+        throw(std::string(e.what()));
+    }
+
+    if (_serverChannels.size() + 1 > MAX_CHANNELS)
+    {
+        delete (newChannel);
+        _errorMsg.clear();
+        _errorMsg = ":" + _serverName + " *" + " :Server is full\r\n";
+        throw (_errorMsg);
+    }
+    // Añadir al mapa de canales
+    _serverChannels[name] = newChannel;
+
+    // El creador es operador por defecto
+    newChannel->addOperator(creator);
+
+    return (newChannel);
+}
+
 void    ServerLogic::executeCommand(const ParsedInput& input, int clientFd)
 {
     if (input.name.empty() )
@@ -329,6 +329,37 @@ void    ServerLogic::executeCommand(const ParsedInput& input, int clientFd)
     catch(const std::string& errorMsg)
     {
         throw (errorMsg);
+    }
+}
+
+void ServerLogic::handleOperator(Channel* channel, Client* client)
+{
+    std::set<Client*> clientsCopy = channel->getClients();
+    std::string modeMsg;
+    
+    // Asignar nuevo operador si hay mas clientes y no hay operadores
+    if (channel->getOperators().size() == 0)
+    {
+        std::set<Client *>::const_iterator it = clientsCopy.begin();
+        while (it != clientsCopy.end())
+        {
+            Client* potentialOp = *it;
+            if (potentialOp != client)
+            {
+                channel->addOperator(potentialOp);
+                _prefix.clear();
+                _prefix = ":" + client->getNickname() + "!" + client->getUsername() + "@" + _serverHost;
+
+                modeMsg.clear();
+                modeMsg = buildMessage(_prefix,
+                                        "MODE",
+                                        channel->getName(),
+                                        "+o " + potentialOp->getUsername());
+                sendMessageToChannel(channel, modeMsg, NULL);
+                break ;
+            }
+            it++;
+        }
     }
 }
 
