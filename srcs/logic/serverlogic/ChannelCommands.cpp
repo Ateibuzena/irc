@@ -234,6 +234,7 @@ void    ServerLogic::handleKICK(Client* client, const ParsedInput& input)
 
     // Quitamos al cliente del canal
     channel->removeClient(targetClient);
+    handleOperator(channel, targetClient);
     targetClient->leaveChannel(channel);
 
     // Si el canal queda vacío, eliminarlo del servidor
@@ -794,7 +795,7 @@ void    ServerLogic::handleMODE(Client* client, const ParsedInput& input)
                     modeMsg = buildMessage(_prefix,
                                             "MODE",
                                             channel->getName(),
-                                            mode + " " + operatorClient->getUsername());
+                                            mode + " " + operatorClient->getNickname());
                     sendMessageToChannel(channel, modeMsg, NULL);
 
                     break;
@@ -827,12 +828,18 @@ void    ServerLogic::handleMODE(Client* client, const ParsedInput& input)
                     _prefix.clear();
                     _prefix = ":" + client->getNickname() + "!" + client->getUsername() + "@" + _serverHost;
 
+                    std::string sign;
+                    if (!adding)
+                        sign = "-";
+                    else
+                        sign = "+";
+                    
                     modeMsg.clear();
                     modeMsg = buildMessage(_prefix,
                                         "MODE",
                                         channel->getName(),
-                                        "-l " + to_string_c98(channel->getMaxClients()));
-                    sendMessageToClient(client, modeMsg);
+                                        sign + "l " + to_string_c98(channel->getMaxClients()));
+                    sendMessageToChannel(channel, modeMsg, NULL);
                     break ;
                 }
                 default:
@@ -851,15 +858,6 @@ void    ServerLogic::handleMODE(Client* client, const ParsedInput& input)
         i++;
     }
 
-    // Notificamos a todos los miembros del canal sobre el cambio de modos
-    /*_prefix.clear();
-    _prefix = ":" + client->getNickname() + "!" + client->getUsername() + "@" + _serverHost;
-    std::string fullMsg = buildMessage(_prefix,
-                                        "MODE",
-                                        channel->getName(),
-                                        modeChanges);
-
-    sendMessageToChannel(channel, fullMsg, NULL);*/
 }
 
 // Manejar el comando PART (salir de canal) (Replay listo, Msg listo, Error listo)

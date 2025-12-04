@@ -49,13 +49,6 @@ void   Channel::removeClient(Client* client)
     // Eliminar al cliente de operadores
     _operators.erase(client);
 
-    // Asignar nuevo operador si es necesario
-    if (_operators.empty() && !_clients.empty())
-    {
-        Client* newOp = *(_clients.begin());
-        _operators.insert(newOp);
-    }
-
     // Eliminar al cliente de invitados
     _invited.erase(client);
 }

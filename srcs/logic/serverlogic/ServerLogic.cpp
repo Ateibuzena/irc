@@ -354,7 +354,7 @@ void ServerLogic::handleOperator(Channel* channel, Client* client)
                 modeMsg = buildMessage(_prefix,
                                         "MODE",
                                         channel->getName(),
-                                        "+o " + potentialOp->getUsername());
+                                        "+o " + potentialOp->getNickname());
                 sendMessageToChannel(channel, modeMsg, NULL);
                 break ;
             }
