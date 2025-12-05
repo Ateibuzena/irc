@@ -1,22 +1,40 @@
 #ifndef PARSER_HPP
 #define PARSER_HPP
 
-#include <string>
-#include <sstream>
-#include <vector>
-#include "../Command.hpp"
+# include <string>
+# include <sstream>
+# include <vector>
+# include <map>
+# include "../utils/Utils.hpp"
 
-class Parser {
-public:
-    Parser();
-    ~Parser();
+class Parser
+{
+    private:
 
-    Command parse(const std::string &rawMessage);
+        static std::map<std::string, int>   commands;
 
-    // más adelante se conecta a la lógica:
-    void dispatch(const Command &cmd, int clientFd);
+    public:
+
+        static void                         initCommands();
+
+        static void                         ft_params(const std::string &rawMessage, ParsedInput &toret, unsigned long i, unsigned long size);
+        static void                         ft_lastparam(const std::string &rawMessage, ParsedInput &toret, unsigned long i, unsigned long size);
+        
+        static bool                         ft_isvalidusername(const std::string& name);
+        //static bool                         ft_checkchanneluser(std::string str);
+
+        static bool                         ft_checkchannel(std::string str);
+        static bool                         ft_checksinglechannel(std::string str);
+
+        //static bool                         ft_checkkeys(std::string str);
+        static bool                         ft_checkkey(std::string str);
+
+        static bool                         ft_checkflags(ParsedInput tocheck);
+        
+        //static bool                         ft_checknumber(std::string str);
+
+        static void                         ft_parsecommand(ParsedInput tocheck, const std::string& servername, const std::string& nickname);
+        static ParsedInput                  parse(const std::string &rawMessage, const std::string& servername, const std::string& nickname);
 };
 
-#endif // PARSER_HPP
-
-/*👉 El parser convierte std::string → Command y luego llama a ServerLogic::executeCommand().*/
+#endif

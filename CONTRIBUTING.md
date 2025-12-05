@@ -1,220 +1,200 @@
-# 🤝 Guía de Contribución - Proyecto IRC (42 Málaga)
+# 🤝 Contribution Guide - IRC Project (42 Málaga)
 
-> Este documento explica las normas de trabajo, formato de commits, estructura de ramas y proceso de colaboración para todos los miembros del equipo.
-
----
-
-## 🧭 Flujo de trabajo con Git
-
-### 🏁 Ramas principales
-
-| Rama | Descripción | Quién la toca |
-|------|--------------|---------------|
-| `main` | Versión **estable** del servidor. Solo merges revisados. | 🔒 Nadie sin revisión |
-| `develop` | Rama de integración. Aquí se fusionan las features de cada persona. | Todos (con PR) |
-| `feature/networking` | Persona 1 (Server - Networking) | 👤 Persona 1 |
-| `feature/parser` | Persona 2 (Parser / Protocol) | 👤 Persona 2 |
-| `feature/logic` | Ana (Lógica - Users & Channels) | 👤 Ana |
+> This document explains the team workflow, commit format, branch structure, and collaboration process for all team members.
 
 ---
 
-## 🌿 Creación de ramas
+## 🧭 Git Workflow
 
-Cada desarrollador trabaja **solo en su rama** y no modifica las de otros.
+### 🏁 Main Branches
 
-Para crear o actualizar una rama:
+| Branch | Description | Who works on it |
+|--------|------------|----------------|
+| `main` | **Stable** server version. Only reviewed merges. | 🔒 Nobody without review |
+| `develop` | Integration branch. Feature branches are merged here. | All (via PR) |
+| `feature/networking` | Noelia (Server - Networking / Core) | 👤 Noelia |
+| `feature/parser` | Juan (Parser / Protocol) | 👤 Juan |
+| `feature/logic` | Ana Zubieta (Application Logic - Users & Channels) | 👤 Ana Zubieta |
+
+---
+
+## 🌿 Branch Creation
+
+Each developer works **only on their own branch** and does not modify others’ branches.
+
+To create or update a branch:
 
 ```bash
 git checkout develop
 git pull origin develop
-git checkout -b feature/<nombre>
-git push -u origin feature/<nombre>
+git checkout -b feature/<name>
+git push -u origin feature/<name>
 ```
 
-Ejemplo (Ana):
+Example (Ana Zubieta):
 
 ```bash
 git checkout develop
 git checkout -b feature/logic
 git push -u origin feature/logic
 ```
+## 💬 Commits — Style Guidelines
 
-## 💬 Commits — Normas de estilo
+Commits should be clear, concise, and specific.
+Use square bracket prefixes [] to indicate the affected module.
 
-Cada commit debe ser claro, corto y específico.
-Usa prefijos entre corchetes [] para identificar el módulo afectado.
+## 📌 Recommended Format
+[Module] Short description of the change
 
-### 📌 Formato recomendado
-
-```bash
-[Tema] Descripción corta del cambio
-```
-
-### 📋 Ejemplos
-
-```bash
-[Logic] Implement Channel class and member tracking
+## 📋 Examples
+[Logic] Implement Client and Channel classes
 [Parser] Fix split() error for trailing params
 [Server] Add poll() loop and client accept
 [Core] Update Makefile and include paths
-```
 
-### ❌ Evita mensajes como:
-
-```bash
+## ❌ Avoid messages like:
 update
-arreglos
-cosas nuevas
-push final
-```
+fixes
+new stuff
+final push
 
-## 🔄 Flujo de integración
-
-### 1️⃣ Desarrollo local
-
-```bash
-# 1. Trabaja en tu rama
+## 🔄 Integration Flow
+### 1️⃣ Local Development
+#### 1. Work on your feature branch
 git checkout feature/logic
 
-# 2. Haz commits pequeños y descriptivos
+#### 2. Make small, descriptive commits
 git add src/Client.cpp
 git commit -m "[Logic] Add Client implementation"
 
-# 3. Sube tus cambios
+#### 3. Push your changes
 git push
-```
 
-### 2️⃣ Actualiza tu rama con develop
+### 2️⃣ Sync Your Branch with develop
 
-Antes de abrir un Pull Request (PR), sincroniza tu rama con develop:
-
+Before opening a Pull Request (PR), synchronize your branch:
 ```bash
 git checkout develop
 git pull origin develop
 git checkout feature/logic
 git merge develop
-# Si hay conflictos, los resuelves aquí
 ```
+#### Resolve conflicts if any
 
 ### 3️⃣ Pull Request (PR)
 
-Cuando tengas algo estable o completo:
+When your feature is stable or complete:
 
-1. Abre un Pull Request desde tu rama → develop.
+    - Open a Pull Request from your branch → develop.
 
-2. Asigna a otro compañero para revisión.
+    - Assign a teammate for review.
 
-3. Espera aprobación antes del merge.
+    - Wait for approval before merging.
 
-Ejemplo:
+### Example:
 
-```bash
 Merge feature/logic → develop
-Descripción: “Añadida gestión de usuarios y canales (Client/Channel)”
-```
+Description: "Added user and channel management (Client/Channel)"
 
-## 🔍 Revisión de código
+## 🔍 Code Review
 
-Antes de aprobar un PR, revisa:
+Before approving a PR, check:
 
-- Que compile sin warnings (make re).
+    - Compiles without warnings (make re).
 
-- Que no haya leaks (valgrind ./ircserv).
+    - No memory leaks (valgrind ./ircserv).
 
-- Que los nombres de funciones y clases sean claros.
+    - Clear function and class names.
 
-- Que los commits sean atómicos y limpios.
+    - Atomic, clean commits.
 
-- Que no haya código comentado o debugging temporal.
+    - No commented-out or temporary debug code.
 
-## 🧪 Testing por módulos
-
-```bash
-Módulo	Qué probar	Cómo testear
-Server (P1)	Conexión y lectura TCP	telnet localhost <port>
-Parser (P2)	Traducción raw → Command	Unit tests con strings
-Logic (P3)	Gestión de usuarios/canales	main temporal simulando comandos
-```
-
-## 🧹 Limpieza de ramas (cuando se mergea)
-
-Cuando una rama feature/* se fusiona con develop, se puede eliminar.
+## 🧪 Module Testing
 
 ```bash
-git branch -d feature/logic
-git push origin --delete feature/logic
+Module	What to test	How to test
+Server (Noelia)	TCP connection and reading	telnet localhost <port>
+Parser (Juan)	Raw → Command translation	Unit tests with strings
+Logic (Ana Zubieta)	User/channel management	Temporary main simulating commands
 ```
 
-⚠️ No elimines ramas que no sean tuyas.
+## 🧹 Branch Cleanup (after merge)
 
-## 💡 Recomendaciones de estilo de código
+Once a feature/* branch is merged into develop, you can delete it:
 
-- C++98 obligatorio (norma 42).
+    git branch -d feature/logic
+    git push origin --delete feature/logic
 
-- No usar auto, nullptr, ni inicialización moderna.
 
-- Respetar nombres coherentes:
+## ⚠️ Do not delete branches that are not yours.
 
-    Clases → PascalCase → ServerLogic, Client
+## 💡 Code Style Recommendations
 
-    Métodos → camelCase → getNickname()
+Use C++98 (42 norm).
 
-    Variables → _snake_case privado → _nickname, _fd
+Avoid auto, nullptr, and modern initialization.
 
-- Incluye #ifndef / #define / #endif en todos los .hpp.
+Follow naming conventions:
 
-## 🧰 Ejemplo de ciclo completo (Ana)
+    - Classes → PascalCase → ServerLogic, Client
+    - Methods → camelCase → getNickname()
+    - Private variables → _snake_case → _nickname, _fd
 
+Include #ifndef / #define / #endif in all .hpp files.
+
+## 🧰 Example Full Cycle (Ana Zubieta)
+#### Create branch
 ```bash
-# Crear rama
 git checkout -b feature/logic develop
 
-# Editar código
+#### Edit code
+```bash
 vim src/Client.cpp
+```
 
-# Commit
+#### Commit
+```bash
 git add includes/Client.hpp src/Client.cpp
 git commit -m "[Logic] Implement Client and Channel management"
+```
 
-# Push
+#### Push
+```bash
 git push
+```
 
-# Mantener actualizada la rama
-
+#### Keep branch updated
+```bash
 git pull origin develop
 git merge develop
 ```
 
-# Crear PR en GitHub: feature/logic → develop
-
-## 🧱 Estructura del proyecto
+Create PR on GitHub: feature/logic → develop
+## 🧱 Project Structure
 
 ```bash
 includes/
-├── Command.hpp # Estructura común (Parser ↔ Logic)
+├── parser/      # Juan - Parser / IRC Protocol
+│   └── Parser.hpp
 │
-├── server/ # Persona 1 - Networking / Core
-│ └── Server.hpp
+├── server/      # Noelia - Networking / Core
+│   └── Server.hpp
 │
-├── parser/ # Persona 2 - Parser / Protocolo
-│ └── Parser.hpp
-│
-└── logic/ # Persona 3 - Lógica de aplicación (Ana)
-├── Client.hpp
-├── Channel.hpp
-└── ServerLogic.hpp
+└── logic/       # Ana Zubieta - Application Logic
+    ├── Client.hpp
+    ├── Channel.hpp
+    └── ServerLogic.hpp
 
-src/
-├── server/
-│ └── Server.cpp
-│
+srcs/
 ├── parser/
-│ └── Parser.cpp
-│
+│   └── Parser.cpp
+├── server/
+│   └── Server.cpp
 └── logic/
-├── Client.cpp
-├── Channel.cpp
-└── ServerLogic.cpp
+    ├── Client.cpp
+    ├── Channel.cpp
+    └── ServerLogic.cpp
 
 Makefile
 main.cpp
@@ -222,42 +202,28 @@ README.md
 CONTRIBUTING.md
 ```
 
-## 🚀 Consejos para evitar conflictos
+## 🚀 Tips to Avoid Conflicts
 
-- Pull diario: antes de empezar a programar, siempre git pull origin develop.
+    - Pull daily: always git pull origin develop before coding.
 
-- Commits pequeños: no esperes al final del día.
+    - Small commits: do not wait until the end of the day.
 
-- Revisión cruzada: siempre otro compañero revisa tu PR.
+    - Peer review: another teammate always reviews your PR.
 
-- Conflictos: resuélvelos localmente, nunca desde la web.
+    - Conflicts: resolve them locally, never via GitHub web editor.
 
-## ✨ Equipo
+## ✨ Team
 
-- 👤 Persona 1: Networking / Core del servidor
+### 👤 Noelia: Networking / Server Core
 
-- 👤 Persona 2: Parser / Protocolo IRC
+### 👤 Juan: Parser / IRC Protocol
 
-- 👤 Ana Zubieta: Lógica de aplicación (Users & Channels)
+### 👤 Ana Zubieta: Application Logic (Users & Channels)
 
-## 📚 Referencias útiles
+## 📚 Useful References
 
-- RFC 1459 - IRC Protocol
+    - RFC 1459 - IRC Protocol
 
-- Beej’s Guide to Network Programming
+    - 42 Málaga - C++ Project Guide
 
-- 42 Málaga - Guía de Proyectos en C++
-
-- Git Flow explicado sencillo
-
-
----
-
-👉 **Recomendación práctica:**  
-Después de añadir este archivo, haz:
-
-```bash
-git add CONTRIBUTING.md
-git commit -m "[Docs] Add contributing guide for team workflow"
-git push
-```
+    - Git Flow simplified
