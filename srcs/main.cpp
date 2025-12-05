@@ -11,11 +11,6 @@ int main(int argc, char* argv[])
         std::cerr << "Usage: " << argv[0] << " <port> <password>" << std::endl;
         return (1);
     }
-    /*if (std::atoi(argv[1]) < 1024 || std::atoi(argv[1]) > 65535)
-    { 
-        std::cerr << "Invalid port" << std::endl;
-        return (1);
-    }*/
 
     char *end = NULL;
     errno = 0;

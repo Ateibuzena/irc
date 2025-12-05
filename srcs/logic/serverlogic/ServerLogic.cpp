@@ -214,6 +214,7 @@ void ServerLogic::serverRemoveClient(int fd)
 
         Channel* channel = chanIt->second;
         channel->removeClient(client);
+        handleOperator(channel, client);
 
         // Eliminar del lado del cliente
         client->leaveChannel(channel);
