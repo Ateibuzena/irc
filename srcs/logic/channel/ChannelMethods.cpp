@@ -39,17 +39,17 @@ void    Channel::addClient(Client* client)
 
 void   Channel::removeClient(Client* client)
 {
-    // Eliminar el cliente del canal
+    // Remove the client from the channel
     _clients.erase(client);
 
-    // Si el canal queda vacío, limpiar
+    // If the channel becomes empty, mark for deletion
     if (_clients.empty())
         _deleteMe = true;
 
-    // Eliminar al cliente de operadores
+    // Remove the client from operators
     _operators.erase(client);
 
-    // Eliminar al cliente de invitados
+    // Remove the client from invited list
     _invited.erase(client);
 }
 

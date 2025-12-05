@@ -3,7 +3,7 @@
 
 #include "../utils/Utils.hpp"
 
-class Client; // Declaración adelantada
+class Client; // Forward declaration
 
 class Channel
 {
@@ -11,8 +11,8 @@ class Channel
 
         const std::string           _name;
         std::string                 _topic;
-        std::string                 _setter;  // Quién estableció el tema
-        std::string                 _timeSet; // Hora en que se estableció el tema
+        std::string                 _setter;  // Who set the topic
+        std::string                 _timeSet; // Time when the topic was set
         std::set<Client *>          _clients;
         
         bool                        _isInviteOnly;
@@ -60,11 +60,11 @@ class Channel
         void                        setMaxClients(size_t maxClients);
         void                        setDeleteMe(bool deleteMe);
 
-                                    // Gestión de invitados
+                                    // Management of invited clients
         void                        inviteClient(Client* client);
         bool                        isInvited(Client* client) const;
 
-                                    // Gestión de operadores
+                                    // Management of operators and clients
         void                        addOperator(Client* client);
         void                        removeOperator(Client* client);
         bool                        isOperator(Client* client) const;
@@ -78,8 +78,4 @@ class Channel
     
 };
 
-#endif // CHANNEL_HPP
-
-/*🏠 Channel.hpp
-
-Representa un canal con usuarios dentro.*/
+#endif

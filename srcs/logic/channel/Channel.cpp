@@ -113,7 +113,7 @@ const std::string Channel::getModes() const
     if (!_operators.empty())
         modes += "o";
     if (_maxClients != 0 && _maxClients != DEFAULT_MAX_USERS_PER_CHANNEL)
-        modes += "l"; // 50 es tu valor por defecto
+        modes += "l"; // 50 is your default value
     return (modes);
 }
 
@@ -151,7 +151,7 @@ void Channel::setPassword(const std::string& password)
 
 void Channel::setMaxClients(size_t maxClients)
 {
-    // No permitir reducir el tamaño máximo por debajo del número actual de clientes
+    // Do not allow reducing the maximum below the current number of clients
     if (maxClients >= _clients.size())
         _maxClients = maxClients;
 }

@@ -1,10 +1,8 @@
 #include "../../../includes/logic/ServerLogic.hpp"
 
-// Manejar el comando PASS (establecer contraseña) (Replay listo, Msg listo, Error listo)
+// Handle PASS command (set password) (Replies ready, Msg ready, Errors ready)
 void    ServerLogic::handlePASS(Client* client, const ParsedInput& input)
 {
-    //Juan :irc.server.com 461 <nick> PASS :Not enough parameters
-
     const std::string& password = input.params[0];
 
     std::string nickname = client->getNickname();
@@ -37,26 +35,23 @@ void    ServerLogic::handlePASS(Client* client, const ParsedInput& input)
 
     client->setPassword(password);
 
-    // Si ya tenía username, nickname y la contraseña coincide o no había, lo marcamos como registrado
+    // If it already had username, nickname and password matches or there was none, mark as registered
     if (!client->getUsername().empty()
         && (_serverPassword.empty() || client->getPassword() == _serverPassword)
         && !client->getNickname().empty())
         setClientRegistered(client);
 }
 
-// Manejar el comando NICK (establecer nickname) (Replay listo, Msg listo, Error listo)
+// Handle NICK command (set nickname) (Replies ready, Msg ready, Errors ready)
 void    ServerLogic::handleNICK(Client* client, const ParsedInput& input)
 {
-    //Juan:
-    //:irc.server.com 431 * :No nickname given
-
     const std::string nickname = input.params[0];
     
     std::string oldNickname = client->getNickname();
     if (oldNickname.empty())
         oldNickname = "*";
 
-    // Comprobamos si ya existe otro cliente con ese nickname
+    // Check if another client already has that nickname
     if (_serverNicknames.find(nickname) != _serverNicknames.end())
     {
         _prefix.clear();
@@ -69,24 +64,24 @@ void    ServerLogic::handleNICK(Client* client, const ParsedInput& input)
         return (sendMessageToClient(client, _errorMsg));
     }
 
-    // Si tenía un nickname anterior, lo eliminamos del map
+    // If it had a previous nickname, remove it from the map
     if (!client->getOldNickname().empty())
         _serverNicknames.erase(oldNickname);
 
     client->setOldNickname(oldNickname);
     
-    // Asignamos el nuevo nickname
+    // Assign the new nickname
     client->setNickname(nickname);
 
-        // Enviar mensaje de cambio de nickname
+        // Send nickname change message
     if (client->isRegistered())
     {
-        // Construir mensaje de NICK para los canales
+        // Build NICK message
         _prefix.clear();
         _prefix = ":" + client->getOldNickname() + "!" + client->getUsername() + "@" + _serverHost;
         std::string nickMsg = buildMessage(_prefix, "NICK", "", client->getNickname());
 
-        // Enviar a todos los canales donde está el cliente
+        // Send to all channels the client is in
         std::set<std::string> channelsCopy = client->getChannels();
         std::set<std::string>::iterator it = channelsCopy.begin();
         while (it != channelsCopy.end())
@@ -102,21 +97,19 @@ void    ServerLogic::handleNICK(Client* client, const ParsedInput& input)
         sendMessageToClient(client, nickMsg);
     }
 
-    // Añadimos al map de nicknames
+    // Add to the nicknames map
     _serverNicknames[nickname] = client;
 
-    // Si ya tenía username, nickname y la contraseña coincide o no había, lo marcamos como registrado
+    // If it already had username, nickname and password matches or there was none, mark as registered
     if (!client->getUsername().empty()
         && (_serverPassword.empty() || client->getPassword() == _serverPassword)
         && !client->getNickname().empty())
         setClientRegistered(client);
 }
 
-// Manejar el comando USER (establecer username) (Replay listo, Msg listo, Error listo)
+// Handle USER command (set username) (Replies ready, Msg ready, Errors ready)
 void    ServerLogic::handleUSER(Client* client, const ParsedInput& input)
 {
-    //Juan :irc.server.com 461 <nick> USER :Not enough parameters
-
     const std::string username = input.params[0];
 
     std::string nickname = client->getNickname();
@@ -137,14 +130,14 @@ void    ServerLogic::handleUSER(Client* client, const ParsedInput& input)
 
     client->setUsername(username);
 
-    // Si ya tenía username, nickname y la contraseña coincide o no había, lo marcamos como registrado
+    // If it already had username, nickname and password matches or there was none, mark as registered
     if (!client->getUsername().empty()
         && (_serverPassword.empty() || client->getPassword() == _serverPassword)
         && !client->getNickname().empty())
         setClientRegistered(client);
 }
 
-// Manejar el comando QUIT (desconectar cliente) (Replay listo, Msg listo, Error listo)
+// Handle QUIT command (disconnect client) (Replies ready, Msg ready, Errors ready)
 void    ServerLogic::handleQUIT(Client* client, const ParsedInput& input)
 {
     std::string nickname = client->getNickname();
@@ -173,7 +166,7 @@ void    ServerLogic::handleQUIT(Client* client, const ParsedInput& input)
         {
             Channel* channel = chanIt->second;
 
-            // Enviar mensaje de QUIT a los demás clientes del canal
+            // Send QUIT message to the other clients in the channel
             sendMessageToChannel(channel, quitMsg, client);
         }
         ++it;

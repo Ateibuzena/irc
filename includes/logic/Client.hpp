@@ -3,7 +3,7 @@
 
 #include "../utils/Utils.hpp"
 
-class Channel; // Declaración adelantada
+class Channel; // Forward declaration
 
 class Client
 {
@@ -48,4 +48,4 @@ class Client
         
 }; 
 
-#endif // CLIENT_HPP
+#endif

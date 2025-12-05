@@ -46,7 +46,7 @@ int main(int argc, char* argv[])
 }
 
 //nc -C 127.0.0.1 6667
-//nc -C -q 0 127.0.0.1 6667 para que funcione ctrl+D
+//nc -C -q 0 127.0.0.1 6667 so Ctrl+D works
 //hexaChat
 //valgrind --leak-check=full --show-leak-kinds=all ./ircserv 6667 1
 //valgrind --leak-check=full --show-leak-kinds=all --track-fds=yes ./ircserv 6667 1 2>val.txt

@@ -91,7 +91,7 @@ std::string buildMessage(const std::string& prefix,
                         const std::string& target,
                         const std::string& aux)
 {
-    // Construir el mensaje completo
+    // Build the full message
     std::string fullMsg;
 
     if (command == "NICK"
@@ -117,10 +117,10 @@ std::string buildMessage(const std::string& prefix,
         return (fullMsg);
     }
 
-    // Truncar si excede el máximo permitido
+    // Truncate if it exceeds the maximum allowed
     if (fullMsg.size() > MAX_MESSAGE_LENGTH)
     {
-        // Reservamos espacio para CRLF y los demás campos
+        // Reserve space for CRLF and the other fields
         size_t maxLen = MAX_MESSAGE_LENGTH - (prefix.size() + command.size() + target.size() + 4);
         std::string truncated = aux.substr(0, maxLen);
         fullMsg = ":" + prefix + " " + command + " " + target + " :" + truncated + "\r\n";

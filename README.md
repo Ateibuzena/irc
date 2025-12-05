@@ -1,24 +1,24 @@
-# 💬 Proyecto IRC - 42 Málaga
+# 💬 IRC Project - 42 Málaga
 
-## 🏗️ Descripción general
+## 🏗️ Overview
 
-El objetivo de este proyecto es implementar un **servidor IRC (Internet Relay Chat)** funcional, siguiendo el protocolo clásico definido en el [RFC 1459](https://datatracker.ietf.org/doc/html/rfc1459).
+The goal of this project is to implement a **functional IRC (Internet Relay Chat) server**, following the classic protocol defined in [RFC 1459](https://datatracker.ietf.org/doc/html/rfc1459).
 
-Nuestro servidor será capaz de aceptar múltiples conexiones simultáneas, interpretar comandos IRC (`NICK`, `JOIN`, `PRIVMSG`, etc.), y gestionar usuarios y canales con su correspondiente lógica interna.
-
----
-
-## 👥 División del equipo
-
-| Persona | Rol | Archivos principales | Descripción |
-|----------|-----|----------------------|--------------|
-| 👤 **Persona 1** | **Networking / Core del servidor** | `Server.hpp / Server.cpp` | Implementa el servidor TCP: sockets, bind, listen, accept. Maneja la multiplexación (poll/select) para múltiples clientes. Provee funciones `receiveMessage()` y `sendMessage()`. |
-| 👤 **Persona 2** | **Parser / Protocolo IRC** | `Parser.hpp / Parser.cpp`, `Command.hpp` | Convierte los mensajes de texto en estructuras `Command`. Implementa `parse()` y un `dispatch()` que conecta con la lógica del servidor. |
-| 👤 **Persona 3 (Ana)** | **Lógica de aplicación (Users & Channels)** | `Client.hpp / Client.cpp`, `Channel.hpp / Channel.cpp`, `ServerLogic.hpp / ServerLogic.cpp` | Implementa las clases que representan usuarios, canales y la lógica de ejecución de comandos (`NICK`, `JOIN`, `PRIVMSG`, etc.). Gestiona el estado del servidor. |
+Our server will be able to handle multiple simultaneous connections, interpret IRC commands (`NICK`, `JOIN`, `PRIVMSG`, etc.), and manage users and channels with the corresponding internal logic.
 
 ---
 
-## ⚙️ Arquitectura del proyecto
+## 👥 Team Roles
+
+| Person | Role | Main Files | Description |
+|--------|------|------------|------------|
+| 👤 **Noelia** | **Networking / Server Core** | `Server.hpp / Server.cpp` | Implements the TCP server: sockets, bind, listen, accept. Handles multiplexing (poll/select) for multiple clients. Provides `receiveMessage()` and `sendMessage()`. |
+| 👤 **Juan** | **Parser / IRC Protocol** | `Parser.hpp / Parser.cpp`, `Command.hpp` | Converts text messages into `Command` structures. Implements `parse()` and a `dispatch()` connecting to server logic. |
+| 👤 **Ana Zubieta** | **Application Logic (Users & Channels)** | `Client.hpp / Client.cpp`, `Channel.hpp / Channel.cpp`, `ServerLogic.hpp / ServerLogic.cpp` | Implements classes representing users, channels, and command execution logic (`NICK`, `JOIN`, `PRIVMSG`, etc.). Manages server state. |
+
+---
+
+## ⚙️ Project Architecture
 ```bash
 +---------------------------+
 | Client |
@@ -27,65 +27,61 @@ Nuestro servidor será capaz de aceptar múltiples conexiones simultáneas, inte
 |
 v
 +-------------+-------------+
-| Server (P1) |
+| Server (Noelia) |
 | accept(), poll(), send() |
 +-------------+-------------+
 |
 v
 +-------------+-------------+
-| Parser (P2) |
+| Parser (Juan) |
 | parse() → Command |
 +-------------+-------------+
 |
 v
 +-------------+-------------+
-| Logic (P3 - Ana) |
+| Logic (Ana Zubieta) |
 | executeCommand(cmd, fd) |
-| gestiona usuarios/canales |
+| Manages users/channels |
 +---------------------------+
-```
 
-Cada capa es **modular e independiente**, lo que permite trabajar en paralelo y probar sin depender de las demás.
-
----
-
-## 🔗 Comunicación entre módulos
-
-| De | A | Función / Ejemplo |
-|----|---|--------------------|
-| Server (P1) | Parser (P2) | `rawMessage = receiveMessage(fd)` |
-| Parser (P2) | Logic (P3) | `cmd = parse(rawMessage)` → `ServerLogic::executeCommand(cmd, clientFd)` |
-| Logic (P3) | Server (P1) | `Server::sendMessage(fd, response)` |
+Each layer is **modular and independent**, allowing parallel development and testing without dependency on others.
 
 ---
 
-## 📂 Estructura de directorios
+## 🔗 Module Communication
+
+| From                  | To                 | Function / Example                                           |
+|-----------------------|------------------|-------------------------------------------------------------|
+| Server (Noelia)       | Parser (Juan)     | `rawMessage = receiveMessage(fd)`                           |
+| Parser (Juan)         | Logic (Ana Zubieta) | `cmd = parse(rawMessage)` → `ServerLogic::executeCommand(cmd, clientFd)` |
+| Logic (Ana Zubieta)   | Server (Noelia)   | `Server::sendMessage(fd, response)`                         |
+
+---
+
+## 📂 Directory Structure
+
 ```bash
 includes/
-├── Command.hpp # Estructura común (Parser ↔ Logic)
+├── parser/      # Juan - Parser / IRC Protocol
+│   └── Parser.hpp
 │
-├── server/ # Persona 1 - Networking / Core
-│ └── Server.hpp
+├── server/      # Noelia - Networking / Core
+│   └── Server.hpp
 │
-├── parser/ # Persona 2 - Parser / Protocolo
-│ └── Parser.hpp
-│
-└── logic/ # Persona 3 - Lógica de aplicación (Ana)
-├── Client.hpp
-├── Channel.hpp
-└── ServerLogic.hpp
+└── logic/       # Ana Zubieta - Application Logic
+    ├── Client.hpp
+    ├── Channel.hpp
+    └── ServerLogic.hpp
 
-src/
-├── server/
-│ └── Server.cpp
-│
+srcs/
 ├── parser/
-│ └── Parser.cpp
-│
+│   └── Parser.cpp
+├── server/
+│   └── Server.cpp
 └── logic/
-├── Client.cpp
-├── Channel.cpp
-└── ServerLogic.cpp
+    ├── Client.cpp
+    ├── Channel.cpp
+    └── ServerLogic.cpp
 
 Makefile
 main.cpp
@@ -93,94 +89,89 @@ README.md
 CONTRIBUTING.md
 ```
 
----
+## 🧩 Code Dependencies
 
-## 🧩 Dependencias de código
-
-- **Persona 1 (Server)**: no depende de Parser ni de Logic.
-- **Persona 2 (Parser)**: solo depende de `Command.hpp`.
-- **Persona 3 (Logic)**: depende de `Command`, y usa funciones públicas de `Server` para enviar mensajes (`sendMessage(fd, msg)`).
+- **Noelia (Server)**: does not depend on Parser or Logic.  
+- **Juan (Parser)**: only depends on `Command.hpp`.  
+- **Ana Zubieta (Logic)**: depends on `Command` and uses public Server functions to send messages (`sendMessage(fd, msg)`).
 
 ---
 
-## 🧱 Flujo general del servidor IRC
+## 🧱 General IRC Server Flow
 
-1. **Arranque**
-   - `Server::run()` escucha en el puerto configurado (`bind`, `listen`).
-   - Espera eventos mediante `poll()` o `select()`.
+### 1️⃣ Startup
+- `Server::run()` listens on the configured port (`bind`, `listen`).  
+- Waits for events via `poll()` or `select()`.
 
-2. **Conexión de cliente**
-   - `Server::_acceptNewClient()` crea un nuevo `Client` en `ServerLogic`.
+### 2️⃣ Client Connection
+- `Server::_acceptNewClient()` creates a new `Client` in `ServerLogic`.
 
-3. **Recepción de datos**
-   - `Server::receiveMessage(fd)` obtiene el mensaje raw del socket.
+### 3️⃣ Receiving Data
+- `Server::receiveMessage(fd)` retrieves the raw message from the socket.
 
-4. **Parsing**
-   - `Parser::parse(rawMessage)` devuelve un `Command` con nombre y parámetros.
+### 4️⃣ Parsing
+- `Parser::parse(rawMessage)` returns a `Command` with name and parameters.
 
-5. **Lógica**
-   - `ServerLogic::executeCommand(cmd, clientFd)` ejecuta la acción.
-   - Ejemplo:
-     ```cpp
-     if (cmd.name == "JOIN")
-         _handleJoin(cmd, client);
-     ```
+### 5️⃣ Logic
+- `ServerLogic::executeCommand(cmd, clientFd)` executes the action.  
 
-6. **Respuesta**
-   - La lógica envía texto de vuelta con `Server::sendMessage(fd, "mensaje")`.
+#### Example:
+```cpp
+if (cmd.name == "JOIN")
+    _handleJoin(cmd, client);
+```
+### Response
 
-7. **Desconexión**
-   - Si `recv()` devuelve 0, el cliente se elimina y se notifica al resto.
+- Logic sends text back via `Server::sendMessage(fd, "message")`.
+
+### Disconnection
+
+- If `recv()` returns 0, the client is removed and others are notified.
 
 ---
 
-## 💡 Ejemplo de flujo real
+## 💡 Example of Real Flow
+
 ```bash
-Cliente → "NICK ana"
+Client → "NICK ana"
 Parser → Command{name="NICK", params=["ana"]}
-Logic → asigna nickname al cliente
-Server → sendMessage(fd, ":server 001 ana :Bienvenida a IRC!")
+Logic → assigns nickname to client
+Server → sendMessage(fd, ":server 001 ana :Welcome to IRC!")
 ```
+## 🧪 Module Testing
+
+| Module            | How to Test                                      | Tools                        |
+|------------------|-------------------------------------------------|------------------------------|
+| Server (Noelia)   | Connect with telnet localhost <port> and send text | telnet, nc                   |
+| Parser (Juan)     | Unit tests with strings: `parse("JOIN #channel")` | GoogleTest or asserts        |
+| Logic (Ana Zubieta)| Simulate Command and Client directly           | Temporary main or local tests|
 
 ---
 
-```bash
-🧪 Testing por módulos
-Módulo	Cómo testear	Herramientas
-Server (P1)	Conectarse con telnet localhost <port> y enviar texto.	telnet, nc
-Parser (P2)	Unit tests con strings: parse("JOIN #canal")	GoogleTest o asserts
-Logic (P3)	Simular Command y Client directamente.	main temporal o tests locales
-```
+## 🚀 Team Guidelines
 
-## 🚀 Normas de trabajo en equipo
+- Standardize includes: shared code in `includes/`.
+- No namespaces: C++98 only (42 norm).
+- Consistency: public methods must be defined in corresponding `.cpp`.
+- Individual testing: each member should run their module independently.
+- Progressive integration: first connect Server → Logic, then Parser.
 
-- Estandarización de includes: todo lo compartido en includes/.
+---
 
-- Namespace prohibido: código C++98 (norma 42).
+## 🧭 Next Steps
 
-- Consistencia: los métodos públicos deben estar definidos en el .cpp correspondiente.
+| Phase | Task                                      | Responsible       |
+|-------|------------------------------------------|-----------------|
+| 1️⃣    | Implement Server with poll() and sockets  | Noelia            |
+| 2️⃣    | Implement Parser::parse() and dispatch()  | Juan              |
+| 3️⃣    | Implement Client, Channel, and ServerLogic| Ana Zubieta       |
+| 4️⃣    | Connect Server → Parser → Logic           | All               |
+| 5️⃣    | Joint testing and final integration       | All               |
 
-- Pruebas individuales: cada persona debe poder ejecutar su parte sin depender del resto.
+---
 
-- Integración progresiva: se hará primero conexión P1–P3, luego se une el Parser.
+## ✨ Authors
 
-
-## 🧭 Próximos pasos del equipo
-
-```bash
-| Fase | Tarea                                           | Responsable         |
-| ---- | ----------------------------------------------- | ------------------- |
-| 1️⃣  | Implementar `Server` con poll() y sockets       | Persona 1           |
-| 2️⃣  | Implementar `Parser::parse()` y `dispatch()`    | Persona 2           |
-| 3️⃣  | Implementar `Client`, `Channel` y `ServerLogic` | **Ana (Persona 3)** |
-| 4️⃣  | Conectar `Server` → `Parser` → `Logic`          | Todos               |
-| 5️⃣  | Testing conjunto e integración final            | Todos               |
-```
-
-## ✨ Autores
-
-- Persona 1: Noelia — Networking & Core
-
-- Persona 2: Juan — Parser & Protocol
-
-- Persona 3: Ana — Lógica de aplicación (Users & Channels)
+- 👤 Noelia — Networking & Server Core  
+- 👤 Juan — Parser & Protocol  
+- 👤 Ana Zubieta — Application Logic (Users & Channels)

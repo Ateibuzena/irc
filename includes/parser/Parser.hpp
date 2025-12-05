@@ -34,7 +34,7 @@ class Parser
         //static bool                         ft_checknumber(std::string str);
 
         static void                         ft_parsecommand(ParsedInput tocheck, const std::string& servername, const std::string& nickname);
-        static ParsedInput                      parse(const std::string &rawMessage, const std::string& servername, const std::string& nickname);
+        static ParsedInput                  parse(const std::string &rawMessage, const std::string& servername, const std::string& nickname);
 };
 
 #endif

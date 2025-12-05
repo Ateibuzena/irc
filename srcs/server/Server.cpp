@@ -3,14 +3,14 @@
 
 #include <iostream>
 #include <stdexcept>
-#include <cstring>     // std::strerror
-#include <cerrno>      // errno
-#include <csignal>     // ::signal, SIGPIPE
-#include <unistd.h>    // close, recv, send
-#include <fcntl.h>     // fcntl
+#include <cstring>          // std::strerror
+#include <cerrno>           // errno
+#include <csignal>          // ::signal, SIGPIPE
+#include <unistd.h>         // close, recv, send
+#include <fcntl.h>          // fcntl
 #include <sys/socket.h>
-#include <netinet/in.h>//both for sockets - sockaddr_in y AF_INET
-#include <arpa/inet.h>//convertir IP entre texto y binario
+#include <netinet/in.h>     //both for sockets - sockaddr_in y AF_INET
+#include <arpa/inet.h>      //convertir IP entre texto y binario
 
 std::string MessagesError[] =
 {
@@ -127,7 +127,7 @@ void Server::setNonBlocking(int fd)
 
 bool    Server::findLineEnd(const std::string &buf, size_t &pos)
 {
-    // prioriza CRLF
+    // prioritize CRLF
     for (size_t i = 0; i + 1 < buf.size(); ++i)
         if (buf[i] == '\r' && buf[i + 1] == '\n')
         {
@@ -135,7 +135,7 @@ bool    Server::findLineEnd(const std::string &buf, size_t &pos)
             return (true);
         }
 
-    // tolera LF
+    // tolerate LF alone
     for (size_t i = 0; i < buf.size(); ++i)
         if (buf[i] == '\n')
         {
@@ -149,7 +149,7 @@ int Server::run()
 {
     Parser::initCommands();
 
-    // Evita que send() mate el proceso si el peer cierra (Linux/BSD)
+    // Ignore SIGPIPE to avoid crashes when writing to closed sockets
     signal(SIGPIPE, SIG_IGN);
 
     // 1) socket + REUSEADDR + bind + listen
@@ -171,7 +171,7 @@ int Server::run()
     sockaddr_in addr; std::memset(&addr, 0, sizeof(addr));
     addr.sin_family = AF_INET;
     addr.sin_port   = htons(port_);
-    addr.sin_addr.s_addr = INADDR_ANY; // usa inet_pton si quieres sólo localhost
+    addr.sin_addr.s_addr = INADDR_ANY; // uses any local IP address
 
     if (bind(listenFd_, reinterpret_cast<sockaddr*>(&addr), sizeof(addr)) < 0)
     {
@@ -229,7 +229,7 @@ int Server::run()
             log_errno("poll");
             break ;
         }
-        // A) nuevas conexiones (listenFd en pfds_[0])
+        // A) new connections (listenFd in pfds_[0])
         if (pfds_[0].revents & POLLIN)
         {
             for (;;)
@@ -264,35 +264,32 @@ int Server::run()
 
             Client *client = logic_->getClient(fd);
 
-            /***************************************************************** */
-            //added by noe
             if (client)
             {
                 if (client->shouldDisconnect())
                 {
                     removeClientAtIndex(i);
-                    continue; // no incrementamos i, el vector se ha compactado
+                    continue; // do not increment i, the vector has been compacted
                 }
             }
-            /******************************************************** */
-            // 1) errores / cierre
+
+            // 1) errors / close
             if (re & (POLLERR | POLLHUP | POLLNVAL))
             {
                 std::cout << "[-] Close/err fd=" << fd << "\n";
                 removeClientAtIndex(i);
-                continue; // no incrementar i
+                continue; // do not increment i, the vector has been compacted
             }
-            // 2) lectura
+            // 2) read
             if (re & POLLIN)
             {
                 handleReadable(i);
-                // handleReadable puede hacer erase (cierre) → no hagas ++i aquí
                 if (i >= pfds_.size())
                     break ; // por seguridad si se vació
-                // Si no borró, seguimos y quizá también tenga POLLOUT
+                // if client was removed, continue without incrementing i
             }
 
-            // 3) escritura
+            // 3) write
             if (i < pfds_.size() && (pfds_[i].revents & POLLOUT))
             {
                 handleWritable(i);
@@ -315,14 +312,14 @@ void Server::addClient(int cfd)
     sendBuf_[cfd] = "";
     try
     {
-        logic_->serverAddClient(cfd); // informar a la lógica
+        logic_->serverAddClient(cfd); // inform logic
     }
     catch(const std::string& errorMsg)
     {
-        // enviar mensaje de error al cliente
+        // send error message to client
         queueMessage(cfd, errorMsg + "\r\n");
 
-        // cerrar conexión inmediatamente
+        // remove client immediately after sending the message
         removeClientAtIndex(pfds_.size() - 1);
         
     }
@@ -331,17 +328,15 @@ void Server::addClient(int cfd)
 
 void Server::removeClientAtIndex(size_t idx)
 {
-    /********************************************** */
-    //added by noe
     if (idx >= pfds_.size())
         return;
-    /********************************************************** */
+
     int fd = pfds_[idx].fd;
     ::close(fd);
     recvBuf_.erase(fd);
     sendBuf_.erase(fd);
     
-    logic_->serverRemoveClient(fd); // informar a la lógica
+    logic_->serverRemoveClient(fd); // inform logic
     pfds_.erase(pfds_.begin() + idx);
 }
 
@@ -357,17 +352,17 @@ void Server::handleReadable(size_t idx)
         {
             recvBuf_[fd].append(buf, n);
 
-            // extraer y despachar líneas completas
+            // extract lines
             size_t pos;
             while (findLineEnd(recvBuf_[fd], pos))
             {
                 std::string line = recvBuf_[fd].substr(0, pos);
-                // quitar CRLF o LF
+                // remove CRLF or LF
                 if (pos + 1 < recvBuf_[fd].size()
                     && recvBuf_[fd][pos] == '\r'
                     && recvBuf_[fd][pos+1] == '\n')
                     recvBuf_[fd].erase(0, pos + 2);
-                else // sólo LF
+                else // only LF
                     recvBuf_[fd].erase(0, pos + 1);
                     
                 ParsedInput input;
@@ -404,17 +399,17 @@ void Server::handleReadable(size_t idx)
         }
         else if (n == 0)
         {
-            // cierre limpio del peer
+            // closed by peer
             std::cout << "[-] Peer closed fd=" << fd << "\n";
-            // encontrar idx actual (puede haber cambiado si hubo movimientos)
-            // aquí seguimos usando el idx que recibimos porque no hemos alterado pfds_
+            // find current idx (it may have changed if there were movements)
+            // here we continue using the idx we received because we have not altered pfds_
             removeClientAtIndex(idx);
-            return ; // ya no hay que tocar idx
+            return ; // no need to touch idx anymore
         }
         else
         {
             if (errno == EAGAIN || errno == EWOULDBLOCK)
-                break; // no hay más
+                break; // no more data
             log_errno("recv");
             removeClientAtIndex(idx);
             return ;
@@ -427,8 +422,9 @@ void Server::handleWritable(size_t idx)
     int fd = pfds_[idx].fd;
     Client* client = logic_->getClient(fd);
 
-    // Si el cliente fue eliminado en otro flujo (muy raro), sal.
-    if (!client) {
+    // if client was removed in another thread (very rare), exit
+    if (!client)
+    {
         pfds_[idx].events &= ~POLLOUT;
         return ;
     }
@@ -453,17 +449,17 @@ void Server::handleWritable(size_t idx)
 
     if (out.empty())
     {
-        // ya no necesitamos avisos de escritura
+        // deactivate POLLOUT
         pfds_[idx].events &= ~POLLOUT;
     }
 }
 
 void Server::queueMessage(int fd, const std::string& line)
 {
-    // añade CRLF y activa POLLOUT para ese fd
+    // append line to send buffer
     sendBuf_[fd].append(line);
 
-    // activar POLLOUT para dicho fd
+    // activate POLLOUT
     for (size_t i = 1; i < pfds_.size(); ++i)
     {
         if (pfds_[i].fd == fd)

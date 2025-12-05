@@ -13,50 +13,38 @@
 
 extern int sig;
 
-// Límite máximo de usuarios por canal
+// Maximum users per channel limit
 # define MAX_USERS_PER_CHANNEL 100
 
-// Límite por defecto de usuarios por canal
+// Default maximum users per channel
 # define DEFAULT_MAX_USERS_PER_CHANNEL 50
 
-// Límite máximo total de clientes conectados al servidor
+// Maximum total connected clients on the server
 # define MAX_CLIENTS 500
 
-// Limite máximo de canales en el servidor
+// Maximum channels on the server
 # define MAX_CHANNELS 200
 
-// Límite máximo de canales por cliente
+// Maximum channels per client
 # define MAX_CHANNELS_PER_CLIENT 100
 
-// Límite máximo de caracteres en un mensaje IRC (RFC 2812)
+// Maximum characters in an IRC message (RFC 2812)
 # define MAX_MESSAGE_LENGTH 512
 
-//
-// 🎨 Colores ANSI
-//
-/*# define RESET   "\033[0m"
-# define RED     "\033[0;31m"
-# define GREEN   "\033[0;32m"
-# define YELLOW  "\033[1;33m"
-# define BLUE    "\033[1;34m"
-# define CYAN    "\033[0;36m"
-# define MAGENTA "\033[0;35m"
-# define BOLDWHITE "\033[1;37m"*/
-
-// 🎨 Colores IRC — usan el carácter de control \x03
-# define RESET      "\x03"      // Resetea el color
-# define RED        "\x034"     // Rojo
-# define GREEN      "\x033"     // Verde
-# define YELLOW     "\x038"     // Amarillo (naranja en algunos clientes)
-# define BLUE       "\x032"     // Azul
-# define MAGENTA    "\x036"     // Púrpura / magenta
+// 🎨 Colores IRC
+# define RESET      "\x03"      // Reset
+# define RED        "\x034"     // Red
+# define GREEN      "\x033"     // Green
+# define YELLOW     "\x038"     // Yellow (orange in some clients)
+# define BLUE       "\x032"     // Blue
+# define MAGENTA    "\x036"     // Purple
 
 
 struct ParsedInput
 {
-    std::string                 name; // Ej: "NICK", "JOIN", "PRIVMSG"
-    std::vector<std::string>    params; // Ej: {"#42Malaga", "hola mundo"}
-    std::string                 raw; // Mensaje original (por debug)
+    std::string                 name; // Ex: "NICK", "JOIN", "PRIVMSG"
+    std::vector<std::string>    params; // Ex: {"#42Malaga", "hola mundo"}
+    std::string                 raw; // Original message (for debug)
 
     ParsedInput()
         :   name(""),
@@ -173,30 +161,28 @@ extern std::map<int, MessageInfo> messagesReplay;
 void    initErrorMessages(void);
 void    initReplayMessages(void);
 
-#include <sstream> // Para convertir int a string en C++98
+#include <sstream> // To use std::ostringstream
 
-// Función auxiliar para C++98
+// Helper function for C++98
 std::string to_string_c98(int value);
 
-// Función para dividir una cadena en un vector de cadenas usando un delimitador
+// Function to split a string into a vector using a delimiter
 std::vector<std::string> str_to_vector(const std::string& str, char delimiter);
 
-// Función para convertir tiempo a string
+// Function to convert time to string
 std::string time_to_string(std::time_t t);
 
-// Funciones para construir mensajes
+// Functions to build messages
 std::string buildMessage(const std::string& prefix,
                         const std::string& command,
                         const std::string& target = "",
                         const std::string& aux = "");
 
-// Función para construir mensajes de error
+// Function to build error messages
 std::string buildErrorMessage(const std::string& prefix,
                             const std::string& aux = "",
                             const std::string& msg = "");
 
 void    handle_kill(int sig);
 
-#endif // COMMAND_HPP
-
-/*común entre Parser y Lógica*/
+#endif

@@ -84,4 +84,4 @@ class ServerLogic
         void                                sendMessageToChannel(Channel* channel, const std::string& message, Client* sender = NULL);
 };
 
-#endif // SERVERLOGIC_HPP
+#endif

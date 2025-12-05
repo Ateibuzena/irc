@@ -25,11 +25,11 @@ ServerLogic::ServerLogic(Server* server,
 
 ServerLogic::~ServerLogic()
 {
-    // Limpiamos todos los clientes
+    // Clean up all clients
     std::map<int, Client*>::iterator itClient = _serverClients.begin();
     while (itClient != _serverClients.end())
     {
-        // Liberamos memoria
+        // Free memory
         Client* client = itClient->second;
         if (client)
             delete (client);
@@ -37,10 +37,10 @@ ServerLogic::~ServerLogic()
     }
     _serverClients.clear();
 
-    // Limpiamos nicknames
+    // Clear nicknames
     _serverNicknames.clear();
 
-    // Limpiamos todos los canales
+    // Clean up all channels
     std::map<std::string, Channel*>::iterator itChannel = _serverChannels.begin();
     while (itChannel != _serverChannels.end())
     {
@@ -66,7 +66,7 @@ ServerLogic::~ServerLogic()
 
 /*----------------------------------GETTERS------------------------------------*/
 
-// Devuelve el cliente según su fd
+// Returns the client by its fd
 Client* ServerLogic::getClient(int fd) const
 {
     std::map<int, Client*>::const_iterator it = _serverClients.find(fd);
@@ -232,10 +232,10 @@ void ServerLogic::serverRemoveClient(int fd)
     delete client;
 }
 
-// Devuelve un canal existente o lo crea si no existe
+// Create a new channel (or return existing)
 Channel*    ServerLogic::createChannel(const std::string& name, Client* creator)
 {
-    // Validar nombre de canal
+    // Validate channel name
     if (!Parser::ft_checksinglechannel(name))
     {
         _prefix.clear();
@@ -250,16 +250,16 @@ Channel*    ServerLogic::createChannel(const std::string& name, Client* creator)
         return (NULL);
     }
 
-    // Buscar canal existente
+    // Search for existing channel
     std::map<std::string, Channel*>::const_iterator it = _serverChannels.find(name);
     if (it != _serverChannels.end())
         return (it->second);
 
-    // Crear nuevo canal
+    // Create new channel
     Channel* newChannel = NULL;
     try
     {
-        newChannel = new Channel(name); // Por defecto límite de clientes
+        newChannel = new Channel(name); // Default client limit
     }
     catch(const std::bad_alloc& e)
     {
@@ -273,10 +273,10 @@ Channel*    ServerLogic::createChannel(const std::string& name, Client* creator)
         _errorMsg = ":" + _serverName + " *" + " :Server is full\r\n";
         throw (_errorMsg);
     }
-    // Añadir al mapa de canales
+    // Add to server channels map
     _serverChannels[name] = newChannel;
 
-    // El creador es operador por defecto
+    // Add creator as operator
     newChannel->addOperator(creator);
 
     return (newChannel);
@@ -295,7 +295,7 @@ void    ServerLogic::executeCommand(const ParsedInput& input, int clientFd)
     Client* client = it->second;
     const std::string& command = input.name;
 
-    // Comparar comandos y llamar al handler correspondiente
+    // Command execution
     try
     {
         /*User Authentication*/
@@ -338,7 +338,7 @@ void ServerLogic::handleOperator(Channel* channel, Client* client)
     std::set<Client*> clientsCopy = channel->getClients();
     std::string modeMsg;
     
-    // Asignar nuevo operador si hay mas clientes y no hay operadores
+    // Assign a new operator if there are more clients and there are no operators
     if (channel->getOperators().size() == 0)
     {
         std::set<Client *>::const_iterator it = clientsCopy.begin();
