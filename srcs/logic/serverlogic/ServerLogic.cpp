@@ -238,12 +238,17 @@ Channel*    ServerLogic::createChannel(const std::string& name, Client* creator)
     // Validate channel name
     if (!Parser::ft_checksinglechannel(name))
     {
+        std::cout << "[ERROR] Bad channel mask: " << name << "." << std::endl;
+        std::string clientNickname = creator->getNickname();
+        if (clientNickname.empty())
+            clientNickname = "*";
+
         _prefix.clear();
         _prefix = ":" + _serverName + " ";
 
         _errorMsg.clear();
         _errorMsg = buildErrorMessage(_prefix +
-                                        messagesError[ERR_BADCHANMASK].code + " " + creator->getNickname() + " ",
+                                        messagesError[ERR_BADCHANMASK].code + " " + clientNickname,
                                         name,
                                         messagesError[ERR_BADCHANMASK].message);
         sendMessageToClient(creator, _errorMsg);

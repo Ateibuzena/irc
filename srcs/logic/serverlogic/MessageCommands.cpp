@@ -99,7 +99,15 @@ void    ServerLogic::handlePRIVMSG(Client* client, const ParsedInput& input)
     std::vector<std::string> receivers = str_to_vector(input.params[0], ',');
 
     // Get the message
-    std::string msg = input.params[1];
+    std::string msg;
+    int j = 1;
+    while (j < (int)input.params.size())
+    {
+        msg += input.params[j];
+        if (j + 1 < (int)input.params.size())
+            msg += " ";
+        j++;
+    }
 
     size_t i = 0;
     while (i < receivers.size())

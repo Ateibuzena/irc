@@ -304,8 +304,8 @@ void Parser::ft_parsecommand(ParsedInput tocheck, const std::string& servername,
             if (!ft_isvalidusername(tocheck.params[0]))
             {
                 errorMsg = buildErrorMessage(prefix,
-                                            messagesError[ERR_INVALIDUSERNAME].code + " " + nickname + " " + tocheck.params[0],
-                                            messagesError[ERR_INVALIDUSERNAME].message);
+                                            messagesError[ERR_ERRONEUSNICKNAME].code + " " + nickname + " " + tocheck.params[0],
+                                            messagesError[ERR_ERRONEUSNICKNAME].message);
                 throw (errorMsg);
             }
             if (tocheck.params[1].size() != 1 || (tocheck.params[1][0] < '0' || tocheck.params[1][0] > '9'))
