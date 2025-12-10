@@ -27,6 +27,11 @@ void Parser::ft_params(const std::string &rawMessage, ParsedInput &toret, unsign
 {
     unsigned long u = i;
 
+    if (toret.params.size() == 1 && toret.name == "PRIVMSG")
+    {
+        ft_lastparam(rawMessage, toret, i, size);
+        return ;
+    }    
     if (rawMessage[i] == ':')
     {
         ft_lastparam(rawMessage, toret, i + 1, size);
