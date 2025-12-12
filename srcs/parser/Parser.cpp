@@ -436,20 +436,21 @@ void Parser::ft_parsecommand(ParsedInput tocheck, const std::string& servername,
                                             messagesError[ERR_NEEDMOREPARAMS].message);
                 throw (errorMsg);
             }
-            if (!ft_checksinglechannel(tocheck.params[0]))
-            {
-                errorMsg = buildErrorMessage(prefix,
-                                            messagesError[ERR_NOSUCHNICKCHANNEL].code + " " + nickname + " " + tocheck.params[0],
-                                            messagesError[ERR_NOSUCHNICKCHANNEL].message);
-                throw (errorMsg);
-            }
-            if (!ft_isvalidusername(tocheck.params[1]))
+            if (!ft_isvalidusername(tocheck.params[0]))
             {
                 errorMsg = buildErrorMessage(prefix,
                                             messagesError[ERR_NOSUCHNICKCHANNEL].code + " " + nickname + " " + tocheck.params[1],
                                             messagesError[ERR_NOSUCHNICKCHANNEL].message);
                 throw (errorMsg);
             }
+            if (!ft_checksinglechannel(tocheck.params[1]))
+            {
+                errorMsg = buildErrorMessage(prefix,
+                                            messagesError[ERR_NOSUCHNICKCHANNEL].code + " " + nickname + " " + tocheck.params[0],
+                                            messagesError[ERR_NOSUCHNICKCHANNEL].message);
+                throw (errorMsg);
+            }
+            
             break;
         case 11: //kick
             if (tocheck.params.size() < 2)

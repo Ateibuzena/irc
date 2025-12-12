@@ -166,7 +166,7 @@ std::string ServerLogic::buildReplyMessage(std::string code,
 
 void    ServerLogic::serverAddClient(int fd)
 {
-    // Si ya existe, no hacemos nada
+    // If client already exists, do nothing
     if (_serverClients.find(fd) != _serverClients.end())
         return ;
 
@@ -192,7 +192,7 @@ void    ServerLogic::serverAddClient(int fd)
 
 void ServerLogic::serverRemoveClient(int fd)
 {
-    // 1) Eliminar nickname registrado
+    // 1) Delete from nickname map and get client
     std::map<int, Client*>::iterator it = _serverClients.find(fd);
     if (it == _serverClients.end())
         return ;
@@ -202,7 +202,7 @@ void ServerLogic::serverRemoveClient(int fd)
     if (!client->getNickname().empty())
         _serverNicknames.erase(client->getNickname());
 
-    // 2) Eliminar de todos los canales en los que esté
+    // 2) Delete from all channels
     std::set<std::string> channelsCopy = client->getChannels();
 
     std::set<std::string>::const_iterator itCh = channelsCopy.begin();
@@ -216,9 +216,9 @@ void ServerLogic::serverRemoveClient(int fd)
         channel->removeClient(client);
         handleOperator(channel, client);
 
-        // Eliminar del lado del cliente
         client->leaveChannel(channel);
-
+        
+        // Delete channel if empty
         if (channel->getDeleteMe())
         {
             delete channel;
@@ -227,7 +227,7 @@ void ServerLogic::serverRemoveClient(int fd)
         itCh++;
     }
 
-    // 3) Borrar del mapa de fds y liberar memoria
+    // 3) Delete from server clients map and free memory
     _serverClients.erase(it);
     delete client;
 }
@@ -292,7 +292,7 @@ void    ServerLogic::executeCommand(const ParsedInput& input, int clientFd)
     if (input.name.empty() )
         return ;
     
-    // Primero, buscamos el cliente
+    // Look for client
     std::map<int, Client*>::iterator it = _serverClients.find(clientFd);
     if (it == _serverClients.end())
         return ;
