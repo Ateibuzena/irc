@@ -100,14 +100,14 @@ Server::Server(int port, const std::string& password)
 
 Server::~Server()
 {
-    // Cierre defensivo
+    // Close all fds
     for (size_t i = 0; i < pfds_.size(); ++i)
     {
         if (pfds_[i].fd >= 0)
             ::close(pfds_[i].fd);
     }
 
-    // Liberar lógica
+    // Free logic
     delete (logic_);
     logic_ = NULL;
 }
@@ -212,7 +212,7 @@ int Server::run()
               << " (non-blocking + poll, multi-client)\n";
 
     signal(SIGINT, &handle_kill);
-    // 3) bucle principal
+    // 3) Principal loop
     while (true)
     {
         if (sig == 1)
@@ -255,7 +255,7 @@ int Server::run()
                 std::cout << "[+] Client connected fd=" << cfd << "\n";
             }
         }
-        // B) clientes existentes
+        // B) Existing clients
         size_t i = 1;
         while (i < pfds_.size())
         {
@@ -285,7 +285,7 @@ int Server::run()
             {
                 handleReadable(i);
                 if (i >= pfds_.size())
-                    break ; // por seguridad si se vació
+                    break ; // for safety, if client was removed
                 // if client was removed, continue without incrementing i
             }
 

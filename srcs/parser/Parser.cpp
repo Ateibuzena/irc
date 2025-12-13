@@ -304,8 +304,8 @@ void Parser::ft_parsecommand(ParsedInput tocheck, const std::string& servername,
             if (!ft_isvalidusername(tocheck.params[0]))
             {
                 errorMsg = buildErrorMessage(prefix,
-                                            messagesError[ERR_INVALIDUSERNAME].code + " " + nickname + " " + tocheck.params[0],
-                                            messagesError[ERR_INVALIDUSERNAME].message);
+                                            messagesError[ERR_ERRONEUSNICKNAME].code + " " + nickname + " " + tocheck.params[0],
+                                            messagesError[ERR_ERRONEUSNICKNAME].message);
                 throw (errorMsg);
             }
             if (tocheck.params[1].size() != 1 || (tocheck.params[1][0] < '0' || tocheck.params[1][0] > '9'))
@@ -356,7 +356,6 @@ void Parser::ft_parsecommand(ParsedInput tocheck, const std::string& servername,
                                             messagesError[ERR_NOTEXTTOSEND].message);
                 throw (errorMsg);
             }
-            std::cout << "DEBUG: PRIVMSG to " << tocheck.params[0] << " with message: " << tocheck.params[1] << std::endl;
             break;
         case 6: //notice
             if (tocheck.params.size() < 1)
@@ -436,20 +435,21 @@ void Parser::ft_parsecommand(ParsedInput tocheck, const std::string& servername,
                                             messagesError[ERR_NEEDMOREPARAMS].message);
                 throw (errorMsg);
             }
-            if (!ft_checksinglechannel(tocheck.params[0]))
-            {
-                errorMsg = buildErrorMessage(prefix,
-                                            messagesError[ERR_NOSUCHNICKCHANNEL].code + " " + nickname + " " + tocheck.params[0],
-                                            messagesError[ERR_NOSUCHNICKCHANNEL].message);
-                throw (errorMsg);
-            }
-            if (!ft_isvalidusername(tocheck.params[1]))
+            if (!ft_isvalidusername(tocheck.params[0]))
             {
                 errorMsg = buildErrorMessage(prefix,
                                             messagesError[ERR_NOSUCHNICKCHANNEL].code + " " + nickname + " " + tocheck.params[1],
                                             messagesError[ERR_NOSUCHNICKCHANNEL].message);
                 throw (errorMsg);
             }
+            if (!ft_checksinglechannel(tocheck.params[1]))
+            {
+                errorMsg = buildErrorMessage(prefix,
+                                            messagesError[ERR_NOSUCHNICKCHANNEL].code + " " + nickname + " " + tocheck.params[0],
+                                            messagesError[ERR_NOSUCHNICKCHANNEL].message);
+                throw (errorMsg);
+            }
+            
             break;
         case 11: //kick
             if (tocheck.params.size() < 2)

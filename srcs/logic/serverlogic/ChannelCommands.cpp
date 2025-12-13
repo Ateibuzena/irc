@@ -3,8 +3,8 @@
 // Handle INVITE command (review multi-channel invites) (Replies ready, Msg ready, Errors ready)
 void    ServerLogic::handleINVITE(Client* client, const ParsedInput& input)
 {
-    const std::string& channelName = input.params[0];
-    const std::string& nickname = input.params[1];
+    const std::string& nickname = input.params[0];
+    const std::string& channelName = input.params[1];
 
     std::string clientNickname = client->getNickname();
     if (clientNickname.empty())
@@ -896,7 +896,7 @@ void    ServerLogic::handlePART(Client* client, const ParsedInput& input)
                                         channelName,
                                         messagesError[ERR_NOSUCHNICKCHANNEL].message);
             
-            // Enviar el mensaje de error al cliente
+            // Send the error message to the client
             return (sendMessageToClient(client, _errorMsg));
         }
         Channel* channel = it->second;

@@ -160,13 +160,13 @@ std::string ServerLogic::buildReplyMessage(std::string code,
     else if (target.empty() && aux.empty() && !msg.empty())
         fullMsg = ":" + _serverName + " " + code + " " + client->getNickname() + " :" + msg + "\r\n";
     else
-        fullMsg = "You're not supposed to go in here\r\n"; // POR AHORA MAMAHUEVA
+        fullMsg = "You're not supposed to go in here\r\n";
     return (fullMsg);
 }
 
 void    ServerLogic::serverAddClient(int fd)
 {
-    // Si ya existe, no hacemos nada
+    // If client already exists, do nothing
     if (_serverClients.find(fd) != _serverClients.end())
         return ;
 
@@ -192,7 +192,7 @@ void    ServerLogic::serverAddClient(int fd)
 
 void ServerLogic::serverRemoveClient(int fd)
 {
-    // 1) Eliminar nickname registrado
+    // 1) Delete nickname mapping
     std::map<int, Client*>::iterator it = _serverClients.find(fd);
     if (it == _serverClients.end())
         return ;
@@ -202,7 +202,7 @@ void ServerLogic::serverRemoveClient(int fd)
     if (!client->getNickname().empty())
         _serverNicknames.erase(client->getNickname());
 
-    // 2) Eliminar de todos los canales en los que esté
+    // 2) Remove from all channels
     std::set<std::string> channelsCopy = client->getChannels();
 
     std::set<std::string>::const_iterator itCh = channelsCopy.begin();
@@ -216,9 +216,10 @@ void ServerLogic::serverRemoveClient(int fd)
         channel->removeClient(client);
         handleOperator(channel, client);
 
-        // Eliminar del lado del cliente
+        // Remove from the client's side
         client->leaveChannel(channel);
-
+        
+        // Delete channel if empty
         if (channel->getDeleteMe())
         {
             delete channel;
@@ -227,7 +228,7 @@ void ServerLogic::serverRemoveClient(int fd)
         itCh++;
     }
 
-    // 3) Borrar del mapa de fds y liberar memoria
+    // 3) Delete from server clients map and free memory
     _serverClients.erase(it);
     delete client;
 }
@@ -238,12 +239,16 @@ Channel*    ServerLogic::createChannel(const std::string& name, Client* creator)
     // Validate channel name
     if (!Parser::ft_checksinglechannel(name))
     {
+        std::string clientNickname = creator->getNickname();
+        if (clientNickname.empty())
+            clientNickname = "*";
+
         _prefix.clear();
         _prefix = ":" + _serverName + " ";
 
         _errorMsg.clear();
         _errorMsg = buildErrorMessage(_prefix +
-                                        messagesError[ERR_BADCHANMASK].code + " " + creator->getNickname() + " ",
+                                        messagesError[ERR_BADCHANMASK].code + " " + clientNickname,
                                         name,
                                         messagesError[ERR_BADCHANMASK].message);
         sendMessageToClient(creator, _errorMsg);
@@ -287,7 +292,7 @@ void    ServerLogic::executeCommand(const ParsedInput& input, int clientFd)
     if (input.name.empty() )
         return ;
     
-    // Primero, buscamos el cliente
+    // Look for client
     std::map<int, Client*>::iterator it = _serverClients.find(clientFd);
     if (it == _serverClients.end())
         return ;
