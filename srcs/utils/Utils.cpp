@@ -23,7 +23,7 @@ void initErrorMessages(void)
     messagesError[ERR_INVITEONLYCHAN]    = MessageInfo("473", "Cannot join channel (+i)");
     messagesError[ERR_CHANNELISFULL]     = MessageInfo("471", "Cannot join channel (+l)");
     messagesError[ERR_BADCHANNELKEY]     = MessageInfo("475", "Cannot join channel (+k)");
-    messagesError[ERR_BADCHANMASK]      = MessageInfo("448", "Bad Channel Mask");
+    messagesError[ERR_BADCHANMASK]      = MessageInfo("476", "Bad Channel Mask");
     messagesError[ERR_CHANOPRIVSNEEDED]  = MessageInfo("482", "You're not channel operator");
     messagesError[ERR_UNKNOWNMODEFLAG]   = MessageInfo("472", "Unknown mode flag");
     messagesError[ERR_NORECIPIENT]       = MessageInfo("411", "No recipient given (PRIVMSG)");

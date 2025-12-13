@@ -3,8 +3,8 @@
 // Handle INVITE command (review multi-channel invites) (Replies ready, Msg ready, Errors ready)
 void    ServerLogic::handleINVITE(Client* client, const ParsedInput& input)
 {
-    const std::string& channelName = input.params[0];
-    const std::string& nickname = input.params[1];
+    const std::string& nickname = input.params[0];
+    const std::string& channelName = input.params[1];
 
     std::string clientNickname = client->getNickname();
     if (clientNickname.empty())

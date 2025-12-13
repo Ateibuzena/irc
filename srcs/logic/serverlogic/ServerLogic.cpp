@@ -192,7 +192,7 @@ void    ServerLogic::serverAddClient(int fd)
 
 void ServerLogic::serverRemoveClient(int fd)
 {
-    // 1) Remove registered nickname
+    // 1) Eliminar nickname registrado
     std::map<int, Client*>::iterator it = _serverClients.find(fd);
     if (it == _serverClients.end())
         return ;
@@ -202,7 +202,7 @@ void ServerLogic::serverRemoveClient(int fd)
     if (!client->getNickname().empty())
         _serverNicknames.erase(client->getNickname());
 
-    // 2) Remove from all channels where the client is present
+    // 2) Eliminar de todos los canales en los que esté
     std::set<std::string> channelsCopy = client->getChannels();
 
     std::set<std::string>::const_iterator itCh = channelsCopy.begin();
@@ -218,7 +218,8 @@ void ServerLogic::serverRemoveClient(int fd)
 
         // Remove from the client's side
         client->leaveChannel(channel);
-
+        
+        // Delete channel if empty
         if (channel->getDeleteMe())
         {
             delete channel;
@@ -228,6 +229,7 @@ void ServerLogic::serverRemoveClient(int fd)
     }
 
     // 3) Delete client and remove from server map
+    // 3) Delete from server clients map and free memory
     _serverClients.erase(it);
     delete client;
 }
@@ -238,12 +240,17 @@ Channel*    ServerLogic::createChannel(const std::string& name, Client* creator)
     // Validate channel name
     if (!Parser::ft_checksinglechannel(name))
     {
+        std::cout << "[ERROR] Bad channel mask: " << name << "." << std::endl;
+        std::string clientNickname = creator->getNickname();
+        if (clientNickname.empty())
+            clientNickname = "*";
+
         _prefix.clear();
         _prefix = ":" + _serverName + " ";
 
         _errorMsg.clear();
         _errorMsg = buildErrorMessage(_prefix +
-                                        messagesError[ERR_BADCHANMASK].code + " " + creator->getNickname() + " ",
+                                        messagesError[ERR_BADCHANMASK].code + " " + clientNickname,
                                         name,
                                         messagesError[ERR_BADCHANMASK].message);
         sendMessageToClient(creator, _errorMsg);
@@ -287,7 +294,7 @@ void    ServerLogic::executeCommand(const ParsedInput& input, int clientFd)
     if (input.name.empty() )
         return ;
     
-    // First, get the client
+    // Look for client
     std::map<int, Client*>::iterator it = _serverClients.find(clientFd);
     if (it == _serverClients.end())
         return ;

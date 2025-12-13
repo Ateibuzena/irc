@@ -51,4 +51,4 @@ int main(int argc, char* argv[])
 //valgrind --leak-check=full --show-leak-kinds=all ./ircserv 6667 1
 //valgrind --leak-check=full --show-leak-kinds=all --track-fds=yes ./ircserv 6667 1 2>val.txt
 
-
+// antes de subir definitivo, borrar mje de DEBUG
