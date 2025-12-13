@@ -160,7 +160,7 @@ std::string ServerLogic::buildReplyMessage(std::string code,
     else if (target.empty() && aux.empty() && !msg.empty())
         fullMsg = ":" + _serverName + " " + code + " " + client->getNickname() + " :" + msg + "\r\n";
     else
-        fullMsg = "You're not supposed to go in here\r\n"; // POR AHORA MAMAHUEVA
+        fullMsg = "You're not supposed to go in here\r\n";
     return (fullMsg);
 }
 
@@ -192,7 +192,7 @@ void    ServerLogic::serverAddClient(int fd)
 
 void ServerLogic::serverRemoveClient(int fd)
 {
-    // 1) Eliminar nickname registrado
+    // 1) Delete nickname mapping
     std::map<int, Client*>::iterator it = _serverClients.find(fd);
     if (it == _serverClients.end())
         return ;
@@ -202,7 +202,7 @@ void ServerLogic::serverRemoveClient(int fd)
     if (!client->getNickname().empty())
         _serverNicknames.erase(client->getNickname());
 
-    // 2) Eliminar de todos los canales en los que esté
+    // 2) Remove from all channels
     std::set<std::string> channelsCopy = client->getChannels();
 
     std::set<std::string>::const_iterator itCh = channelsCopy.begin();
@@ -228,7 +228,6 @@ void ServerLogic::serverRemoveClient(int fd)
         itCh++;
     }
 
-    // 3) Delete client and remove from server map
     // 3) Delete from server clients map and free memory
     _serverClients.erase(it);
     delete client;
@@ -240,7 +239,6 @@ Channel*    ServerLogic::createChannel(const std::string& name, Client* creator)
     // Validate channel name
     if (!Parser::ft_checksinglechannel(name))
     {
-        std::cout << "[ERROR] Bad channel mask: " << name << "." << std::endl;
         std::string clientNickname = creator->getNickname();
         if (clientNickname.empty())
             clientNickname = "*";
