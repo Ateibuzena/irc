@@ -896,7 +896,7 @@ void    ServerLogic::handlePART(Client* client, const ParsedInput& input)
                                         channelName,
                                         messagesError[ERR_NOSUCHNICKCHANNEL].message);
             
-            // Enviar el mensaje de error al cliente
+            // Send the error message to the client
             return (sendMessageToClient(client, _errorMsg));
         }
         Channel* channel = it->second;
